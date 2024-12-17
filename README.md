@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://raw.githubusercontent.com/owl-app/timetracker/refs/heads/main/libs/app/core/src/assets/logo.webp" width="150px" alt="Owl logo" />
+    <img src="[https://raw.githubusercontent.com/owl-app/timetracker/refs/heads/main/libs/app/core/src/assets/logo.webp](https://raw.githubusercontent.com/owl-app/time-tracker/refs/heads/main/libs/app/core/src/assets/logo.webp)" width="150px" alt="Owl logo" />
 </p>
 
 # Time tracker
