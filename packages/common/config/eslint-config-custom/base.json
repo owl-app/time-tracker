@@ -1,0 +1,43 @@
+{
+  "extends": ["airbnb-base", "airbnb-typescript/base", "plugin:@nx/typescript"],
+  "plugins": ["@nx", "@typescript-eslint"],
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "extends": ["plugin:@nx/typescript"],
+      "rules": {
+        "@nx/enforce-module-boundaries": [
+          "error",
+          {
+            "enforceBuildableLibDependency": true,
+            "allow": ["@owl-app/*"],
+            "depConstraints": [
+              {
+                "sourceTag": "*",
+                "onlyDependOnLibsWithTags": ["*"]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["*.js"],
+      "extends": ["plugin:@nx/javascript"],
+      "rules": {}
+    },
+    {
+      "files": ["*.spec.ts", "*.spec.tsx", "*.spec.js"],
+      "env": {
+        "jest": true
+      },
+      "rules": {}
+    },
+    {
+      "files": ["**.test.ts"],
+      "rules": {
+        "@typescript-eslint/ban-ts-comment": "warn"
+      }
+    }
+  ]
+}

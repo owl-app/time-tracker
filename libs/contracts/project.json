@@ -1,0 +1,20 @@
+{
+  "name": "@owl-app/lib-contracts",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/contracts/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/contracts",
+        "tsConfig": "libs/contracts/tsconfig.lib.json",
+        "packageJson": "libs/contracts/package.json",
+        "main": "libs/contracts/src/index.ts",
+        "assets": ["libs/contracts/*.md"]
+      }
+    }
+  },
+  "tags": []
+}

@@ -1,0 +1,9 @@
+{
+  "name": "@owl-app/lib-app-module-project",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/app/modules/project/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project @owl-app/lib-app-module-project --web",
+  "targets": {}
+}

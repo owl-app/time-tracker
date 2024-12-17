@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true
+  },
+  "include": ["src", "jest.config.ts", "webpack.config.js", "webpack.sync.config.js"],
+  "exclude": ["node_modules"]
+}

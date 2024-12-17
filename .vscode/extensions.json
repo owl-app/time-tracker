@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "firsttris.vscode-jest-runner",
+    "vue.volar",
+    "dbaeumer.vscode-eslint",
+    "editorconfig.editorconfig"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "@owl-app/utils",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/common/utils/src",
+  "projectType": "library",
+  "targets": {
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "npx copyfiles -f \"dist/packages/common/utils/src/*\" dist/packages/common/utils/dist",
+            "forwardAllArgs": false
+          },
+          {
+            "command": "npx rimraf dist/packages/common/utils/src",
+            "forwardAllArgs": false
+          },
+          "node tools/scripts/publish.mjs @owl-app/registry-nestjs {args.ver} {args.tag}"
+        ],
+        "cwd": ".",
+        "parallel": false,
+        "packageDir": "{workspaceRoot}/dist/packages/common/utils/"
+      },
+      "dependsOn": ["build"]
+    }
+  },
+  "tags": []
+}

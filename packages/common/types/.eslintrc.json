@@ -1,0 +1,12 @@
+{
+  "extends": ["eslint-config-custom/base", "../../../.eslintrc.base.json"],
+  "ignorePatterns": ["!**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "parserOptions": {
+        "project": ["packages/common/types/tsconfig.eslint.json"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@owl-app/rbac-manager",
+  "dependencies": {
+    "@owl-app/registry": "^0.0.1",
+    "@nestjs/common": "^10.3.1"
+  },
+  "devDependencies": {
+    "tsconfig": "^0.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0 <=22.x.x",
+    "npm": ">=6.0.0"
+  }
+}

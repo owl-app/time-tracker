@@ -1,0 +1,9 @@
+{
+  "name": "@owl-app/lib-api-module-tag",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/api/modules/tag/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project test --web",
+  "targets": {}
+}

@@ -1,0 +1,28 @@
+{
+  "name": "@owl-app/lib-app-module-project",
+  "version": "0.0.1",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "dependencies": {
+    "@owl-app/utils": "^0.0.1",
+    "@owl-app/lib-app-core": "^0.0.1",
+    "@owl-app/lib-contracts": "^0.0.1",
+    "vue": "^3.3.4",
+    "vue-i18n": "^9.13.1",
+    "vuestic-ui": "^1.10.0"
+  },
+  "devDependencies": {
+    "@nx/vite": "19.5.3",
+    "@vitejs/plugin-vue": "^5.1.1",
+    "@modyfi/vite-plugin-yaml": "^1.1.0",
+    "@types/luxon": "^3.4.2",
+    "vite": "^5.3.5",
+    "vite-plugin-dts": "~3.8.1"
+  },
+  "exports": {
+    ".": {
+      "import": "./index.mjs",
+      "require": "./index.js"
+    }
+  }
+}

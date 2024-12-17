@@ -1,0 +1,15 @@
+{
+  "extends": ["eslint-config-custom/base", "../../../.eslintrc.base.json"],
+  "ignorePatterns": ["!**/*"],
+  "rules": {
+    "import/prefer-default-export": "off"
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "parserOptions": {
+        "project": ["packages/common/registry/tsconfig.eslint.json"]
+      }
+    }
+  ]
+}

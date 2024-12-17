@@ -1,0 +1,13 @@
+{
+  "root": true,
+  "extends": ["eslint-config-custom/front", "../../../../.eslintrc.base.json"],
+  "ignorePatterns": ["!**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx", "*.vue"],
+      "parserOptions": {
+        "project": ["libs/app/modules/time-tracker/tsconfig.eslint.json"]
+      }
+    }
+  ]
+}

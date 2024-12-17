@@ -1,0 +1,29 @@
+{
+  "name": "@owl-app/nestjs-query-typeorm",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/server/query/typeorm/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "npx copyfiles -f \"dist/packages/server/query/typeorm/src/*\" dist/packages/server/query/typeorm/dist",
+            "forwardAllArgs": false
+          },
+          {
+            "command": "npx rimraf dist/packages/server/query/typeorm/src",
+            "forwardAllArgs": false
+          },
+          "node tools/scripts/publish.mjs @owl-app/query-typeorm {args.ver} {args.tag}"
+        ],
+        "cwd": ".",
+        "parallel": false,
+        "packageDir": "{workspaceRoot}/dist/packages/server/query/typeorm/"
+      },
+      "dependsOn": ["build"]
+    }
+  }
+}

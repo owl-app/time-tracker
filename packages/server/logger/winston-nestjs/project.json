@@ -1,0 +1,29 @@
+{
+  "name": "@owl-app/winston-logger-nestjs",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/server/logger/winston-nestjs/src",
+  "projectType": "library",
+  "targets": {
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "npx copyfiles -f \"dist/packages/server/logger/winston-nestjs/src/*\" dist/packages/server/logger/winston-nestjs/dist",
+            "forwardAllArgs": false
+          },
+          {
+            "command": "npx rimraf dist/packages/server/logger/winston-nestjs/src",
+            "forwardAllArgs": false
+          },
+          "node tools/scripts/publish.mjs @owl-app/registry-nestjs {args.ver} {args.tag}"
+        ],
+        "cwd": ".",
+        "parallel": false,
+        "packageDir": "{workspaceRoot}/dist/packages/server/logger/winston-nestjs/"
+      },
+      "dependsOn": ["build"]
+    }
+  },
+  "tags": []
+}

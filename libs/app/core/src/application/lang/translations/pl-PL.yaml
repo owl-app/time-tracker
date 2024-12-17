@@ -1,0 +1,47 @@
+clients: Clients
+users: Users
+roles: Roles
+access_control: Access control
+permissions: Permissions
+time_tracker: Time tracker
+projects: Projects
+tags: Tags
+logout: Logout
+select_option: Select an option
+auth_module: Auth module
+user_module: User module
+client_module: Client module
+rbac_module: RBAC module
+assign_permissions: Assign permissions
+assign_permissions_to_role: Assign permissions to role
+validation:
+  field_is_required: Field is required
+  please_select_option: Please select an option
+  invalid_email_received: Invalid email received
+  project_is_required: Project is required
+item_delete_success: Item deleted successfully
+item_create_success: Item created successfully
+item_update_success: Item updated successfully
+item_archive_success: Item archived successfully
+item_restore_success: Item restored successfully
+vuestic:
+  sortColumnBy: Sort column by
+  toggleDropdown: Toggle dropdown
+  breadcrumbs: Breadcrumbs
+  pagination: Pagination
+  goToSpecificPage: Go to specific page
+  select: Select
+  selectedTime: Selected time
+error:
+  timer:
+    another_timer_is_running: Another timer is running
+    timer_is_not_running: Timer is not running
+errors:
+  unexpected_error: Unexpected error
+  forbidden_resource: Forbidden resource
+grid:
+  filters:
+    archived:
+      show_active: show active
+      show_archived: show archived
+      show_all: show all

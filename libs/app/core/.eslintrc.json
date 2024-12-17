@@ -1,0 +1,16 @@
+{
+  "root": true,
+  "extends": ["eslint-config-custom/front", "../../../.eslintrc.base.json"],
+  "ignorePatterns": ["!**/*"],
+  "rules": {
+    "import/no-cycle": "off"
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx", "*.vue"],
+      "parserOptions": {
+        "project": ["libs/app/core/tsconfig.eslint.json"]
+      }
+    }
+  ]
+}

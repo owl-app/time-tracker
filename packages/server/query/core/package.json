@@ -1,0 +1,20 @@
+{
+  "name": "@owl-app/nestjs-query-core",
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/typeorm": "^10.0.2",
+    "reflect-metadata": "^0.1.13",
+    "lodash.merge": "^4.6.2",
+    "class-transformer": "^0.5.1"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^10.0.2",
+    "@types/lodash.merge": "^4.6.9",
+    "tsconfig": "^0.0.1",
+    "ts-mockito": "2.6.1"
+  },
+  "engines": {
+    "node": ">=18.0.0 <=22.x.x",
+    "npm": ">=6.0.0"
+  }
+}

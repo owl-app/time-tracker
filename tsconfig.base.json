@@ -1,0 +1,43 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "baseUrl": ".",
+    "sourceMap": true,
+    "importHelpers": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "paths": {
+      "@owl-app/lib-api-core/*": ["libs/api/core/src/*"],
+      "@owl-app/lib-api-module-client/*": ["libs/api/modules/client/src/*"],
+      "@owl-app/lib-api-module-project/*": ["libs/api/modules/project/src/*"],
+      "@owl-app/lib-api-module-rbac/*": ["libs/api/modules/rbac/src/*"],
+      "@owl-app/lib-api-module-tag/*": ["libs/api/modules/tag/src/*"],
+      "@owl-app/lib-api-module-time-tracker/*": ["libs/api/modules/time-tracker/src/*"],
+      "@owl-app/lib-api-module-user-access/*": ["libs/api/modules/user-access/src/*"],
+      "@owl-app/lib-app-core/*": ["libs/app/core/src/*"],
+      "@owl-app/lib-app-module-auth/*": ["libs/app/modules/auth/src/*"],
+      "@owl-app/lib-app-module-client": ["libs/app/modules/client/src/index.ts"],
+      "@owl-app/lib-app-module-project": ["libs/app/modules/project/src/index.ts"],
+      "@owl-app/lib-app-module-rbac": ["libs/app/modules/rbac/src/index.ts"],
+      "@owl-app/lib-app-module-tag": ["libs/app/modules/tag/src/index.ts"],
+      "@owl-app/lib-app-module-time-tracker": ["libs/app/modules/time-tracker/src/index.ts"],
+      "@owl-app/lib-app-module-user/*": ["libs/app/modules/user/src/*"],
+      "@owl-app/lib-contracts": ["libs/contracts/src/index.ts"],
+      "@owl-app/nestjs-query-core": ["packages/server/query/core/src/index.ts"],
+      "@owl-app/nestjs-query-typeorm": ["packages/server/query/typeorm/src/index.ts"],
+      "@owl-app/rbac-manager": ["packages/server/rbac/manager/src/index.ts"],
+      "@owl-app/rbac-storage-typerom": ["packages/server/rbac/storage-typeorm/src/index.ts"],
+      "@owl-app/registry": ["packages/common/registry/src/index.ts"],
+      "@owl-app/registry-nestjs": ["packages/server/registry-nestjs/src/index.ts"],
+      "@owl-app/request-context-nestjs": [
+        "packages/server/http/request-context-nestjs/src/index.ts"
+      ],
+      "@owl-app/testing": ["packages/server/testing/src/index.ts"],
+      "@owl-app/types": ["packages/common/types/src/index.ts"],
+      "@owl-app/utils": ["packages/common/utils/src/index.ts"],
+      "@owl-app/winston-logger-nestjs": ["packages/server/logger/winston-nestjs/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

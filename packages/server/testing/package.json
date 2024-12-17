@@ -1,0 +1,16 @@
+{
+  "name": "@owl-app/testing",
+  "version": "0.0.1",
+  "type": "module",
+  "dependencies": {
+    "typeorm": "^0.3.20",
+    "typeorm-extension": "^3.6.3",
+    "@nestjs/testing": "^10.0.2",
+    "supertest": "^7.0.0",
+    "@nestjs/typeorm": "^10.0.2"
+  },
+  "devDependencies": {
+  },
+  "main": "./src/index.js",
+  "typings": "./src/index.d.ts"
+}

@@ -1,0 +1,16 @@
+{
+  "root": true,
+  "extends": ["eslint-config-custom/base", "../../.eslintrc.base.json"],
+  "ignorePatterns": ["!**/*"],
+  "rules": {
+    "import/no-cycle": "off"
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "parserOptions": {
+        "project": ["libs/contracts/tsconfig.eslint.json"]
+      }
+    }
+  ]
+}

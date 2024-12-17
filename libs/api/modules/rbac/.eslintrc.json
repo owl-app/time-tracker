@@ -1,0 +1,12 @@
+{
+  "extends": ["eslint-config-custom/server", "../../../../.eslintrc.base.json"],
+  "ignorePatterns": ["!**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "parserOptions": {
+        "project": ["libs/api/modules/rbac/tsconfig.eslint.json"]
+      }
+    }
+  ]
+}

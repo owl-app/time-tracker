@@ -1,0 +1,6 @@
+{
+  "singleQuote": true,
+  "proseWrap": "never",
+  "quoteProps": "consistent",
+  "printWidth": 100
+}

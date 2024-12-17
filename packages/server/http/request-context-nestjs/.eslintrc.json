@@ -1,0 +1,12 @@
+{
+  "extends": ["eslint-config-custom/server", "../../../../.eslintrc.base.json"],
+  "ignorePatterns": ["!**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "parserOptions": {
+        "project": ["packages/server/http/request-context-nestjs/tsconfig.eslint.json"]
+      }
+    }
+  ]
+}

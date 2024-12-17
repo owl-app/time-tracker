@@ -1,0 +1,29 @@
+{
+  "name": "@owl-app/registry",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/common/registry/src",
+  "projectType": "library",
+  "targets": {
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "npx copyfiles -f \"dist/packages/common/registry/src/*\" dist/packages/common/registry/dist",
+            "forwardAllArgs": false
+          },
+          {
+            "command": "npx rimraf dist/packages/common/registry/src",
+            "forwardAllArgs": false
+          },
+          "node tools/scripts/publish.mjs @owl-app/registry {args.ver} {args.tag}"
+        ],
+        "cwd": ".",
+        "parallel": false,
+        "packageDir": "{workspaceRoot}/dist/packages/common/registry/"
+      },
+      "dependsOn": ["build"]
+    }
+  },
+  "tags": []
+}

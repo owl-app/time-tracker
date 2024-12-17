@@ -1,0 +1,9 @@
+{
+  "name": "@owl-app/lib-api-module-rbac",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/api/modules/rbac/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project test --web",
+  "targets": {}
+}

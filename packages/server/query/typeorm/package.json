@@ -1,0 +1,34 @@
+{
+  "name": "@owl-app/nestjs-query-typeorm",
+  "dependencies": {
+    "@owl-app/query-core": "^0.0.1",
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^10.0.0",
+    "@nestjs/swagger": "^7.0.0",
+    "@nestjs/typeorm": "^10.0.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "typeorm": "^0.3.20",
+    "uuid": "^9.0.1",
+    "change-case-all": "^2.1.0",
+    "lodash.filter": "^4.6.0",
+    "lodash.merge": "^4.6.2",
+    "lodash.omit": "^4.5.0"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^10.0.2",
+    "@nestjs/typeorm": "^10.0.2",
+    "@types/lodash.filter": "^4.6.9",
+    "@types/lodash.merge": "^4.6.9",
+    "@types/lodash.omit": "^4.5.9",
+    "@types/uuid": "^9.0.8",
+    "sql-formatter": "^15.4.6",
+    "tsconfig": "^0.0.1",
+    "ts-mockito": "2.6.1",
+    "sqlite3": "^5.1.7"
+  },
+  "engines": {
+    "node": ">=18.0.0 <=22.x.x",
+    "npm": ">=6.0.0"
+  }
+}
