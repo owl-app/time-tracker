@@ -6,7 +6,7 @@ tmp
 # app
 .env.development
 .env.production
-.env.e2e.locale
+.env.e2e.local
 
 # dependencies
 node_modules
