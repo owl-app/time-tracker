@@ -14,8 +14,8 @@
     "build:api": "cross-env NODE_ENV=production env-cmd -f .env.production npx nx build api",
     "start:build": "cross-env NODE_ENV=production env-cmd -f .env.production bun dist/apps/api/main.js",
     "lint": "yarn nx run-many --target=lint",
-    "prettier:check": "npx prettier . --check",
-    "prettier:write": "npx prettier . --write",
+    "format:check": "npx prettier . --check",
+    "format:write": "npx prettier . --write",
     "data:sync": "npx nx build:sync api && npx nx data:sync api",
     "e2e": "cross-env NODE_ENV=development env-cmd -f .env.development npx nx run-many --target=e2e"
   },

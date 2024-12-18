@@ -5,8 +5,13 @@ import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 
 import { APP_CONFIG_NAME, IConfigApp } from '@owl-app/lib-api-core/config';
-import RbacSeeder from '@owl-app/lib-api-core/seeds/Rbac';
-import createUserSeeder from '@owl-app/lib-api-core/seeds/User';
+import {
+  AdminSystemRoleSeeder,
+  AdminCompanyRoleSeeder,
+  UserRoleSeeder,
+} from '@owl-app/lib-api-core/seeds/rbac';
+import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
+import createUserSeeder from '@owl-app/lib-api-core/seeds/user';
 
 import { BootstrapModule } from '../app/bootstrap.module';
 
@@ -21,7 +26,12 @@ async function runSeeder() {
 
   await runSeeders(dataSource, {
     seedTracking: process.env.APP_ENV === 'dev',
-    seeds: [RbacSeeder, createUserSeeder(passwordBcryptSaltRounds)],
+    seeds: [
+      AdminSystemRoleSeeder,
+      AdminCompanyRoleSeeder,
+      UserRoleSeeder,
+      createUserSeeder(dataUsers, passwordBcryptSaltRounds),
+    ],
   });
 
   await app.close();
