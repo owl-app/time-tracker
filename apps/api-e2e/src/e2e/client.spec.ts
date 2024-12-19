@@ -19,7 +19,7 @@ describe('Client (e2e)', () => {
     app = await createTest('client');
   });
 
-  // afterAll(async () => {
+  afterAll(async () => {
     await destroy(app);
   });
 
