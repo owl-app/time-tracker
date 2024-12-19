@@ -33,10 +33,9 @@ describe('Client (e2e)', () => {
     beforeEach(async () => {
       agent = await createAgent(app, dataUsers[user].email);
     });
-  
+
     it(`should list clients ${user}`, async () => {
-      const response = await agent
-        .get('/clients');
+      const response = await agent.get('/clients');
 
       expect(response.status).toEqual(status);
 

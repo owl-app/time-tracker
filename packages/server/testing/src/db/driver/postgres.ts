@@ -1,11 +1,16 @@
-import { PostgresDriver } from "typeorm/driver/postgres/PostgresDriver";
-import { buildDriverOptions, createDriver, createSimplePostgresConnection, DatabaseDropContext, executeSimplePostgresQuery, OptionsError } from "typeorm-extension";
+import { PostgresDriver } from 'typeorm/driver/postgres/PostgresDriver';
+import {
+  buildDriverOptions,
+  createDriver,
+  createSimplePostgresConnection,
+  DatabaseDropContext,
+  executeSimplePostgresQuery,
+  OptionsError,
+} from 'typeorm-extension';
 
-export async function truncatePostgresDatabase(
-  context?: DatabaseDropContext,
-) {
+export async function truncatePostgresDatabase(context?: DatabaseDropContext) {
   if (!context.options) {
-      throw OptionsError.undeterminable();
+    throw OptionsError.undeterminable();
   }
 
   const options = buildDriverOptions(context.options);
@@ -25,7 +30,7 @@ export async function truncatePostgresDatabase(
           END LOOP;
       END
     $$;
-  `
+  `;
 
   return executeSimplePostgresQuery(connection, query);
 }

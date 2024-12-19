@@ -1,11 +1,11 @@
 {
-    "jest.nodeEnv": {
-        "DB_HOST": "localhost",
-        "DB_PORT": 3306,
-        "DB_USER": "test",
-        "DB_PASS": "test",
-        "DB_TIMEZONE": "Z",
-        "DB_SYNCHRONIZE": true
-    },
-    "jest.runMode": "on-demand"
+  "jest.nodeEnv": {
+    "DB_HOST": "localhost",
+    "DB_PORT": 3306,
+    "DB_USER": "test",
+    "DB_PASS": "test",
+    "DB_TIMEZONE": "Z",
+    "DB_SYNCHRONIZE": true
+  },
+  "jest.runMode": "on-demand"
 }

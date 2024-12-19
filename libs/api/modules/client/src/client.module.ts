@@ -22,7 +22,6 @@ import { ListFilterBuilder } from './client/features/v1/crud/list-filter.builder
 import { ClientEntity } from './domain/entity/client.entity';
 import { ArchiveControllerController } from './client/features/v1/archive/archive.http.controller';
 
-
 @Module({
   imports: [
     RbacTypeOrmModule.forFeature({}),

@@ -46,7 +46,11 @@ export class AdminCompanyRoleSeeder extends BaseRole {
       ...this.getPermissionsByCollection<typeof UserActions>(
         AvalilableCollections.USER,
         UserActions
-      ).filter((permission) => permission.name !== this.getRouteName(AvalilableCollections.USER, UserActions.ASSIGN_ACCESS)),
+      ).filter(
+        (permission) =>
+          permission.name !==
+          this.getRouteName(AvalilableCollections.USER, UserActions.ASSIGN_ACCESS)
+      ),
 
       // role
       this.getRoutePermission(AvalilableCollections.ROLE, RoleActions.AVAILABLE),

@@ -18,7 +18,6 @@ import BaseRole from './base.role';
 export class UserRoleSeeder extends BaseRole {
   public async run(dataSource: DataSource): Promise<void> {
     // const repository = dataSource.getRepository(ROLE_ENTITY);
-
     // const permissions: Permission[] = [
     //   ...this.getCrudPermissions(),
     //   ...this.getPermissionsByCollection<typeof UserActions>(
@@ -52,14 +51,12 @@ export class UserRoleSeeder extends BaseRole {
     //     CommonActions
     //   ),
     // ];
-
     // const roleAdmin = {
     //   name: RolesEnum.ROLE_ADMIN_SYSTEM,
     //   description: 'Admin role',
     //   permissions,
     //   setting: { displayName: 'Admin' },
     // };
-
     // await repository.save(roleAdmin);
   }
 }

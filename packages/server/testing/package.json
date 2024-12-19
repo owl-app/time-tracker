@@ -9,8 +9,7 @@
     "supertest": "^7.0.0",
     "@nestjs/typeorm": "^10.0.2"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "main": "./src/index.js",
   "typings": "./src/index.d.ts"
 }

@@ -28,9 +28,7 @@ export interface BootstrapOptions {
   prefix?: string;
 }
 
-export async function bootstrap(
-  options: BootstrapOptions
-): Promise<INestApplication> {
+export async function bootstrap(options: BootstrapOptions): Promise<INestApplication> {
   await dbInitializer(options.db);
 
   const moduleRef = await Test.createTestingModule({

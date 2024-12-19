@@ -5,10 +5,6 @@ import { UserModule } from './user/user.module';
 import { TenantModule } from './tenant/tenant.module';
 
 @Module({
-  imports: [
-    AuthModule,
-    TenantModule,
-    UserModule,
-  ],
+  imports: [AuthModule, TenantModule, UserModule],
 })
 export class UserAccessModule {}

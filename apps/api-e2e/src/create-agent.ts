@@ -16,19 +16,21 @@ export async function createAgent(app: INestApplication, email: string): Promise
   const jwtTokenService = app.get<IJwtTokenService<User>>(IJwtTokenService);
   const token = await jwtTokenService.getJwtToken(email);
 
-  return request.agent(app.getHttpServer())
+  return request
+    .agent(app.getHttpServer())
     .use((req: Request) => {
       if (req.url[0] === '/') {
         req.url = `${fullPrefix}/${version}${req.url}`;
         return req;
       }
-  
+
       const protocol = req.url.substring(0, req.url.indexOf('://') + 3);
       const path = req.url.substring(req.url.indexOf('://') + 3, req.url.length);
-      const newPath = path.substring(0, path.indexOf('/')) +
+      const newPath =
+        path.substring(0, path.indexOf('/')) +
         fullPrefix +
         path.substring(path.indexOf('/'), path.length);
-  
+
       req.url = protocol + newPath;
 
       return req;

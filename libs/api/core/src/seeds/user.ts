@@ -17,7 +17,8 @@ export default function createUserSeeder(
       const users: Partial<User>[] = [];
 
       await dataSource.transaction(async (manager) => {
-          await Promise.all(Object.values(dataUsers).map(async (user) => {
+        await Promise.all(
+          Object.values(dataUsers).map(async (user) => {
             user.passwordHash = await bcrypt.hash(user.password, passwordBcryptSaltRounds);
             user.roles = user.roles.map((role) => ({ name: role.name } as Role));
 
@@ -26,9 +27,10 @@ export default function createUserSeeder(
             }
 
             users.push(omit(user, 'password'));
-          }))
+          })
+        );
 
-          await manager.save(USER_ENTITY, users);
+        await manager.save(USER_ENTITY, users);
       });
     }
   };

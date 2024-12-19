@@ -39,9 +39,14 @@ export class BootstrapModule implements BootstrapModule {
           isGlobal: true,
           // this not work in nx
           envFilePath: [`.env.${process.env.NODE_ENV}`, `.env`],
-          load: [...config, ...[
-            registerAs('db', () => Object.assign(getDbConfig(dbName), { autoLoadEntities: true }))
-          ]],
+          load: [
+            ...config,
+            ...[
+              registerAs('db', () =>
+                Object.assign(getDbConfig(dbName), { autoLoadEntities: true })
+              ),
+            ],
+          ],
         }),
         DatabaseModule,
         WinstonLoggerModule.forRootAsync({
