@@ -1,47 +1,60 @@
-import request from 'supertest';
-
 import TestAgent from 'supertest/lib/agent';
 
 import { INestApplication } from '@nestjs/common';
 
 import { destroy } from '@owl-app/testing';
+import { Client } from '@owl-app/lib-contracts';
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
 
 import { createTest } from '../create-test';
 import { createAgent } from '../create-agent';
-import { IJwtTokenService } from '@owl-app/lib-api-core/passport/jwt-token.interface';
-import { User } from '@owl-app/lib-contracts';
+import clientSeederFactory from './seeds/client/client.factory';
+import ClientSeeder from './seeds/client/client.seed';
 
 describe('Client (e2e)', () => {
   let app: INestApplication;
 
+  // Local test data used across the test suite
+  const testData: { clients: Client[] } = {
+    clients: [],
+  };
+
   beforeAll(async () => {
-    app = await createTest('client');
+    app = await createTest({
+      dbName: 'client',
+      seeds: [ClientSeeder],
+      factories: [clientSeederFactory],
+    });
   });
 
-  afterAll(async () => {
-    await destroy(app);
-  });
+  // afterAll(async () => {
+  //   await destroy(app);
+  // });
 
   describe.each([
     ['adminSystem', 200],
     ['adminCompany', 200],
     ['user', 403],
-  ])('Subtraction', (user, status) => {
+  ])('Client list (e2e)', (user, status) => {
     let agent: TestAgent;
 
     beforeEach(async () => {
       agent = await createAgent(app, dataUsers[user].email);
     });
 
-    it(`should list clients ${user}`, async () => {
+    it(`should list clients ${user} by permissions `, async () => {
       const response = await agent.get('/clients');
 
       expect(response.status).toEqual(status);
 
       if (status === 200) {
-        expect(response.body).toHaveProperty('metadata.total', 0);
-        expect(response.body).toHaveProperty('items', []);
+        expect(response.body).toHaveProperty(
+          'metadata.total',
+          response.body.items.filter(
+            (client: Client) => dataUsers[user].tenant.id === client.tenant.id
+          ).length
+        );
+        expect(response.body).toHaveProperty('items');
       }
     });
   });

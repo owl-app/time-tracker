@@ -1,4 +1,4 @@
-import { SeederConstructor } from 'typeorm-extension';
+import { SeederConstructor, SeederFactoryItem } from 'typeorm-extension';
 import { ConfigService } from '@nestjs/config';
 
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
@@ -15,13 +15,20 @@ export function getSeeds(seeds: SeederConstructor[] = []) {
     const { passwordBcryptSaltRounds } = configService.get<IConfigApp>(APP_CONFIG_NAME);
 
     return [
-      ...seeds,
       ...[
         AdminSystemRoleSeeder,
         AdminCompanyRoleSeeder,
         UserRoleSeeder,
         createUserSeeder(dataUsers, passwordBcryptSaltRounds),
       ],
+      ...seeds,
     ];
   };
+}
+
+export function getFactoriesSeeds(factories: SeederFactoryItem[] = []) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  return (configService: ConfigService): SeederFactoryItem[] => [
+      ...factories,
+    ]
 }

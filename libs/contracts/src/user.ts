@@ -4,7 +4,7 @@ import { Timestampable } from './timestampable';
 
 export interface User extends Timestampable {
   id: string;
-  tenant: Partial<Tenant>;
+  tenant: Tenant;
   email: string;
   username?: string;
   firstName?: string;

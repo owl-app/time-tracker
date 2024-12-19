@@ -1,5 +1,5 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
-import { SeederConstructor } from 'typeorm-extension';
+import { SeederConstructor, SeederFactoryItem } from 'typeorm-extension';
 import { urlencoded, json } from 'express';
 import cookieParser from 'cookie-parser';
 
@@ -20,10 +20,15 @@ import { Class } from '@owl-app/types';
 import { dbInitializer } from './db/initializer';
 import { dbSeeder } from './db/seeder';
 
+export interface SeedOptions {
+  seeds: (configService: ConfigService) => SeederConstructor[];
+  factories: (configService: ConfigService) => SeederFactoryItem[];
+}
+
 export interface BootstrapOptions {
   modules: Array<Type<any> | DynamicModule | Promise<DynamicModule> | ForwardReference>;
   db: DataSourceOptions;
-  getSeeds: (configService: ConfigService) => SeederConstructor[];
+  seed: SeedOptions;
   guards?: Class<CanActivate>[];
   prefix?: string;
 }
@@ -40,7 +45,11 @@ export async function bootstrap(options: BootstrapOptions): Promise<INestApplica
   });
   const configService = app.get(ConfigService);
 
-  await dbSeeder(app.get(DataSource), options.getSeeds(configService));
+  await dbSeeder(
+    app.get(DataSource),
+    options?.seed?.seeds(configService) ?? [],
+    options?.seed?.factories(configService) ?? []
+  );
 
   if (options.prefix) {
     app.setGlobalPrefix(options.prefix);

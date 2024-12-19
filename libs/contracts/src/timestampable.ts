@@ -1,4 +1,4 @@
 export interface Timestampable {
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }

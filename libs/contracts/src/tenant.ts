@@ -4,7 +4,7 @@ import { User } from './user';
 export type Tenant = Timestampable & {
   id: string;
   name: string;
-  users: Partial<User>[];
+  users?: Partial<User>[];
 };
 
 export type TenantAware = {

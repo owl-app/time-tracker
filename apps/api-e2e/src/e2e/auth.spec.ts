@@ -15,13 +15,13 @@ describe('Auth (e2e)', () => {
   let configService: ConfigService;
 
   beforeAll(async () => {
-    app = await createTest('auth');
+    app = await createTest({ dbName: 'auth' });
     configService = app.get(ConfigService);
   });
 
-  afterAll(async () => {
-    await destroy(app);
-  });
+  // afterAll(async () => {
+  //   await destroy(app);
+  // });
 
   describe.each([['adminSystem'], ['adminCompany'], ['user']])('Subtraction', (user) => {
     it(`should login user ${user}`, async () => {

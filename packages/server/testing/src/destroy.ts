@@ -6,4 +6,6 @@ export async function destroy(app: INestApplication): Promise<void> {
   const dataSource = app.get(DataSource);
 
   await dropDatabase({ options: dataSource.options });
+
+  app.close();
 }
