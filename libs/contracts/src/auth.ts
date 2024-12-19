@@ -5,7 +5,7 @@ export type AuthUserData = {
   id: string;
   username: string;
   email: string;
-  tenant: Tenant;
+  tenant: Partial<Tenant>;
   roles: string[];
   permissions: {
     routes: string[];

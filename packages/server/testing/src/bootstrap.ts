@@ -4,6 +4,7 @@ import { urlencoded, json } from 'express';
 import cookieParser from 'cookie-parser';
 
 import {
+  CanActivate,
   ClassSerializerInterceptor,
   DynamicModule,
   ForwardReference,
@@ -14,34 +15,38 @@ import { Test } from '@nestjs/testing';
 import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 
-import { APP_CONFIG_NAME, IConfigApp } from '@owl-app/lib-api-core/config';
-import { JwtAuthGuard } from '@owl-app/lib-api-core/passport/jwt.guard';
-import { RoutePermissionGuard } from '@owl-app/lib-api-core/rbac/guards/route-permission.guard';
+import { Class } from '@owl-app/types';
 
 import { dbInitializer } from './db/initializer';
 import { dbSeeder } from './db/seeder';
 
+export interface BootstrapOptions {
+  modules: Array<Type<any> | DynamicModule | Promise<DynamicModule> | ForwardReference>;
+  db: DataSourceOptions;
+  getSeeds: (configService: ConfigService) => SeederConstructor[];
+  guards?: Class<CanActivate>[];
+  prefix?: string;
+}
+
 export async function bootstrap(
-  modules: Array<Type<any> | DynamicModule | Promise<DynamicModule> | ForwardReference>,
-  dbOptions: DataSourceOptions,
-  getSeeds: (configService: ConfigService) => SeederConstructor[]
+  options: BootstrapOptions
 ): Promise<INestApplication> {
-  await dbInitializer(dbOptions);
+  await dbInitializer(options.db);
 
   const moduleRef = await Test.createTestingModule({
-    imports: modules,
+    imports: options.modules,
   }).compile();
 
   const app = moduleRef.createNestApplication({
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });
   const configService = app.get(ConfigService);
-  const { version, prefix } = configService.get<IConfigApp>(APP_CONFIG_NAME);
-  const globalPrefix = `${prefix}/${version}`;
 
-  await dbSeeder(app.get(DataSource), getSeeds(configService));
+  await dbSeeder(app.get(DataSource), options.getSeeds(configService));
 
-  app.setGlobalPrefix(globalPrefix);
+  if (options.prefix) {
+    app.setGlobalPrefix(options.prefix);
+  }
 
   const allowedHeaders = [
     'Authorization',
@@ -74,8 +79,8 @@ export async function bootstrap(
   });
 
   const reflector = app.get(Reflector);
-  app.useGlobalGuards(new JwtAuthGuard(reflector));
-  app.useGlobalGuards(new RoutePermissionGuard(reflector));
+
+  options.guards.forEach((Guard) => app.useGlobalGuards(new Guard(reflector)));
 
   await app.init();
 

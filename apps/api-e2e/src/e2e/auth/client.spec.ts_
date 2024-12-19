@@ -5,8 +5,9 @@ import { INestApplication } from '@nestjs/common';
 import { User } from '@owl-app/lib-contracts';
 import { destroy } from '@owl-app/testing';
 import { IJwtTokenService, Token } from '@owl-app/lib-api-core/passport/jwt-token.interface';
+import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
 
-import { createTest } from '../create-test';
+import { createTest } from '../../create-test';
 
 describe('Client (e2e)', () => {
   let app: INestApplication;
@@ -15,8 +16,9 @@ describe('Client (e2e)', () => {
 
   beforeAll(async () => {
     app = await createTest('client', );
+    token = createToken(app, dataUsers.adminSystem.email)
     jwtTokenService = app.get<IJwtTokenService<User>>(IJwtTokenService);
-    token = await jwtTokenService.getJwtToken('role_admin@wp.pl');
+    token = await jwtTokenService.getJwtToken(dataUsers.adminSystem.email);
     console.log(token);
   });
 

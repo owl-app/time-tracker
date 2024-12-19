@@ -6,7 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { Role, User } from '@owl-app/lib-contracts';
 
 import { UserData } from './data/users';
-import { USER_ENTITY } from '../entity-tokens';
+import { TENANT_ENTITY, USER_ENTITY } from '../entity-tokens';
 
 export default function createUserSeeder(
   dataUsers: UserData,
@@ -20,6 +20,10 @@ export default function createUserSeeder(
           await Promise.all(Object.values(dataUsers).map(async (user) => {
             user.passwordHash = await bcrypt.hash(user.password, passwordBcryptSaltRounds);
             user.roles = user.roles.map((role) => ({ name: role.name } as Role));
+
+            if (user.tenant) {
+              await manager.save(TENANT_ENTITY, user.tenant);
+            }
 
             users.push(omit(user, 'password'));
           }))

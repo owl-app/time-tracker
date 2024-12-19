@@ -4,7 +4,7 @@ import { INestApplication } from '@nestjs/common';
 
 import { destroy } from '@owl-app/testing';
 
-import { createTest } from '../create-test';
+import { createTest } from '../../create-test';
 
 describe('Time (e2e)', () => {
   let app: INestApplication;
