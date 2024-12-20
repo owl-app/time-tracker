@@ -4,6 +4,7 @@ export default {
   preset: '../../jest.preset.js',
   globalSetup: '<rootDir>/src/support/global-setup.ts',
   globalTeardown: '<rootDir>/src/support/global-teardown.ts',
+  setupFilesAfterEnv: ['<rootDir>/src/support/setup.ts'],
   testEnvironment: 'node',
   transform: {
     '^.+\\.[tj]s$': [

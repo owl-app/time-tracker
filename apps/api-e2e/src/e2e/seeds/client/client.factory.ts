@@ -2,15 +2,19 @@ import { setSeederFactory } from 'typeorm-extension';
 
 import { ClientEntitySchema } from '@owl-app/lib-api-module-client/database/entity-schema/client.entity-schema';
 import { ClientEntity } from '@owl-app/lib-api-module-client/domain/entity/client.entity';
-import { randUserTenant } from '../../../utils/rand';
 
-export default setSeederFactory(ClientEntitySchema, (faker) => {
+import { generateWithoutWords } from '../../../utils/unique';
+
+export default setSeederFactory(ClientEntitySchema, (faker, meta: { unique: string }) => {
     const user = new ClientEntity();
 
-    user.name = faker.company.name();
-    user.tenant = randUserTenant();
+    if(meta.unique) {
+        user.name = generateWithoutWords(faker.company.name, (meta.unique.split(/\s+/)));
+    } else {
+        user.name = faker.company.name();
+    }
 
-    console.log(user);
+    user.archived = faker.datatype.boolean();
 
     return user;
 })

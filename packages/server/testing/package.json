@@ -9,7 +9,9 @@
     "supertest": "^7.0.0",
     "@nestjs/typeorm": "^10.0.2"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "jest": "29.7.0"
+  },
   "main": "./src/index.js",
   "typings": "./src/index.d.ts"
 }

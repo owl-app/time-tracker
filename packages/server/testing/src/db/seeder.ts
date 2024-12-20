@@ -6,7 +6,6 @@ export async function dbSeeder(
   seeds: SeederConstructor[],
   factories?: SeederFactoryItem[]
 ) {
-  console.log('factoriesssssssssssssss', factories)
   await runSeeders(dataSource, {
     seedTracking: process.env.APP_ENV === 'dev',
     seeds,
