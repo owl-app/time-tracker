@@ -1,8 +1,10 @@
 import { Role, RolesEnum, User } from '@owl-app/lib-contracts';
 
-export type UserData = Record<string, Partial<User & { password: string }>>;
+export type UserTypes = 'adminSystem'|'adminCompany'|'user';
 
-export const dataUsers: Record<string, Partial<User & { password: string }>> = {
+export type UserData = Record<UserTypes, Partial<User & { password: string }>>;
+
+export const dataUsers: Record<UserTypes, Partial<User & { password: string }>> = {
   adminSystem: {
     email: 'admin_system@example.com',
     firstName: 'Admin',

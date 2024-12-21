@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { destroy } from '@owl-app/testing';
 import { getMilliseconds } from '@owl-app/lib-api-core/utils/get-milliseconds';
 import { IJwtConfig, JWT_CONFIG_NAME } from '@owl-app/lib-api-core/config';
-import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
+import { dataUsers, UserTypes } from '@owl-app/lib-api-core/seeds/data/users';
 
 import { createTest } from '../create-test';
 
@@ -19,11 +19,11 @@ describe('Auth (e2e)', () => {
     configService = app.get(ConfigService);
   });
 
-  // afterAll(async () => {
-  //   await destroy(app);
-  // });
+  afterAll(async () => {
+    await destroy(app);
+  });
 
-  describe.each([['adminSystem'], ['adminCompany'], ['user']])('Subtraction', (user) => {
+  describe.each<[UserTypes]>([['adminSystem'], ['adminCompany'], ['user']])('Login by role', (user) => {
     it(`should login user ${user}`, async () => {
       const { refreshTokenExpirationTime, expirationTime } =
         configService.get<IJwtConfig>(JWT_CONFIG_NAME);

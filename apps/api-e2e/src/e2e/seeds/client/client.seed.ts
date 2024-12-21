@@ -9,9 +9,19 @@ export default class ClientSeeder implements Seeder {
   public async run(dataSource: DataSource, factoryManager: SeederFactoryManager): Promise<any> {
     const userFactory = await factoryManager.get(ClientEntitySchema);
 
-    userFactory.setMeta({ unique: 'Unique company name' });
-    await userFactory.saveMany(1, { id: uniqueClientId.adminSystem, name: uniqueClientName, tenant: dataUsers.adminSystem.tenant, archived: false });
-    await userFactory.saveMany(1, { id: uniqueClientId.adminCompany, name: uniqueClientName, tenant: dataUsers.adminCompany.tenant, archived: false });
+    userFactory.setMeta({ unique: uniqueClientName});
+    await userFactory.saveMany(1, {
+      id: uniqueClientId.adminSystem,
+      name: uniqueClientName,
+      tenant: dataUsers.adminSystem.tenant,
+      archived: false,
+    });
+    await userFactory.saveMany(1, {
+      id: uniqueClientId.adminCompany,
+      name: uniqueClientName,
+      tenant: dataUsers.adminCompany.tenant,
+      archived: false,
+    });
 
     userFactory.setMeta({});
     await userFactory.saveMany(5, {
