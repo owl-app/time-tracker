@@ -29,7 +29,7 @@
           :required-mark="true"
         />
         <va-textarea
-          v-model="data.ref.addess"
+          v-model="data.ref.address"
           label="address"
           min-rows="5"
           name="address"

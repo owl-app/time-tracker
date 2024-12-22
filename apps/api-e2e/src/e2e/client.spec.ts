@@ -10,7 +10,7 @@ import { createTest } from '../create-test';
 import { createAgent } from '../create-agent';
 import clientSeederFactory from './seeds/client/client.factory';
 import ClientSeeder from './seeds/client/client.seed';
-import { uniqueClientId, uniqueClientName } from './seeds/client/unique';
+import { uniqueClientName } from './seeds/client/unique';
 
 describe('Client (e2e)', () => {
   let app: INestApplication;
@@ -33,7 +33,7 @@ describe('Client (e2e)', () => {
       adminSystem: {},
       adminCompany: {},
       // set it earlier because it will never be created
-      user: { id: '123'}
+      user: { id: '123' },
     },
   };
 
@@ -65,7 +65,7 @@ describe('Client (e2e)', () => {
       ['adminCompany', 201],
       ['user', 403],
     ])('create by role', (user, status) => {
-      it(`should ${user} ${status !== 200 ? 'not created)' : 'created'} client`, async () => {
+      it(`should ${user} ${status !== 200 ? 'not create' : 'create'} client`, async () => {
         const client = {
           name: `Test Client ${user}`,
         };
@@ -74,8 +74,12 @@ describe('Client (e2e)', () => {
         expect(response.status).toEqual(status);
 
         if (status === 201) {
-          expect(response.body.name).toEqual(client.name);
-          expect(response.body.archived).toEqual(false);
+          expect(response.body).toEqual(
+            expect.objectContaining({
+              ...client,
+              archived: false,
+            })
+          );
           expect(response.body).toMatchObject({
             id: expect.any(String),
             name: expect.any(String),
@@ -90,6 +94,49 @@ describe('Client (e2e)', () => {
           // Using as an example for the rest of the tests
           testData.clientCreated[user as Exclude<UserTypes, 'user'>] = response.body;
         }
+      });
+    });
+
+    // run first we need data to compare for rest of the tests
+    describe('Client update (e2e)', () => {
+      describe.each<[UserTypes, UserTypes, number]>([
+        ['adminSystem', 'adminSystem', 202],
+        ['adminCompany', 'adminCompany', 202],
+        ['adminCompany', 'adminSystem', 404],
+        ['user', 'user', 403],
+      ])('update by role', (user, updateUser, status) => {
+        it(`should ${user} ${status !== 200 ? 'not update' : 'update'} client`, async () => {
+          const client = {
+            name: `Updated Client ${user}`,
+            email: 'test@wp.pl',
+            address: 'Test address',
+            description: 'Test description',
+          };
+          const response = await agentsByRole[user]
+            .put(`/clients/${testData.clientCreated[updateUser]?.id}`)
+            .send(client);
+
+          expect(response.status).toEqual(status);
+
+          if (status === 202) {
+            expect(response.body).toEqual(expect.objectContaining(client));
+            expect(response.body).toMatchObject({
+              id: expect.any(String),
+              name: expect.any(String),
+              email: expect.toBeOneOf([expect.any(String), null]),
+              address: expect.toBeOneOf([expect.any(String), null]),
+              description: expect.toBeOneOf([expect.any(String), null]),
+              archived: expect.any(Boolean),
+              createdAt: expect.any(String),
+              updatedAt: expect.toBeOneOf([expect.any(String), null]),
+            });
+
+
+
+            // Using as an example for the rest of the tests
+            testData.clientCreated[user as Exclude<UserTypes, 'user'>] = response.body;
+          }
+        });
       });
     });
 
@@ -185,16 +232,15 @@ describe('Client (e2e)', () => {
       ['adminCompany', 'adminSystem', 404],
       ['user', 'user', 403],
     ])('find by role', (user, findClient, status) => {
-      it(`should ${status !== 200 ? 'not find)' : 'find'} client ${user}`, async () => {
+      it(`should ${status !== 200 ? 'not find' : 'find'} client ${user}`, async () => {
         const response = await agentsByRole[user].get(
-          `/clients/${
-            testData.clientCreated[findClient]?.id
-          }`
+          `/clients/${testData.clientCreated[findClient]?.id}`
         );
 
         expect(response.status).toEqual(status);
 
         if (status === 200) {
+          expect(response.body).toEqual(expect.objectContaining(testData.clientCreated[findClient]));
           expect(response.body).toMatchObject({
             id: expect.any(String),
             name: expect.any(String),
@@ -209,30 +255,4 @@ describe('Client (e2e)', () => {
       });
     });
   });
-
-  // describe.each<[UserTypes, string, number]>([
-  //   ['adminSystem', uniqueClientId.adminSystem, 200],
-  //   ['adminCompany', uniqueClientId.adminCompany, 200],
-  //   ['adminCompany', uniqueClientId.adminSystem, 403],
-  //   ['user', null, 403],
-  // ])('Client update (e2e) ', (user, id, status) => {
-  //   it(`should ${status !== 200 ? 'not find)' : 'find'} client ${user}`, async () => {
-  //     const response = await agentsByRole[user].put(`/clients/${id}`);
-
-  //     expect(response.status).toEqual(status);
-
-  //     if (status === 200) {
-  //       expect(response.body).toMatchObject({
-  //         id: expect.any(String),
-  //         name: expect.any(String),
-  //         email: expect.toBeOneOf([expect.any(String), null]),
-  //         address: expect.toBeOneOf([expect.any(String), null]),
-  //         description: expect.toBeOneOf([expect.any(String), null]),
-  //         archived: expect.any(Boolean),
-  //         createdAt: expect.any(String),
-  //         updatedAt: expect.toBeOneOf([expect.any(String), null]),
-  //       });
-  //     }
-  //   });
-  // });
 });
