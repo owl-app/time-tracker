@@ -1,7 +1,6 @@
 import { SeederConstructor, SeederFactoryItem } from 'typeorm-extension';
-import { INestApplication } from '@nestjs/common';
 
-import { bootstrap } from '@owl-app/testing';
+import { TestServer } from '@owl-app/testing';
 
 import { JwtAuthGuard } from '@owl-app/lib-api-core/passport/jwt.guard';
 import { RoutePermissionGuard } from '@owl-app/lib-api-core/rbac/guards/route-permission.guard';
@@ -18,8 +17,8 @@ export interface CreateTestOptions {
 
 export async function createTest(
   options: CreateTestOptions
-): Promise<INestApplication> {
-  const app = await bootstrap({
+): Promise<TestServer> {
+  const testServer = await TestServer.start({
     modules: [BootstrapModule.forFeature(options.dbName)],
     db: getDbConfig(options.dbName),
     seed: {
@@ -30,5 +29,5 @@ export async function createTest(
     prefix: `${process.env.APP_API_PREFIX}/${process.env.APP_API_VERSION}`,
   });
 
-  return app;
+  return testServer;
 }

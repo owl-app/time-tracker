@@ -14,7 +14,7 @@
           v-model="withProjects"
           class="mb-6"
           color="primary"
-          label="Archive all projects assigned to this client"
+          :label="`${archived ? 'Archive' : 'Restore'} all projects assigned to this client`"
           v-if="item?.projects.length && !loading"
         />
       </div>

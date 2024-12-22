@@ -1,19 +1,22 @@
 import TestAgent from 'supertest/lib/agent';
 
-import { INestApplication } from '@nestjs/common';
+import { TestServer } from '@owl-app/testing';
 
-import { destroy } from '@owl-app/testing';
-import { Client } from '@owl-app/lib-contracts';
+import { Client, Project } from '@owl-app/lib-contracts';
 import { dataUsers, UserTypes } from '@owl-app/lib-api-core/seeds/data/users';
 
 import { createTest } from '../create-test';
 import { createAgent } from '../create-agent';
+import { uniqueClientId, uniqueClientName } from './seeds/unique';
 import clientSeederFactory from './seeds/client/client.factory';
 import ClientSeeder from './seeds/client/client.seed';
-import { uniqueClientName } from './seeds/client/unique';
+import projectSeederFactory from './seeds/project/project.factory';
+import ProjectSeeder from './seeds/project/project.seed';
+import { CreatedSeedData } from './types';
+import { isStatusSuccess } from '../utils/http';
 
 describe('Client (e2e)', () => {
-  let app: INestApplication;
+  let testServer: TestServer;
   const agentsByRole: Record<UserTypes, TestAgent> = {
     adminSystem: null,
     adminCompany: null,
@@ -22,32 +25,37 @@ describe('Client (e2e)', () => {
 
   // Local test data used across the test suite
   const testData: {
-    clients: Record<Exclude<UserTypes, 'user'>, Client[]>;
     clientCreated: Record<UserTypes, Partial<Client>>;
+    clientCountCreated: {
+      adminSystem: number;
+      adminCompany: number;
+      user: number;
+    };
   } = {
-    clients: {
-      adminSystem: [],
-      adminCompany: [],
-    },
     clientCreated: {
       adminSystem: {},
       adminCompany: {},
-      // set it earlier because it will never be created
+      // set it earlier because it will never created
       user: { id: '123' },
+    },
+    clientCountCreated: {
+      adminSystem: 0,
+      adminCompany: 0,
+      user: 0,
     },
   };
 
   beforeAll(async () => {
-    app = await createTest({
+    testServer = await createTest({
       dbName: 'client',
-      seeds: [ClientSeeder],
-      factories: [clientSeederFactory],
+      seeds: [ClientSeeder, ProjectSeeder],
+      factories: [clientSeederFactory, projectSeederFactory],
     });
 
     await Promise.all(
       Object.keys(dataUsers).map(async (role) => {
         agentsByRole[role as UserTypes] = await createAgent(
-          app,
+          testServer.app,
           dataUsers[role as UserTypes].email
         );
       })
@@ -55,7 +63,7 @@ describe('Client (e2e)', () => {
   });
 
   afterAll(async () => {
-    await destroy(app);
+    await testServer.close();
   });
 
   // run first we need data to compare for rest of the tests
@@ -73,7 +81,7 @@ describe('Client (e2e)', () => {
 
         expect(response.status).toEqual(status);
 
-        if (status === 201) {
+        if (isStatusSuccess(status)) {
           expect(response.body).toEqual(
             expect.objectContaining({
               ...client,
@@ -93,11 +101,16 @@ describe('Client (e2e)', () => {
 
           // Using as an example for the rest of the tests
           testData.clientCreated[user as Exclude<UserTypes, 'user'>] = response.body;
+          if (user !== 'adminSystem') {
+            testData.clientCountCreated[user as Exclude<UserTypes, 'user'>] += 1;
+            testData.clientCountCreated.adminSystem += 1;
+          } else {
+            testData.clientCountCreated.adminSystem += 1;
+          }
         }
       });
     });
 
-    // run first we need data to compare for rest of the tests
     describe('Client update (e2e)', () => {
       describe.each<[UserTypes, UserTypes, number]>([
         ['adminSystem', 'adminSystem', 202],
@@ -118,7 +131,7 @@ describe('Client (e2e)', () => {
 
           expect(response.status).toEqual(status);
 
-          if (status === 202) {
+          if (isStatusSuccess(status)) {
             expect(response.body).toEqual(expect.objectContaining(client));
             expect(response.body).toMatchObject({
               id: expect.any(String),
@@ -130,8 +143,6 @@ describe('Client (e2e)', () => {
               createdAt: expect.any(String),
               updatedAt: expect.toBeOneOf([expect.any(String), null]),
             });
-
-
 
             // Using as an example for the rest of the tests
             testData.clientCreated[user as Exclude<UserTypes, 'user'>] = response.body;
@@ -165,38 +176,43 @@ describe('Client (e2e)', () => {
       items: expect.any(Array),
     };
 
-    describe.each<[UserTypes, number, number]>([
-      ['adminSystem', 200, 24],
-      ['adminCompany', 200, 12],
-      ['user', 403, null],
-    ])('without filters', (user, status, countUsers) => {
+    describe.each<[UserTypes, number]>([
+      ['adminSystem', 200],
+      ['adminCompany', 200],
+      ['user', 403],
+    ])('without filters', (user, status) => {
       it(`should list clients ${user}`, async () => {
         const response = await agentsByRole[user].get('/clients');
 
         expect(response.status).toEqual(status);
 
-        if (countUsers) {
-          expect(response.body).toHaveProperty('metadata.total', countUsers);
+        if (isStatusSuccess(status)) {
+          const resultSeed = testServer.getResultSeed<CreatedSeedData<Client[]>>(ClientSeeder.name);
+          const countClients = resultSeed[user].length + testData.clientCountCreated[user];
+
+          expect(response.body).toHaveProperty('metadata.total', countClients);
           expect(response.body).toHaveProperty('items');
           expect(response.body).toMatchObject(exceptedBodyFormats);
-
-          // Using as an example for the rest of the tests
-          testData.clients[user as Exclude<UserTypes, 'user'>] = response.body.items;
         }
       });
     });
 
-    describe.each<[UserTypes, number, number]>([
-      ['adminSystem', 200, 14],
-      ['adminCompany', 200, 7],
-    ])('with filter archived on active', (user, status, countUsers) => {
+    describe.each<[UserTypes, number]>([
+      ['adminSystem', 200],
+      ['adminCompany', 200],
+    ])('with filter archived on active', (user, status) => {
       it(`should list clients ${user}`, async () => {
         const response = await agentsByRole[user].get('/clients?filters[archived]=active');
 
         expect(response.status).toEqual(status);
 
-        if (countUsers) {
-          expect(response.body).toHaveProperty('metadata.total', countUsers);
+        if (isStatusSuccess(status)) {
+          const resultSeed = testServer.getResultSeed<CreatedSeedData<Client[]>>(ClientSeeder.name);
+          const countClients =
+            resultSeed[user].filter((client) => !client.archived).length +
+            testData.clientCountCreated[user];
+
+          expect(response.body).toHaveProperty('metadata.total', countClients);
           expect(response.body).toHaveProperty('items');
           expect(response.body).toMatchObject(exceptedBodyFormats);
         }
@@ -215,12 +231,9 @@ describe('Client (e2e)', () => {
         );
 
         expect(response.status).toEqual(status);
-
-        if (countUsers) {
-          expect(response.body).toHaveProperty('metadata.total', countUsers);
-          expect(response.body).toHaveProperty('items');
-          expect(response.body).toMatchObject(exceptedBodyFormats);
-        }
+        expect(response.body).toHaveProperty('metadata.total', countUsers);
+        expect(response.body).toHaveProperty('items');
+        expect(response.body).toMatchObject(exceptedBodyFormats);
       });
     });
   });
@@ -239,8 +252,10 @@ describe('Client (e2e)', () => {
 
         expect(response.status).toEqual(status);
 
-        if (status === 200) {
-          expect(response.body).toEqual(expect.objectContaining(testData.clientCreated[findClient]));
+        if (isStatusSuccess(status)) {
+          expect(response.body).toEqual(
+            expect.objectContaining(testData.clientCreated[findClient])
+          );
           expect(response.body).toMatchObject({
             id: expect.any(String),
             name: expect.any(String),
@@ -252,6 +267,125 @@ describe('Client (e2e)', () => {
             updatedAt: expect.toBeOneOf([expect.any(String), null]),
           });
         }
+      });
+    });
+  });
+  describe('Client archive (e2e)', () => {
+    describe.each<boolean>([false, true])('archive by role', (withProjects) => {
+      describe.each<[UserTypes, UserTypes, number]>([
+        ['adminSystem', 'adminSystem', 202],
+        ['adminCompany', 'adminCompany', 202],
+        ['adminCompany', 'adminSystem', 404],
+        ['user', 'user', 403],
+      ])(withProjects ? 'with projects' : 'without projects', (user, archiveClient, status) => {
+        it(`should ${status !== 202 ? 'not archive' : 'archive'} client ${user}`, async () => {
+          const data = {
+            archived: true,
+            withProjects,
+          };
+
+          const response = await agentsByRole[user]
+            .patch(`/clients/archive/${uniqueClientId[archiveClient]}`)
+            .send(data);
+
+          expect(response.status).toEqual(status);
+
+          if (isStatusSuccess(status)) {
+            // check count active projects
+            const filterClientId = uniqueClientId[archiveClient];
+            const responseProjects = await agentsByRole[user].get(
+              `/projects?filters[archived]=all&filters[clients]=${filterClientId}&limit=25`
+            );
+
+            const activeProjects = responseProjects.body.items.filter(
+              (project: Project) => !project.archived
+            );
+            const archivedProjects = responseProjects.body.items.filter(
+              (project: Project) => project.archived
+            );
+            const resultSeed = testServer.getResultSeed<CreatedSeedData<Project[]>>(
+              ProjectSeeder.name
+            );
+            let resultSeedCountProjectsActive = 0;
+            let resultSeedCountProjectsArchived = 0;
+
+            if (withProjects) {
+              resultSeedCountProjectsActive = 0;
+              resultSeedCountProjectsArchived = resultSeed[user].filter(
+                (project) => project.client.id === filterClientId
+              ).length;
+            } else {
+              resultSeedCountProjectsActive = resultSeed[user].filter(
+                (project) => !project.archived && project.client.id === filterClientId
+              ).length;
+              resultSeedCountProjectsArchived = resultSeed[user].filter(
+                (project) => project.archived && project.client.id === filterClientId
+              ).length;
+            }
+
+            expect(activeProjects.length).toEqual(resultSeedCountProjectsActive);
+            expect(archivedProjects.length).toEqual(resultSeedCountProjectsArchived);
+          }
+        });
+      });
+    });
+  });
+
+  describe('Client restore (e2e)', () => {
+    describe.each<boolean>([false, true])('restore by role', (withProjects) => {
+      describe.each<[UserTypes, UserTypes, number]>([
+        ['adminSystem', 'adminSystem', 202],
+        ['adminCompany', 'adminCompany', 202],
+        ['adminCompany', 'adminSystem', 404],
+        ['user', 'user', 403],
+      ])(withProjects ? 'with projects' : 'without projects', (user, archiveClient, status) => {
+        it(`should ${status !== 202 ? 'not restore' : 'restore'} client ${user}`, async () => {
+          const data = {
+            archived: false,
+            withProjects,
+          };
+
+          const response = await agentsByRole[user]
+            .patch(`/clients/archive/${uniqueClientId[archiveClient]}`)
+            .send(data);
+
+          expect(response.status).toEqual(status);
+
+          if (isStatusSuccess(status)) {
+            // check count active projects
+            const filterClientId = uniqueClientId[archiveClient];
+            const responseProjects = await agentsByRole[user].get(
+              `/projects?filters[archived]=all&filters[clients]=${filterClientId}&limit=25`
+            );
+
+            const activeProjects = responseProjects.body.items.filter(
+              (project: Project) => !project.archived
+            );
+            const archivedProjects = responseProjects.body.items.filter(
+              (project: Project) => project.archived
+            );
+            const resultSeed = testServer.getResultSeed<CreatedSeedData<Project[]>>(
+              ProjectSeeder.name
+            );
+            let resultSeedCountProjectsActive = 0;
+            let resultSeedCountProjectsArchived = 0;
+
+            if (withProjects) {
+              resultSeedCountProjectsActive = resultSeed[user].filter(
+                (project) => project.client.id === filterClientId
+              ).length;
+              resultSeedCountProjectsArchived = 0;
+            } else {
+              resultSeedCountProjectsActive = 0;
+              resultSeedCountProjectsArchived = resultSeed[user].filter(
+                (project) => project.client.id === filterClientId
+              ).length;
+            }
+
+            expect(activeProjects.length).toEqual(resultSeedCountProjectsActive);
+            expect(archivedProjects.length).toEqual(resultSeedCountProjectsArchived);
+          }
+        });
       });
     });
   });

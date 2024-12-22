@@ -7,6 +7,7 @@ import {
   Injectable,
   Patch,
   Inject,
+  NotFoundException as NotFoundHttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -26,6 +27,7 @@ import { ArchiveService } from '@owl-app/lib-api-core/actions/archive/archive.se
 import { UUIDValidationPipe } from '@owl-app/lib-api-core/pipes/uuid-validation.pipe';
 import { RoutePermissions } from '@owl-app/lib-api-core/rbac/decorators/route-permission';
 import { ValibotValidationPipe } from '@owl-app/lib-api-core/validation/valibot.pipe';
+import { NotFoundException } from '@owl-app/lib-api-core/exceptions/exceptions';
 
 import { ClientResponse } from '../../../dto/client.response';
 import ClientArchiveRequest from './dto/archive.request';
@@ -61,6 +63,13 @@ export class ArchiveControllerController {
     @Body(new ValibotValidationPipe(clientArchiveValidationSchema))
     archiveClientRequest: ClientArchiveRequest
   ): Promise<void> {
-    await this.archiveService.execute(id, archiveClientRequest);
+    try {
+      await this.archiveService.execute(id, archiveClientRequest);
+    } catch (error: unknown) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundHttpException(error.message);
+      }
+    }
+
   }
 }

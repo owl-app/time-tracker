@@ -1,9 +1,9 @@
 import request from 'supertest';
 
-import { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { destroy } from '@owl-app/testing';
+import { TestServer } from '@owl-app/testing';
+
 import { getMilliseconds } from '@owl-app/lib-api-core/utils/get-milliseconds';
 import { IJwtConfig, JWT_CONFIG_NAME } from '@owl-app/lib-api-core/config';
 import { dataUsers, UserTypes } from '@owl-app/lib-api-core/seeds/data/users';
@@ -11,16 +11,16 @@ import { dataUsers, UserTypes } from '@owl-app/lib-api-core/seeds/data/users';
 import { createTest } from '../create-test';
 
 describe('Auth (e2e)', () => {
-  let app: INestApplication;
+  let testServer: TestServer;
   let configService: ConfigService;
 
   beforeAll(async () => {
-    app = await createTest({ dbName: 'auth' });
-    configService = app.get(ConfigService);
+    testServer = await createTest({ dbName: 'auth' });
+    configService = testServer.app.get(ConfigService);
   });
 
   afterAll(async () => {
-    await destroy(app);
+    await testServer.close();
   });
 
   describe.each<[UserTypes]>([['adminSystem'], ['adminCompany'], ['user']])('Login by role', (user) => {
@@ -28,7 +28,7 @@ describe('Auth (e2e)', () => {
       const { refreshTokenExpirationTime, expirationTime } =
         configService.get<IJwtConfig>(JWT_CONFIG_NAME);
 
-      const response = await request(app.getHttpServer())
+      const response = await request(testServer.getHttpServer())
         .post('/api/v1/auth/login')
         .set('Accept', 'application/json')
         .send({
@@ -45,7 +45,7 @@ describe('Auth (e2e)', () => {
   });
 
   it(`should invalid data`, async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(testServer.getHttpServer())
       .post('/api/v1/auth/login')
       .set('Accept', 'application/json')
       .send({});
@@ -56,7 +56,7 @@ describe('Auth (e2e)', () => {
   });
 
   it(`should invalid credentials`, async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(testServer.getHttpServer())
       .post('/api/v1/auth/login')
       .set('Accept', 'application/json')
       .send({

@@ -19,6 +19,7 @@ import { Class } from '@owl-app/types';
 
 import { dbInitializer } from './db/initializer';
 import { dbSeeder } from './db/seeder';
+import { Context, TestContext } from './context';
 
 export interface SeedOptions {
   seeds: (configService: ConfigService) => SeederConstructor[];
@@ -33,8 +34,10 @@ export interface BootstrapOptions {
   prefix?: string;
 }
 
-export async function bootstrap(options: BootstrapOptions): Promise<INestApplication> {
+export async function bootstrap(options: BootstrapOptions): Promise<[INestApplication, Context]> {
   await dbInitializer(options.db);
+
+  const context = new TestContext();
 
   const moduleRef = await Test.createTestingModule({
     imports: options.modules,
@@ -47,6 +50,7 @@ export async function bootstrap(options: BootstrapOptions): Promise<INestApplica
 
   await dbSeeder(
     app.get(DataSource),
+    context,
     options?.seed?.seeds(configService) ?? [],
     options?.seed?.factories(configService) ?? []
   );
@@ -91,5 +95,5 @@ export async function bootstrap(options: BootstrapOptions): Promise<INestApplica
 
   await app.init();
 
-  return app;
+  return [app, context]
 }

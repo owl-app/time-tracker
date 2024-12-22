@@ -9,6 +9,7 @@ import {
   ProjectActions,
   CommonActions,
   RolesEnum,
+  TimeActions,
 } from '@owl-app/lib-contracts';
 import { ROLE_ENTITY } from '@owl-app/lib-api-core/entity-tokens';
 
@@ -32,6 +33,10 @@ export class AdminCompanyRoleSeeder extends BaseRole {
         AvalilableCollections.PROJECT,
         ProjectActions
       ),
+      ...this.getPermissionsByCollection<typeof CommonActions>(
+        AvalilableCollections.PROJECT,
+        CommonActions
+      ),
 
       // tag
       ...this.getCrudPermissions(AvalilableCollections.TAG),
@@ -39,7 +44,7 @@ export class AdminCompanyRoleSeeder extends BaseRole {
 
       // time
       ...this.getCrudPermissions(AvalilableCollections.TIME),
-      ...this.getPermissionsByCollection<typeof TagActions>(AvalilableCollections.TIME, TagActions),
+      ...this.getPermissionsByCollection<typeof TimeActions>(AvalilableCollections.TIME, TimeActions),
 
       // user
       ...this.getCrudPermissions(AvalilableCollections.USER),

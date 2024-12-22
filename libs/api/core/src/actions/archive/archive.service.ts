@@ -28,12 +28,10 @@ export class DefaultArchiveService<
   constructor(private readonly repository: InjectableRepository<Entity>) {}
 
   async execute(id: string, requestData: Request): Promise<void> {
-    let entity = null;
     const where = { id } as FindOptionsWhere<Entity>;
+    const entity = await this.repository.findOne({ where });
 
-    try {
-      entity = await this.repository.findOne({ where });
-    } catch (error) {
+    if (!entity) {
       throw new NotFoundException('Entity is not found');
     }
 
