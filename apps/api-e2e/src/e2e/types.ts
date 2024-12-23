@@ -1,3 +1,3 @@
-import { UserTypes } from '@owl-app/lib-api-core/seeds/data/users';
+import { RolesEnum } from '@owl-app/lib-contracts';
 
-export type CreatedSeedData<T> = Record<UserTypes, T>;
+export type CreatedSeedData<T> = Record<RolesEnum, T>;

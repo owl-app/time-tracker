@@ -10,13 +10,19 @@ import {
   CommonActions,
   RolesEnum,
   TimeActions,
+  Role,
 } from '@owl-app/lib-contracts';
 import { ROLE_ENTITY } from '@owl-app/lib-api-core/entity-tokens';
 
 import BaseRole from './base.role';
 
 export class AdminCompanyRoleSeeder extends BaseRole {
-  public async run(dataSource: DataSource): Promise<void> {
+
+  getRoleName(): RolesEnum {
+    return RolesEnum.ROLE_ADMIN_COMPANY;
+  }
+
+  public async run(dataSource: DataSource): Promise<Role> {
     const repository = dataSource.getRepository(ROLE_ENTITY);
 
     const permissions: Permission[] = [
@@ -68,6 +74,8 @@ export class AdminCompanyRoleSeeder extends BaseRole {
       setting: { displayName: 'Admin company' },
     };
 
-    await repository.save(roleAdmin);
+    const createdRole = await repository.save(roleAdmin);
+
+    return createdRole;
   }
 }

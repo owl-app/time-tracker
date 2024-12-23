@@ -4,9 +4,11 @@ import { ConfigService } from '@nestjs/config';
 
 import { TestServer } from '@owl-app/testing';
 
+import { AvailableRoles, RolesEnum } from '@owl-app/lib-contracts';
+
 import { getMilliseconds } from '@owl-app/lib-api-core/utils/get-milliseconds';
 import { IJwtConfig, JWT_CONFIG_NAME } from '@owl-app/lib-api-core/config';
-import { dataUsers, UserTypes } from '@owl-app/lib-api-core/seeds/data/users';
+import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
 
 import { createTest } from '../create-test';
 
@@ -23,8 +25,8 @@ describe('Auth (e2e)', () => {
     await testServer.close();
   });
 
-  describe.each<[UserTypes]>([['adminSystem'], ['adminCompany'], ['user']])('Login by role', (user) => {
-    it(`should login user ${user}`, async () => {
+  describe.each<RolesEnum>(AvailableRoles)('Login by role', (role) => {
+    it(`should login user ${role}`, async () => {
       const { refreshTokenExpirationTime, expirationTime } =
         configService.get<IJwtConfig>(JWT_CONFIG_NAME);
 
@@ -32,8 +34,8 @@ describe('Auth (e2e)', () => {
         .post('/api/v1/auth/login')
         .set('Accept', 'application/json')
         .send({
-          email: dataUsers[user].email,
-          password: dataUsers[user].password,
+          email: dataUsers[role].email,
+          password: dataUsers[role].password,
         });
 
       expect(response.status).toEqual(200);

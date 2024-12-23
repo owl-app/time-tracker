@@ -8,23 +8,11 @@ export async function dbSeeder(
   seeds: SeederConstructor[],
   factories?: SeederFactoryItem[]
 ) {
-  const exexuted = await runSeeders(dataSource, {
-    seedTracking: process.env.APP_ENV === 'dev',
-    seeds,
-    factories,
-  });
-
-  exexuted.forEach((seed) => {
-    if (Array.isArray(seed.result)) {
-      const resultSeed: unknown[] = []
-
-      seed.result.forEach((result) => {
-        resultSeed.push(result);
-      });
-
-      context.addResultSeed(seed.name, resultSeed);
-    } else {
-      context.addResultSeed(seed.name, seed.result);
-    }
-  });
+  context.addSeederEntity(
+    await runSeeders(dataSource, {
+      seedTracking: process.env.APP_ENV === 'dev',
+      seeds,
+      factories,
+    })
+  );
 }

@@ -6,10 +6,19 @@ import {
   PermissionReferType,
   CrudActions,
   Permission,
+  Role,
+  RolesEnum,
 } from '@owl-app/lib-contracts';
+import { RoleSeeder } from './role.seeder';
 
-export default abstract class BaseRole implements Seeder {
-  abstract run(dataSource: DataSource): Promise<void>;
+export default abstract class BaseRole implements Seeder, RoleSeeder {
+  abstract run(dataSource: DataSource): Promise<Role>;
+
+  abstract getRoleName(): RolesEnum;
+
+  getRouteName(collection: string, action: string): string {
+    return `${PermissionReferType.ROUTE}_${collection}_${action}`.toUpperCase();
+  }
 
   protected getCrudPermissions(collectionName: string = null): Permission[] {
     const permissions: Permission[] = [];
@@ -28,6 +37,7 @@ export default abstract class BaseRole implements Seeder {
 
     return permissions;
   }
+
 
   protected getPermissionsByCollection<T>(collection: string, available: T): Permission[] {
     const permissions: Permission[] = [];
@@ -51,9 +61,5 @@ export default abstract class BaseRole implements Seeder {
       refer: PermissionReferType.ROUTE,
       collection,
     };
-  }
-
-  protected getRouteName(collection: string, action: string): string {
-    return `${PermissionReferType.ROUTE}_${collection}_${action}`.toUpperCase();
   }
 }

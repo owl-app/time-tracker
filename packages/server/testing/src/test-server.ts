@@ -7,7 +7,7 @@ import { bootstrap, BootstrapOptions } from './bootstrap';
 
 export class TestServer {
 
-  constructor(readonly app: INestApplication, private readonly context: Context) {}
+  constructor(readonly app: INestApplication, readonly context: Context) {}
 
   static async start(options: BootstrapOptions): Promise<TestServer> {
 
@@ -22,10 +22,6 @@ export class TestServer {
     await dropDatabase({ options: dataSource.options });
 
     this.app.close();
-  }
-
-  getResultSeed<T>(key: string): T {
-    return this.context.resultSeed[key] as T;
   }
 
   getHttpServer() {

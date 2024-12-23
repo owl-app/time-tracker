@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 export interface Role {
+  permissions?: Permission[];
   name: string;
   description?: string;
   ruleName?: string;
@@ -60,3 +61,7 @@ export enum RolesEnum {
   ROLE_ADMIN_COMPANY = 'ROLE_ADMIN_COMPANY',
   ROLE_USER = 'ROLE_USER',
 }
+
+export type RolesOptions = RolesEnum.ROLE_ADMIN_COMPANY | RolesEnum.ROLE_ADMIN_SYSTEM | RolesEnum.ROLE_USER;
+
+export const AvailableRoles = Object.values<RolesEnum>(RolesEnum);

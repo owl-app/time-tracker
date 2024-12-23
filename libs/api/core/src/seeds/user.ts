@@ -15,6 +15,7 @@ export default function createUserSeeder(
   return class UserSeeder implements Seeder {
     public async run(dataSource: DataSource): Promise<void> {
       const users: Partial<User>[] = [];
+      const savedTenantsIds: string[] = [];
 
       await dataSource.transaction(async (manager) => {
         await Promise.all(
@@ -22,7 +23,8 @@ export default function createUserSeeder(
             user.passwordHash = await bcrypt.hash(user.password, passwordBcryptSaltRounds);
             user.roles = user.roles.map((role) => ({ name: role.name } as Role));
 
-            if (user.tenant) {
+            if (user.tenant && !savedTenantsIds.includes(user.tenant.id)) {
+              savedTenantsIds.push(user.tenant.id);
               await manager.save(TENANT_ENTITY, user.tenant);
             }
 

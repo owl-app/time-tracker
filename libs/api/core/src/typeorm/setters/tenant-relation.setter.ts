@@ -2,7 +2,7 @@ import { DeepPartial, EntityMetadata } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { TenantAware } from '@owl-app/lib-contracts';
+import { RolesEnum, TenantAware } from '@owl-app/lib-contracts';
 
 import { RequestContextService } from '../../context/app-request-context';
 
@@ -15,7 +15,10 @@ export class TenantRelationSetter<Entity extends TenantAware> implements EntityS
 
   supports(metadata: EntityMetadata): boolean {
     return !!metadata.relations.find(
-      (r) => r.type === TENANT_ENTITY && r.propertyName === 'tenant'
+      (r) => r.type === TENANT_ENTITY && r.propertyName === 'tenant' &&
+      RequestContextService.getCurrentUser() &&
+      (RequestContextService.getCurrentUser().roles.includes(RolesEnum.ROLE_ADMIN_COMPANY) ||
+        RequestContextService.getCurrentUser().roles.includes(RolesEnum.ROLE_USER))
     );
   }
 

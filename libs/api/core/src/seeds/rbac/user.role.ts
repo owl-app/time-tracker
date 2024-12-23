@@ -10,53 +10,34 @@ import {
   ProjectActions,
   CommonActions,
   RolesEnum,
+  Role,
 } from '@owl-app/lib-contracts';
 import { ROLE_ENTITY } from '@owl-app/lib-api-core/entity-tokens';
 
 import BaseRole from './base.role';
 
 export class UserRoleSeeder extends BaseRole {
-  public async run(dataSource: DataSource): Promise<void> {
-    // const repository = dataSource.getRepository(ROLE_ENTITY);
-    // const permissions: Permission[] = [
-    //   ...this.getCrudPermissions(),
-    //   ...this.getPermissionsByCollection<typeof UserActions>(
-    //     AvalilableCollections.USER,
-    //     UserActions
-    //   ),
-    //   ...this.getPermissionsByCollection<typeof TagActions>(AvalilableCollections.TAG, TagActions),
-    //   ...this.getPermissionsByCollection<typeof ProjectActions>(
-    //     AvalilableCollections.PROJECT,
-    //     ProjectActions
-    //   ),
-    //   ...this.getPermissionsByCollection<typeof RoleActions>(
-    //     AvalilableCollections.ROLE,
-    //     RoleActions
-    //   ),
-    //   ...this.getPermissionsByCollection<typeof TimeActions>(
-    //     AvalilableCollections.TIME,
-    //     TimeActions
-    //   ),
-    //   // archive
-    //   ...this.getPermissionsByCollection<typeof CommonActions>(
-    //     AvalilableCollections.CLIENT,
-    //     CommonActions
-    //   ),
-    //   ...this.getPermissionsByCollection<typeof CommonActions>(
-    //     AvalilableCollections.PROJECT,
-    //     CommonActions
-    //   ),
-    //   ...this.getPermissionsByCollection<typeof CommonActions>(
-    //     AvalilableCollections.TAG,
-    //     CommonActions
-    //   ),
-    // ];
-    // const roleAdmin = {
-    //   name: RolesEnum.ROLE_ADMIN_SYSTEM,
-    //   description: 'Admin role',
-    //   permissions,
-    //   setting: { displayName: 'Admin' },
-    // };
-    // await repository.save(roleAdmin);
+
+  getRoleName(): RolesEnum {
+    return RolesEnum.ROLE_USER;
+  }
+
+  public async run(dataSource: DataSource): Promise<Role> {
+    const repository = dataSource.getRepository(ROLE_ENTITY);
+    const permissions: Permission[] = [
+      // time
+      ...this.getCrudPermissions(AvalilableCollections.TIME),
+      ...this.getPermissionsByCollection<typeof TimeActions>(AvalilableCollections.TIME, TimeActions),
+    ];
+    const roleUser = {
+      name: RolesEnum.ROLE_USER,
+      description: 'User',
+      permissions,
+      setting: { displayName: 'User' },
+    };
+
+    const createdRole = await repository.save(roleUser);
+
+    return createdRole;
   }
 }
