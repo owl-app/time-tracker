@@ -3,16 +3,13 @@ import { DataSource } from 'typeorm';
 import {
   AvalilableCollections,
   Permission,
-  UserActions,
   TimeActions,
-  RoleActions,
-  TagActions,
-  ProjectActions,
-  CommonActions,
   RolesEnum,
   Role,
 } from '@owl-app/lib-contracts';
-import { ROLE_ENTITY } from '@owl-app/lib-api-core/entity-tokens';
+
+
+import { ROLE_ENTITY } from '../../entity-tokens'
 
 import BaseRole from './base.role';
 

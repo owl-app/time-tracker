@@ -7,6 +7,7 @@ export async function dbInitializer(options: DataSourceOptions): Promise<void> {
 
     await createDatabase({ ifNotExist: true, synchronize: false, options });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error creating database: ', error);
   }
 }

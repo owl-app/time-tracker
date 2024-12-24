@@ -25,7 +25,7 @@ export async function truncateMySQLDatabase(context?: DatabaseDropContext) {
   `;
 
   await executeSimpleMysqlQuery(connection, 'SET FOREIGN_KEY_CHECKS=0;', false);
-  const result = (await executeSimpleMysqlQuery(connection, query, false)) as Record<string, any>[];
+  const result = (await executeSimpleMysqlQuery(connection, query, false)) as Record<string, never>[];
   await executeSimpleMysqlQuery(connection, `USE ${options.database}`, false);
   // eslint-disable-next-line no-restricted-syntax
   for (const row of result) {
