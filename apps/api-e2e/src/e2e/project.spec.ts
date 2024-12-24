@@ -69,9 +69,9 @@ describe('Project (e2e)', () => {
     );
   });
 
-  // afterAll(async () => {
-  //   await testServer.close();
-  // });
+  afterAll(async () => {
+    await testServer.close();
+  });
 
   // run first we need data to compare for rest of the tests
   describe('Project create (e2e)', () => {
@@ -93,7 +93,7 @@ describe('Project (e2e)', () => {
           isOwner
         );
         const project = {
-          name: `Test Project ${role}`,
+          name: `Test Project ${roleCreate}`,
           client: { id: uniqueClientId[roleCreate], name: uniqueClientName },
         };
         const response = await agentsByRole[role].post(`/projects`).send(project);
