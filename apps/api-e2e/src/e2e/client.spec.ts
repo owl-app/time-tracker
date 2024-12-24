@@ -36,16 +36,16 @@ describe('Client (e2e)', () => {
 
   // Local test data used across the test suite
   const testData: {
-    clientCreated: Record<RolesEnum, Partial<Client>>;
-    clientCountCreated: Record<RolesEnum, number>;
+    created: Record<RolesEnum, Partial<Client>>;
+    countCreated: Record<RolesEnum, number>;
   } = {
-    clientCreated: {
+    created: {
       [RolesEnum.ROLE_ADMIN_SYSTEM]: {},
       [RolesEnum.ROLE_ADMIN_COMPANY]: {},
       // set it earlier because it will never created
       [RolesEnum.ROLE_USER]: { id: undefined },
     },
-    clientCountCreated: {
+    countCreated: {
       [RolesEnum.ROLE_ADMIN_SYSTEM]: 0,
       [RolesEnum.ROLE_ADMIN_COMPANY]: 0,
       [RolesEnum.ROLE_USER]: 0,
@@ -110,12 +110,12 @@ describe('Client (e2e)', () => {
           });
 
           // Using as an example for the rest of the tests
-          testData.clientCreated[role] = response.body;
+          testData.created[role] = response.body;
           if (role !== RolesEnum.ROLE_ADMIN_SYSTEM) {
-            testData.clientCountCreated[role] += 1;
-            testData.clientCountCreated[RolesEnum.ROLE_ADMIN_SYSTEM] += 1;
+            testData.countCreated[role] += 1;
+            testData.countCreated[RolesEnum.ROLE_ADMIN_SYSTEM] += 1;
           } else {
-            testData.clientCountCreated[RolesEnum.ROLE_ADMIN_SYSTEM] += 1;
+            testData.countCreated[RolesEnum.ROLE_ADMIN_SYSTEM] += 1;
           }
         }
       });
@@ -151,9 +151,9 @@ describe('Client (e2e)', () => {
         [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_SYSTEM],
         [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
       })
-    )('update by role', (role, updateClient, checkOwner) => {
-      it(`${role} try update client ${updateClient}`, async () => {
-        if (testData.clientCreated[updateClient]?.id === undefined) return;
+    )('update by role', (role, roleUpdate, checkOwner) => {
+      it(`${role} try update client ${roleUpdate}`, async () => {
+        if (testData.created[roleUpdate]?.id === undefined) return;
 
         const client = {
           name: `Updated Client ${role}`,
@@ -170,7 +170,7 @@ describe('Client (e2e)', () => {
           checkOwner
         );
         const response = await agentsByRole[role]
-          .put(`/clients/${testData.clientCreated[updateClient]?.id}`)
+          .put(`/clients/${testData.created[roleUpdate]?.id}`)
           .send(client);
 
         expect(response.status).toEqual(status);
@@ -189,7 +189,7 @@ describe('Client (e2e)', () => {
           });
 
           // Using as an example for the rest of the tests
-          testData.clientCreated[updateClient] = response.body;
+          testData.created[roleUpdate] = response.body;
         }
       });
     });
@@ -206,7 +206,7 @@ describe('Client (e2e)', () => {
         if (status[role] === 403) return;
 
         const response = await agentsByRole[role]
-          .put(`/clients/${testData.clientCreated[role]?.id}`)
+          .put(`/clients/${testData.created[role]?.id}`)
           .send({});
 
         expect(response.status).toEqual(status[role]);
@@ -246,7 +246,7 @@ describe('Client (e2e)', () => {
             ClientSeeder.name
           );
 
-          const countClients = resultSeed[role].length + testData.clientCountCreated[role];
+          const countClients = resultSeed[role].length + testData.countCreated[role];
 
           expect(response.body).toHaveProperty('metadata.total', countClients);
           expect(response.body).toHaveProperty('items');
@@ -273,7 +273,7 @@ describe('Client (e2e)', () => {
           );
           const countClients =
             resultSeed[role].filter((client) => !client.archived).length +
-            testData.clientCountCreated[role];
+            testData.countCreated[role];
 
           expect(response.body).toHaveProperty('metadata.total', countClients);
           expect(response.body).toHaveProperty('items');
@@ -307,9 +307,9 @@ describe('Client (e2e)', () => {
         [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_SYSTEM],
         [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
       })
-    )('find by role', (role, findClient, checkOwner) => {
-      it(`${role} try find client ${findClient}`, async () => {
-        if (testData.clientCreated[findClient]?.id === undefined) return;
+    )('find by role', (role, roleFind, checkOwner) => {
+      it(`${role} try find client ${roleFind}`, async () => {
+        if (testData.created[roleFind]?.id === undefined) return;
 
         const status = getTestsStatusByOwner(
           200,
@@ -321,14 +321,14 @@ describe('Client (e2e)', () => {
         );
 
         const response = await agentsByRole[role].get(
-          `/clients/${testData.clientCreated[findClient]?.id}`
+          `/clients/${testData.created[roleFind]?.id}`
         );
 
         expect(response.status).toEqual(status);
 
         if (isStatusSuccess(status)) {
           expect(response.body).toEqual(
-            expect.objectContaining(testData.clientCreated[findClient])
+            expect.objectContaining(testData.created[roleFind])
           );
           expect(response.body).toMatchObject({
             id: expect.any(String),
@@ -352,9 +352,9 @@ describe('Client (e2e)', () => {
           [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_SYSTEM],
           [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
         })
-      )(withProjects ? 'with projects' : 'without projects', (role, archiveClient, checkOwner) => {
-        it(`${role} archive archive client ${archiveClient}`, async () => {
-          if (testData.clientCreated[archiveClient]?.id === undefined) return;
+      )(withProjects ? 'with projects' : 'without projects', (role, roleArchive, checkOwner) => {
+        it(`${role} archive archive client ${roleArchive}`, async () => {
+          if (testData.created[roleArchive]?.id === undefined) return;
 
           const status = getTestsStatusByOwner(
             202,
@@ -371,14 +371,14 @@ describe('Client (e2e)', () => {
           };
 
           const response = await agentsByRole[role]
-            .patch(`/clients/archive/${uniqueClientId[archiveClient]}`)
+            .patch(`/clients/archive/${uniqueClientId[roleArchive]}`)
             .send(data);
 
           expect(response.status).toEqual(status);
 
           if (isStatusSuccess(status)) {
             // check count active projects
-            const filterClientId = uniqueClientId[archiveClient];
+            const filterClientId = uniqueClientId[roleArchive];
             const responseProjects = await agentsByRole[role].get(
               `/projects?filters[archived]=all&filters[clients]=${filterClientId}&limit=25`
             );
@@ -424,9 +424,9 @@ describe('Client (e2e)', () => {
           [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_SYSTEM],
           [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
         })
-      )(withProjects ? 'with projects' : 'without projects', (role, restoreClient, checkOwner) => {
-        it(`${role} try restore client ${restoreClient}`, async () => {
-          if (testData.clientCreated[restoreClient]?.id === undefined) return;
+      )(withProjects ? 'with projects' : 'without projects', (role, roleRestore, checkOwner) => {
+        it(`${role} try restore client ${roleRestore}`, async () => {
+          if (testData.created[roleRestore]?.id === undefined) return;
 
           const status = getTestsStatusByOwner(
             202,
@@ -443,14 +443,14 @@ describe('Client (e2e)', () => {
           };
 
           const response = await agentsByRole[role]
-            .patch(`/clients/archive/${uniqueClientId[restoreClient]}`)
+            .patch(`/clients/archive/${uniqueClientId[roleRestore]}`)
             .send(data);
 
           expect(response.status).toEqual(status);
 
           if (isStatusSuccess(status)) {
             // check count active projects
-            const filterClientId = uniqueClientId[restoreClient];
+            const filterClientId = uniqueClientId[roleRestore];
             const responseProjects = await agentsByRole[role].get(
               `/projects?filters[archived]=all&filters[clients]=${filterClientId}&limit=25`
             );
@@ -496,11 +496,11 @@ describe('Client (e2e)', () => {
           [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_SYSTEM],
           [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
         })
-      )(withArchived ? 'archived' : 'active', (role, deleteClient, checkOwner) => {
-        it(`${role} try delete ${deleteClient} client`, async () => {
-          if (testData.clientCreated[deleteClient]?.id === undefined) return;
+      )(withArchived ? 'archived' : 'active', (role, roleDelete, checkOwner) => {
+        it(`${role} try delete ${roleDelete} client`, async () => {
+          if (testData.created[roleDelete]?.id === undefined) return;
 
-          const tenantId = dataUsers[deleteClient].tenant.id;
+          const tenantId = dataUsers[roleDelete].tenant.id;
           let status = getTestsStatusByOwner(
             202,
             AvalilableCollections.CLIENT,
@@ -514,7 +514,7 @@ describe('Client (e2e)', () => {
           if (withArchived || status === 403) {
             clientToDelete = testServer.context
               .getResultSeed<CreatedSeedData<Client[]>>(ClientSeeder.name)
-              [deleteClient].find(
+              [roleDelete].find(
                 (client) =>
                   tenantId === client.tenant.id &&
                   client.archived &&
@@ -525,7 +525,7 @@ describe('Client (e2e)', () => {
 
             clientToDelete = testServer.context
               .getResultSeed<CreatedSeedData<Client[]>>(ClientSeeder.name)
-              [deleteClient].find(
+              [roleDelete].find(
                 (client) =>
                   tenantId === client.tenant.id &&
                   !client.archived &&

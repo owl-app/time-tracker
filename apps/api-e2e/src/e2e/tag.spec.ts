@@ -146,9 +146,9 @@ describe('Tag (e2e)', () => {
         [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_SYSTEM],
         [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
       })
-    )('update by role', (role, update, checkOwner) => {
-      it(`${role} try update tag ${update}`, async () => {
-        if (testData.created[update]?.id === undefined) return;
+    )('update by role', (role, roleUpdate, checkOwner) => {
+      it(`${role} try update tag ${roleUpdate}`, async () => {
+        if (testData.created[roleUpdate]?.id === undefined) return;
 
         const tag = {
           name: `Updated Tag ${role}`,
@@ -163,7 +163,7 @@ describe('Tag (e2e)', () => {
           checkOwner
         );
         const response = await agentsByRole[role]
-          .put(`/tags/${testData.created[update]?.id}`)
+          .put(`/tags/${testData.created[roleUpdate]?.id}`)
           .send(tag);
 
         expect(response.status).toEqual(status);
@@ -180,7 +180,7 @@ describe('Tag (e2e)', () => {
           });
 
           // Using as an example for the rest of the tests
-          testData.created[update] = response.body;
+          testData.created[roleUpdate] = response.body;
         }
       });
     });
@@ -296,9 +296,9 @@ describe('Tag (e2e)', () => {
         [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_SYSTEM],
         [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
       })
-    )('find by role', (role, find, checkOwner) => {
-      it(`${role} try find tag ${find}`, async () => {
-        if (testData.created[find]?.id === undefined) return;
+    )('find by role', (role, roleFind, checkOwner) => {
+      it(`${role} try find tag ${roleFind}`, async () => {
+        if (testData.created[roleFind]?.id === undefined) return;
 
         const status = getTestsStatusByOwner(
           200,
@@ -309,12 +309,12 @@ describe('Tag (e2e)', () => {
           checkOwner
         );
 
-        const response = await agentsByRole[role].get(`/tags/${testData.created[find]?.id}`);
+        const response = await agentsByRole[role].get(`/tags/${testData.created[roleFind]?.id}`);
 
         expect(response.status).toEqual(status);
 
         if (isStatusSuccess(status)) {
-          expect(response.body).toEqual(expect.objectContaining(testData.created[find]));
+          expect(response.body).toEqual(expect.objectContaining(testData.created[roleFind]));
           expect(response.body).toMatchObject({
             id: expect.any(String),
             name: expect.any(String),
@@ -334,9 +334,9 @@ describe('Tag (e2e)', () => {
         [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_SYSTEM],
         [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
       })
-    )('archive by role', (role, archive, checkOwner) => {
-      it(`${role} try archive archive tag ${archive}`, async () => {
-        if (testData.created[archive]?.id === undefined) return;
+    )('archive by role', (role, roleArchive, checkOwner) => {
+      it(`${role} try archive archive tag ${roleArchive}`, async () => {
+        if (testData.created[roleArchive]?.id === undefined) return;
 
         const status = getTestsStatusByOwner(
           202,
@@ -352,7 +352,7 @@ describe('Tag (e2e)', () => {
         };
 
         const response = await agentsByRole[role]
-          .patch(`/tags/archive/${uniqueTagId[archive]}`)
+          .patch(`/tags/archive/${uniqueTagId[roleArchive]}`)
           .send(data);
 
         expect(response.status).toEqual(status);
@@ -366,9 +366,9 @@ describe('Tag (e2e)', () => {
         [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_SYSTEM],
         [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
       })
-    )('archive by role', (role, restore, checkOwner) => {
-      it(`${role} try restore tag ${restore}`, async () => {
-        if (testData.created[restore]?.id === undefined) return;
+    )('archive by role', (role, roleRestore, checkOwner) => {
+      it(`${role} try restore tag ${roleRestore}`, async () => {
+        if (testData.created[roleRestore]?.id === undefined) return;
 
         const status = getTestsStatusByOwner(
           202,
@@ -384,7 +384,7 @@ describe('Tag (e2e)', () => {
         };
 
         const response = await agentsByRole[role]
-          .patch(`/tags/archive/${uniqueTagId[restore]}`)
+          .patch(`/tags/archive/${uniqueTagId[roleRestore]}`)
           .send(data);
 
         expect(response.status).toEqual(status);
@@ -401,11 +401,11 @@ describe('Tag (e2e)', () => {
           [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_SYSTEM],
           [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
         })
-      )(withArchived ? 'archived' : 'active', (role, toDelete, checkOwner) => {
-        it(`${role} try delete ${toDelete} tag`, async () => {
-          if (testData.created[toDelete]?.id === undefined) return;
+      )(withArchived ? 'archived' : 'active', (role, roleDelete, checkOwner) => {
+        it(`${role} try delete ${roleDelete} tag`, async () => {
+          if (testData.created[roleDelete]?.id === undefined) return;
 
-          const tenantId = dataUsers[toDelete].tenant.id;
+          const tenantId = dataUsers[roleDelete].tenant.id;
           let status = getTestsStatusByOwner(
             202,
             AvalilableCollections.TAG,
@@ -419,7 +419,7 @@ describe('Tag (e2e)', () => {
           if (withArchived || status === 403) {
             clientToDelete = testServer.context
               .getResultSeed<CreatedSeedData<Tag[]>>(TagSeeder.name)
-              [toDelete].find(
+              [roleDelete].find(
                 (tag) =>
                   tenantId === tag.tenant.id && tag.archived && !deletedClients.includes(tag.id)
               );
@@ -428,7 +428,7 @@ describe('Tag (e2e)', () => {
 
             clientToDelete = testServer.context
               .getResultSeed<CreatedSeedData<Tag[]>>(TagSeeder.name)
-              [toDelete].find(
+              [roleDelete].find(
                 (tag) =>
                   tenantId === tag.tenant.id && !tag.archived && !deletedClients.includes(tag.id)
               );
