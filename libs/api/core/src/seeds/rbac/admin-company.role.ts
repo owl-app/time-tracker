@@ -47,6 +47,10 @@ export class AdminCompanyRoleSeeder extends BaseRole {
       // tag
       ...this.getCrudPermissions(AvalilableCollections.TAG),
       ...this.getPermissionsByCollection<typeof TagActions>(AvalilableCollections.TAG, TagActions),
+      ...this.getPermissionsByCollection<typeof CommonActions>(
+        AvalilableCollections.TAG,
+        CommonActions
+      ),
 
       // time
       ...this.getCrudPermissions(AvalilableCollections.TIME),

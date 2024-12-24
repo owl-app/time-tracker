@@ -9,8 +9,6 @@ import {
   Client,
   CrudActions,
   Project,
-  Role,
-  RoleActions,
   RolesEnum,
 } from '@owl-app/lib-contracts';
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';

@@ -6,6 +6,14 @@ export const uniqueClientId = {
   [RolesEnum.ROLE_USER]: 'for-tests'
 };
 
+export const uniqueTagId = {
+  [RolesEnum.ROLE_ADMIN_SYSTEM]: '3c1c42a0-435a-4f42-92e1-40c4a3d57b53',
+  [RolesEnum.ROLE_ADMIN_COMPANY]: '482047f7-7c0f-408b-b1d8-b9712d9353e4',
+  [RolesEnum.ROLE_USER]: 'for-tests'
+};
+
+export const uniqueTagName = 'Unique tag name';
+
 export const uniqueClientName = 'Unique client name';
 
 export const uniqueProjectId = {

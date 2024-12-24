@@ -70,6 +70,5 @@ export class ArchiveControllerController {
         throw new NotFoundHttpException(error.message);
       }
     }
-
   }
 }
