@@ -6,15 +6,15 @@ import { ProjectEntity } from '@owl-app/lib-api-module-project/domain/entity/pro
 import { generateWithoutWords } from '../../../utils/unique';
 
 export default setSeederFactory(ProjectEntitySchema, (faker, meta: { unique: string }) => {
-    const user = new ProjectEntity();
+  const user = new ProjectEntity();
 
-    if(meta.unique) {
-        user.name = generateWithoutWords(faker.word.words, (meta.unique.split(/\s+/)));
-    } else {
-        user.name = faker.word.words();
-    }
+  if (meta.unique) {
+    user.name = generateWithoutWords(faker.word.words, meta.unique.split(/\s+/));
+  } else {
+    user.name = faker.word.words();
+  }
 
-    user.archived = faker.datatype.boolean();
+  user.archived = faker.datatype.boolean();
 
-    return user;
-})
+  return user;
+});

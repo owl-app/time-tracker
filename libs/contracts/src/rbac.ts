@@ -62,6 +62,9 @@ export enum RolesEnum {
   ROLE_USER = 'ROLE_USER',
 }
 
-export type RolesOptions = RolesEnum.ROLE_ADMIN_COMPANY | RolesEnum.ROLE_ADMIN_SYSTEM | RolesEnum.ROLE_USER;
+export type RolesOptions =
+  | RolesEnum.ROLE_ADMIN_COMPANY
+  | RolesEnum.ROLE_ADMIN_SYSTEM
+  | RolesEnum.ROLE_USER;
 
 export const AvailableRoles = Object.values<RolesEnum>(RolesEnum);

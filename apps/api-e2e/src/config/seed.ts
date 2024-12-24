@@ -28,7 +28,5 @@ export function getSeeds(seeds: SeederConstructor[] = []) {
 
 export function getFactoriesSeeds(factories: SeederFactoryItem[] = []) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return (configService: ConfigService): SeederFactoryItem[] => [
-      ...factories,
-    ]
+  return (configService: ConfigService): SeederFactoryItem[] => [...factories];
 }

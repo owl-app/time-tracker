@@ -497,7 +497,6 @@ describe('Client (e2e)', () => {
           [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
         })
       )(withArchived ? 'archived' : 'active', (role, deleteClient, checkOwner) => {
-
         it(`${role} try delete ${deleteClient} client`, async () => {
           if (testData.clientCreated[deleteClient]?.id === undefined) return;
 
@@ -509,24 +508,32 @@ describe('Client (e2e)', () => {
             roleSeeders,
             role,
             checkOwner
-          );;
+          );
           let clientToDelete: Client;
 
-          if(withArchived || status === 403) {
+          if (withArchived || status === 403) {
             clientToDelete = testServer.context
-              .getResultSeed<CreatedSeedData<Client[]>>(ClientSeeder.name)[deleteClient]
-              .find((client) => tenantId === client.tenant.id && client.archived && !deletedClients.includes(client.id));
+              .getResultSeed<CreatedSeedData<Client[]>>(ClientSeeder.name)
+              [deleteClient].find(
+                (client) =>
+                  tenantId === client.tenant.id &&
+                  client.archived &&
+                  !deletedClients.includes(client.id)
+              );
           } else {
             status = 404;
 
             clientToDelete = testServer.context
-            .getResultSeed<CreatedSeedData<Client[]>>(ClientSeeder.name)[deleteClient]
-            .find((client) => tenantId === client.tenant.id && !client.archived && !deletedClients.includes(client.id));
+              .getResultSeed<CreatedSeedData<Client[]>>(ClientSeeder.name)
+              [deleteClient].find(
+                (client) =>
+                  tenantId === client.tenant.id &&
+                  !client.archived &&
+                  !deletedClients.includes(client.id)
+              );
           }
 
-          const response = await agentsByRole[role].delete(
-            `/clients/${clientToDelete?.id}`
-          );
+          const response = await agentsByRole[role].delete(`/clients/${clientToDelete?.id}`);
 
           expect(response.status).toEqual(status);
 
@@ -535,7 +542,6 @@ describe('Client (e2e)', () => {
           }
         });
       });
-    })
-
+    });
   });
 });

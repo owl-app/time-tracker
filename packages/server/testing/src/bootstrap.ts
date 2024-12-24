@@ -95,5 +95,5 @@ export async function bootstrap(options: BootstrapOptions): Promise<[INestApplic
 
   await app.init();
 
-  return [app, context]
+  return [app, context];
 }

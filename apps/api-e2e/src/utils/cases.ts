@@ -6,7 +6,7 @@ export function getCasesByRoleWithOwner(
   const result: [RolesEnum, RolesEnum, boolean][] = [];
 
   AvailableRoles.forEach((role) => {
-      result.push([role, role, true]);
+    result.push([role, role, true]);
   });
 
   // superadmin has all checks

@@ -15,9 +15,7 @@ export interface CreateTestOptions {
   factories?: SeederFactoryItem[];
 }
 
-export async function createTest(
-  options: CreateTestOptions
-): Promise<TestServer> {
+export async function createTest(options: CreateTestOptions): Promise<TestServer> {
   const testServer = await TestServer.start({
     modules: [BootstrapModule.forFeature(options.dbName)],
     db: getDbConfig(options.dbName),

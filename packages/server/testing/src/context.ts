@@ -18,12 +18,11 @@ export class TestContext implements Context {
   }
 
   getSederEntityByClass<T>(seederClass: Function[]): T {
-    return this.seederEntity
-      .filter((seeder) => this.isInstanceOfAny(seeder, seederClass)) as T;
+    return this.seederEntity.filter((seeder) => this.isInstanceOfAny(seeder, seederClass)) as T;
   }
 
   getResultSeed<T>(name: string): T {
-    return (this.seederEntity.find((seederEntity) => seederEntity.name === name)).result as T;
+    return this.seederEntity.find((seederEntity) => seederEntity.name === name).result as T;
   }
 
   private isInstanceOfAny(object: SeederEntity, constructors: Function[]): boolean {

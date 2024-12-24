@@ -17,7 +17,6 @@ import { ROLE_ENTITY } from '@owl-app/lib-api-core/entity-tokens';
 import BaseRole from './base.role';
 
 export class AdminSystemRoleSeeder extends BaseRole {
-
   getRoleName(): RolesEnum {
     return RolesEnum.ROLE_ADMIN_SYSTEM;
   }

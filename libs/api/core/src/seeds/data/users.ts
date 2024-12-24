@@ -25,6 +25,6 @@ export const dataUsers: Record<RolesEnum, Partial<User & { password: string }>> 
     lastName: 'User',
     password: 'test',
     roles: [{ name: RolesEnum.ROLE_USER } as Role],
-    tenant: { id: '3156ff3d-af4e-48fe-9e25-bbb64ef73fbb',  name: 'Company' } as Tenant,
+    tenant: { id: '3156ff3d-af4e-48fe-9e25-bbb64ef73fbb', name: 'Company' } as Tenant,
   },
 };

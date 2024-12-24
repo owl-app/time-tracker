@@ -11,7 +11,7 @@ export function getTestsStatusByRole(
   status: number,
   collection: string,
   action: string,
-  rolesSeeders: SeederEntity[],
+  rolesSeeders: SeederEntity[]
 ): Record<RolesEnum, number> | null {
   const results: Record<string, number> = {};
 

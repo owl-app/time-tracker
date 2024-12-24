@@ -6,15 +6,15 @@ import { ClientEntity } from '@owl-app/lib-api-module-client/domain/entity/clien
 import { generateWithoutWords } from '../../../utils/unique';
 
 export default setSeederFactory(ClientEntitySchema, (faker, meta: { unique: string }) => {
-    const user = new ClientEntity();
+  const user = new ClientEntity();
 
-    if(meta.unique) {
-        user.name = generateWithoutWords(faker.company.name, (meta.unique.split(/\s+/)));
-    } else {
-        user.name = faker.company.name();
-    }
+  if (meta.unique) {
+    user.name = generateWithoutWords(faker.company.name, meta.unique.split(/\s+/));
+  } else {
+    user.name = faker.company.name();
+  }
 
-    user.archived = faker.datatype.boolean();
+  user.archived = faker.datatype.boolean();
 
-    return user;
-})
+  return user;
+});

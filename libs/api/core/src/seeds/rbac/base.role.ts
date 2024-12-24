@@ -38,7 +38,6 @@ export default abstract class BaseRole implements Seeder, RoleSeeder {
     return permissions;
   }
 
-
   protected getPermissionsByCollection<T>(collection: string, available: T): Permission[] {
     const permissions: Permission[] = [];
 

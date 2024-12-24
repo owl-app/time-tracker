@@ -17,7 +17,6 @@ import { ROLE_ENTITY } from '@owl-app/lib-api-core/entity-tokens';
 import BaseRole from './base.role';
 
 export class AdminCompanyRoleSeeder extends BaseRole {
-
   getRoleName(): RolesEnum {
     return RolesEnum.ROLE_ADMIN_COMPANY;
   }
@@ -54,7 +53,10 @@ export class AdminCompanyRoleSeeder extends BaseRole {
 
       // time
       ...this.getCrudPermissions(AvalilableCollections.TIME),
-      ...this.getPermissionsByCollection<typeof TimeActions>(AvalilableCollections.TIME, TimeActions),
+      ...this.getPermissionsByCollection<typeof TimeActions>(
+        AvalilableCollections.TIME,
+        TimeActions
+      ),
 
       // user
       ...this.getCrudPermissions(AvalilableCollections.USER),

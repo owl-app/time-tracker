@@ -262,8 +262,7 @@ describe('Tag (e2e)', () => {
             TagSeeder.name
           );
           const countClients =
-            resultSeed[role].filter((tag) => !tag.archived).length +
-            testData.countCreated[role];
+            resultSeed[role].filter((tag) => !tag.archived).length + testData.countCreated[role];
 
           expect(response.body).toHaveProperty('metadata.total', countClients);
           expect(response.body).toHaveProperty('items');
@@ -310,16 +309,12 @@ describe('Tag (e2e)', () => {
           checkOwner
         );
 
-        const response = await agentsByRole[role].get(
-          `/tags/${testData.created[find]?.id}`
-        );
+        const response = await agentsByRole[role].get(`/tags/${testData.created[find]?.id}`);
 
         expect(response.status).toEqual(status);
 
         if (isStatusSuccess(status)) {
-          expect(response.body).toEqual(
-            expect.objectContaining(testData.created[find])
-          );
+          expect(response.body).toEqual(expect.objectContaining(testData.created[find]));
           expect(response.body).toMatchObject({
             id: expect.any(String),
             name: expect.any(String),
@@ -366,35 +361,35 @@ describe('Tag (e2e)', () => {
   });
 
   describe('Tag restore (e2e)', () => {
-      describe.each<[RolesEnum, RolesEnum, boolean]>(
-        getCasesByRoleWithOwner({
-          [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_SYSTEM],
-          [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
-        })
-      )('archive by role', (role, restore, checkOwner) => {
-        it(`${role} try restore tag ${restore}`, async () => {
-          if (testData.created[restore]?.id === undefined) return;
+    describe.each<[RolesEnum, RolesEnum, boolean]>(
+      getCasesByRoleWithOwner({
+        [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_SYSTEM],
+        [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
+      })
+    )('archive by role', (role, restore, checkOwner) => {
+      it(`${role} try restore tag ${restore}`, async () => {
+        if (testData.created[restore]?.id === undefined) return;
 
-          const status = getTestsStatusByOwner(
-            202,
-            AvalilableCollections.TAG,
-            CrudActions.READ,
-            roleSeeders,
-            role,
-            checkOwner
-          );
+        const status = getTestsStatusByOwner(
+          202,
+          AvalilableCollections.TAG,
+          CrudActions.READ,
+          roleSeeders,
+          role,
+          checkOwner
+        );
 
-          const data = {
-            archived: false
-          };
+        const data = {
+          archived: false,
+        };
 
-          const response = await agentsByRole[role]
-            .patch(`/tags/archive/${uniqueTagId[restore]}`)
-            .send(data);
+        const response = await agentsByRole[role]
+          .patch(`/tags/archive/${uniqueTagId[restore]}`)
+          .send(data);
 
-          expect(response.status).toEqual(status);
-        });
+        expect(response.status).toEqual(status);
       });
+    });
   });
 
   describe('Tag delete (e2e)', () => {
@@ -407,7 +402,6 @@ describe('Tag (e2e)', () => {
           [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
         })
       )(withArchived ? 'archived' : 'active', (role, toDelete, checkOwner) => {
-
         it(`${role} try delete ${toDelete} tag`, async () => {
           if (testData.created[toDelete]?.id === undefined) return;
 
@@ -419,24 +413,28 @@ describe('Tag (e2e)', () => {
             roleSeeders,
             role,
             checkOwner
-          );;
+          );
           let clientToDelete: Tag;
 
-          if(withArchived || status === 403) {
+          if (withArchived || status === 403) {
             clientToDelete = testServer.context
-              .getResultSeed<CreatedSeedData<Tag[]>>(TagSeeder.name)[toDelete]
-              .find((tag) => tenantId === tag.tenant.id && tag.archived && !deletedClients.includes(tag.id));
+              .getResultSeed<CreatedSeedData<Tag[]>>(TagSeeder.name)
+              [toDelete].find(
+                (tag) =>
+                  tenantId === tag.tenant.id && tag.archived && !deletedClients.includes(tag.id)
+              );
           } else {
             status = 404;
 
             clientToDelete = testServer.context
-            .getResultSeed<CreatedSeedData<Tag[]>>(TagSeeder.name)[toDelete]
-            .find((tag) => tenantId === tag.tenant.id && !tag.archived && !deletedClients.includes(tag.id));
+              .getResultSeed<CreatedSeedData<Tag[]>>(TagSeeder.name)
+              [toDelete].find(
+                (tag) =>
+                  tenantId === tag.tenant.id && !tag.archived && !deletedClients.includes(tag.id)
+              );
           }
 
-          const response = await agentsByRole[role].delete(
-            `/tags/${clientToDelete?.id}`
-          );
+          const response = await agentsByRole[role].delete(`/tags/${clientToDelete?.id}`);
 
           expect(response.status).toEqual(status);
 
@@ -445,7 +443,6 @@ describe('Tag (e2e)', () => {
           }
         });
       });
-    })
-
+    });
   });
 });
