@@ -1,7 +1,6 @@
 import { Repository } from 'typeorm';
 import { RelationMetadata } from 'typeorm/metadata/RelationMetadata';
 import { cloneDeep, omit } from 'lodash';
-import { NotFoundException } from '@nestjs/common';
 
 import { TypeOrmQueryService, TypeOrmQueryServiceOpts } from '@owl-app/nestjs-query-typeorm';
 import {
@@ -25,6 +24,7 @@ import DomainEventableEntity from '../../../database/entity/domain-eventable.ent
 import { AppQueryService } from '../../core/interfaces/app-query.service';
 
 import { QueryOptions } from '../../core/interfaces/query-options';
+import { NotFoundException } from '../../../exceptions/exceptions';
 
 export interface AppTypeOrmQueryServiceOpts<Entity> extends TypeOrmQueryServiceOpts<Entity> {
   useTransaction?: boolean;

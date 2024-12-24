@@ -98,7 +98,7 @@ describe('Project (e2e)', () => {
         };
         const response = await agentsByRole[role].post(`/projects`).send(project);
 
-        expect(response.status).toEqual(!isOwner && status === 404 ? 201 : status);
+        expect(response.status).toEqual(status);
 
         if (isStatusSuccess(status)) {
           expect(response.body).toEqual(
