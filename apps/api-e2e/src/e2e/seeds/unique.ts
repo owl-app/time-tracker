@@ -1,19 +1,19 @@
 import { RolesEnum } from '@owl-app/lib-contracts';
 
 // client
-export const uniqueClientId = {
+export const uniqueClientId: { [key in RolesEnum]: string | null } = {
   [RolesEnum.ROLE_ADMIN_SYSTEM]: '1689e2d5-942b-4bc6-a407-dec15f4f7fe0',
   [RolesEnum.ROLE_ADMIN_COMPANY]: '1769574e-98cf-4181-a201-2c0a1ff7313e',
-  [RolesEnum.ROLE_USER]: 'for-tests',
+  [RolesEnum.ROLE_USER]: null,
 };
 
 export const uniqueClientName = 'Unique client name';
 
 // tag
-export const uniqueTagId = {
+export const uniqueTagId: { [key in RolesEnum]: string | null } = {
   [RolesEnum.ROLE_ADMIN_SYSTEM]: '3c1c42a0-435a-4f42-92e1-40c4a3d57b53',
   [RolesEnum.ROLE_ADMIN_COMPANY]: '482047f7-7c0f-408b-b1d8-b9712d9353e4',
-  [RolesEnum.ROLE_USER]: 'for-tests',
+  [RolesEnum.ROLE_USER]: null,
 };
 
 export const uniqueTagName = 'Unique tag name';

@@ -292,7 +292,7 @@ export class AppTypeOrmQueryService<Entity extends DomainEventableEntity>
         .getMany();
 
       if (objectRelatedNewRelationValues.length !== objectRelatedNewRelations.length) {
-        throw new Error(
+        throw new NotFoundException(
           `Unable to find all ${relation.propertyName} to add to ${this.EntityClassName}`
         );
       }

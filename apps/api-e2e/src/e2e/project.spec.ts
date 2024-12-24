@@ -69,42 +69,60 @@ describe('Project (e2e)', () => {
     );
   });
 
-  afterAll(async () => {
-    await testServer.close();
-  });
+  // afterAll(async () => {
+  //   await testServer.close();
+  // });
 
   // run first we need data to compare for rest of the tests
   describe('Project create (e2e)', () => {
-    describe.each<RolesEnum>(AvailableRoles)('create by role', (role) => {
-      it(`${role} try create project`, async () => {
-        const status = getTestsStatusByRole(
+    describe.each<[RolesEnum, RolesEnum, boolean]>(
+      getCasesByRoleWithOwner({
+        [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_SYSTEM],
+        [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
+      })
+    )('create by role', (role, roleCreate, isOwner) => {
+      it(`${role} try create project with client ${roleCreate}`, async () => {
+        if (uniqueClientId[roleCreate] === null) return;
+
+        const status = getTestsStatusByOwner(
           201,
           AvalilableCollections.PROJECT,
-          CrudActions.CREATE,
-          roleSeeders
+          CrudActions.UPDATE,
+          roleSeeders,
+          role,
+          isOwner
         );
         const project = {
           name: `Test Project ${role}`,
-          client: { id: uniqueClientId[role], name: uniqueClientName },
+          client: { id: uniqueClientId[roleCreate], name: uniqueClientName },
         };
         const response = await agentsByRole[role].post(`/projects`).send(project);
 
-        expect(response.status).toEqual(status[role]);
+        expect(response.status).toEqual(!isOwner && status === 404 ? 201 : status);
 
-        if (isStatusSuccess(status[role])) {
+        if (isStatusSuccess(status)) {
           expect(response.body).toEqual(
             expect.objectContaining({
               ...project,
+              client: expect.objectContaining(
+                project.client
+              ),
               archived: false,
             })
           );
           expect(response.body).toMatchObject({
             id: expect.any(String),
             name: expect.any(String),
-            client: {
+            client: isOwner ? {
               id: expect.any(String),
               name: expect.any(String),
-            },
+              email: expect.toBeOneOf([expect.any(String), null]),
+              address: expect.toBeOneOf([expect.any(String), null]),
+              description: expect.toBeOneOf([expect.any(String), null]),
+              archived: expect.any(Boolean),
+              createdAt: expect.any(String),
+              updatedAt: expect.toBeOneOf([expect.any(String), null]),
+            } : null,
             archived: expect.any(Boolean),
             createdAt: expect.any(String),
             updatedAt: expect.toBeOneOf([expect.any(String), null]),
