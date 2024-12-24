@@ -13,7 +13,7 @@ import {
   Role,
 } from '@owl-app/lib-contracts';
 
-import { ROLE_ENTITY } from '../../entity-tokens'
+import { ROLE_ENTITY } from '../../entity-tokens';
 
 import BaseRole from './base.role';
 
