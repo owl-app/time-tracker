@@ -1,5 +1,7 @@
-import { AvalilableCollections, PermissionReferType } from '@owl-app/lib-contracts';
+import { AvalilableCollections, PermissionReferType, RolesEnum } from '@owl-app/lib-contracts';
 import { RequestContextService } from '../context/app-request-context';
+import { dataRoles } from '../seeds/data/role';
+import { getRouteName } from './permission';
 
 export const checkPermissionToRoute = (
   collection: AvalilableCollections,
@@ -10,3 +12,6 @@ export const checkPermissionToRoute = (
       permission ===
       `${PermissionReferType.ROUTE.toUpperCase()}_${collection.toUpperCase()}_${action.toUpperCase()}`
   );
+
+export const roleHasPermission = (role: RolesEnum, collection: AvalilableCollections, action: string): boolean =>
+  dataRoles[role].some((permission) => permission.name === getRouteName(collection, action));

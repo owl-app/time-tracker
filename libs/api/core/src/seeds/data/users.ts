@@ -1,30 +1,67 @@
-import { Role, RolesEnum, Tenant, User } from '@owl-app/lib-contracts';
+import { Role, RolesEnum, User } from '@owl-app/lib-contracts';
+import { dataTenants } from './tenant';
 
-export type UserData = Record<RolesEnum, Partial<User & { password: string }>>;
+export type UserData = Record<RolesEnum, Partial<User & { password: string }>[]>;
 
-export const dataUsers: Record<RolesEnum, Partial<User & { password: string }>> = {
-  [RolesEnum.ROLE_ADMIN_SYSTEM]: {
-    email: 'admin_system@example.com',
-    firstName: 'Admin',
-    lastName: 'System',
-    password: 'test',
-    roles: [{ name: RolesEnum.ROLE_ADMIN_SYSTEM } as Role],
-    tenant: { id: '4a2576d3-9830-4790-8535-b708d42faa32', name: 'Admin System' },
-  },
-  [RolesEnum.ROLE_ADMIN_COMPANY]: {
-    email: 'admin_company@example.com',
-    firstName: 'Admin',
-    lastName: 'Company',
-    password: 'test',
-    roles: [{ name: RolesEnum.ROLE_ADMIN_COMPANY } as Role],
-    tenant: { id: '3156ff3d-af4e-48fe-9e25-bbb64ef73fbb', name: 'Company' },
-  },
-  [RolesEnum.ROLE_USER]: {
-    email: 'user@example.com',
-    firstName: 'User',
-    lastName: 'User',
-    password: 'test',
-    roles: [{ name: RolesEnum.ROLE_USER } as Role],
-    tenant: { id: '3156ff3d-af4e-48fe-9e25-bbb64ef73fbb', name: 'Company' } as Tenant,
-  },
+export const dataUsers: UserData = {
+  [RolesEnum.ROLE_ADMIN_SYSTEM]: [
+    {
+      id: 'c4c7bf75-0ac8-40da-9180-0c2277ee4785',
+      email: 'admin_system_1@example.com',
+      firstName: 'Admin',
+      lastName: 'System 1',
+      password: 'test',
+      roles: [{ name: RolesEnum.ROLE_ADMIN_SYSTEM } as Role],
+      tenant: dataTenants.tenant_1,
+    },
+    {
+      id: 'cc54121c-7d55-4a36-95ca-668fd2c082f2',
+      email: 'admin_system_2@example.com',
+      firstName: 'Admin',
+      lastName: 'System 2',
+      password: 'test',
+      roles: [{ name: RolesEnum.ROLE_ADMIN_SYSTEM } as Role],
+      tenant: dataTenants.tenant_2,
+    }
+  ],
+  [RolesEnum.ROLE_ADMIN_COMPANY]: [
+    {
+      id: '602937c9-d631-4530-ab69-cc617bd4f51d',
+      email: 'admin_company_1@example.com',
+      firstName: 'Admin',
+      lastName: 'Company 1',
+      password: 'test',
+      roles: [{ name: RolesEnum.ROLE_ADMIN_COMPANY } as Role],
+      tenant: dataTenants.tenant_1,
+    },
+    {
+      id: '1bfeeb7f-d460-463e-be00-44793942d913',
+      email: 'admin_company_2@example.com',
+      firstName: 'Admin',
+      lastName: 'Company 2',
+      password: 'test',
+      roles: [{ name: RolesEnum.ROLE_ADMIN_COMPANY } as Role],
+      tenant: dataTenants.tenant_2,
+    }
+  ],
+  [RolesEnum.ROLE_USER]: [
+    {
+      id: '83d07332-1dae-4fc4-9f13-603069ab93cd',
+      email: 'user_1@example.com',
+      firstName: 'User',
+      lastName: 'User 1',
+      password: 'test',
+      roles: [{ name: RolesEnum.ROLE_USER } as Role],
+      tenant: dataTenants.tenant_1,
+    },
+    {
+      id: 'cf16e229-b882-4589-9fc0-dde8f1ed4482',
+      email: 'user_2@example.com',
+      firstName: 'User',
+      lastName: 'User 1',
+      password: 'test',
+      roles: [{ name: RolesEnum.ROLE_USER } as Role],
+      tenant: dataTenants.tenant_2,
+    }
+  ],
 };

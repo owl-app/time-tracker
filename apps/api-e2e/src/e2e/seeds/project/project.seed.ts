@@ -1,73 +1,76 @@
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 
-import { Client, Project, RolesEnum } from '@owl-app/lib-contracts';
+import { Project } from '@owl-app/lib-contracts';
+
 import { ProjectEntitySchema } from '@owl-app/lib-api-module-project/database/entity-schema/project.entity-schema';
+import { CLIENT_ENTITY } from '@owl-app/lib-api-core/entity-tokens';
+import { dataTenants } from '@owl-app/lib-api-core/seeds/data/tenant';
+import { ClientEntity } from '@owl-app/lib-api-module-client/domain/entity/client.entity';
+
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
-import { uniqueProjectId, uniqueProjectName, uniqueClientId } from '../unique';
-import { CreatedSeedData } from '../../types';
+import { uniqueProjectName } from '../unique';
 
 export default class ProjectSeeder implements Seeder {
   public async run(
     dataSource: DataSource,
     factoryManager: SeederFactoryManager
-  ): Promise<Partial<CreatedSeedData<Project[]>>> {
+  ): Promise<Partial<Project[]>> {
+    const clientRepository = dataSource.getRepository<ClientEntity>(CLIENT_ENTITY);
     const userFactory = await factoryManager.get(ProjectEntitySchema);
 
-    const adminSystem = [];
-    const adminCompany = [];
 
-    userFactory.setMeta({ unique: uniqueProjectName });
-    adminSystem.push(
-      ...(await userFactory.saveMany(1, {
-        id: uniqueProjectId[RolesEnum.ROLE_ADMIN_SYSTEM],
-        name: uniqueProjectName,
-        tenant: dataUsers[RolesEnum.ROLE_ADMIN_SYSTEM].tenant,
-        client: { id: uniqueClientId[RolesEnum.ROLE_ADMIN_COMPANY] } as Client,
-        archived: false,
-      }))
-    );
-    adminCompany.push(
-      ...(await userFactory.saveMany(1, {
-        id: uniqueProjectId[RolesEnum.ROLE_ADMIN_COMPANY],
-        name: uniqueProjectName,
-        tenant: dataUsers[RolesEnum.ROLE_ADMIN_COMPANY].tenant,
-        client: { id: uniqueClientId[RolesEnum.ROLE_ADMIN_COMPANY] } as Client,
-        archived: false,
-      }))
-    );
+    const clientTenant1 = await clientRepository
+      .createQueryBuilder("client")
+      .innerJoinAndSelect("client.tenant", "tenant")
+      .where("tenant.id = :tenantId", { tenantId: dataTenants.tenant_1.id })
+      .getOne()
+    const clientTenant2 = await clientRepository
+      .createQueryBuilder("client")
+      .innerJoinAndSelect("client.tenant", "tenant")
+      .where("tenant.id = :tenantId", { tenantId: dataTenants.tenant_2.id })
+      .getOne();
 
-    userFactory.setMeta({});
-    // Create 5 archived and 5 active projects for Admin System role
-    adminSystem.push(
-      ...(await userFactory.saveMany(5, {
-        tenant: dataUsers[RolesEnum.ROLE_ADMIN_SYSTEM].tenant,
-        client: { id: uniqueClientId[RolesEnum.ROLE_ADMIN_SYSTEM] } as Client,
-        archived: true,
-      })),
-      ...(await userFactory.saveMany(5, {
-        tenant: dataUsers[RolesEnum.ROLE_ADMIN_SYSTEM].tenant,
-        client: { id: uniqueClientId[RolesEnum.ROLE_ADMIN_SYSTEM] } as Client,
-        archived: false,
-      }))
-    );
-    adminCompany.push(
-      // Create 5 archived and 5 active projects for Admin Company role
-      ...(await userFactory.saveMany(5, {
-        tenant: dataUsers[RolesEnum.ROLE_ADMIN_COMPANY].tenant,
-        client: { id: uniqueClientId[RolesEnum.ROLE_ADMIN_COMPANY] } as Client,
-        archived: true,
-      })),
-      ...(await userFactory.saveMany(5, {
-        tenant: dataUsers[RolesEnum.ROLE_ADMIN_COMPANY].tenant,
-        client: { id: uniqueClientId[RolesEnum.ROLE_ADMIN_COMPANY] } as Client,
-        archived: false,
-      }))
-    );
-
-    return {
-      [RolesEnum.ROLE_ADMIN_SYSTEM]: [...adminSystem, ...adminCompany],
-      [RolesEnum.ROLE_ADMIN_COMPANY]: adminCompany,
+    const clientsByTenant = {
+      [dataTenants.tenant_1.id]: clientTenant1,
+      [dataTenants.tenant_2.id]: clientTenant2,
     };
+
+    let projects: Project[] = [];
+    const promisesProjects: Promise<Project[]>[] = [];
+
+    Object.values(dataUsers).map((users) =>
+      users.map(async (user) => {
+        userFactory.setMeta({ unique: uniqueProjectName });
+        promisesProjects.push(
+          userFactory.saveMany(1, {
+            name: uniqueProjectName,
+            tenant: user.tenant,
+            client: clientsByTenant[user.tenant.id],
+            archived: false,
+          })
+        );
+
+        userFactory.setMeta({});
+        promisesProjects.push(
+          userFactory.saveMany(5, {
+            tenant: user.tenant,
+            client: clientsByTenant[user.tenant.id],
+            archived: true,
+          })
+        );
+        promisesProjects.push(
+          userFactory.saveMany(5, {
+            tenant: user.tenant,
+            client: clientsByTenant[user.tenant.id],
+            archived: false,
+          })
+        );
+      })
+    )
+
+    projects = await Promise.all(promisesProjects).then(results => results.flat());
+
+    return projects;
   }
 }

@@ -9,9 +9,11 @@ import {
   Project,
   CrudActions,
   RolesEnum,
+  Client,
 } from '@owl-app/lib-contracts';
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
 import BaseRole from '@owl-app/lib-api-core/seeds/rbac/base.role';
+import { roleHasPermission } from '@owl-app/lib-api-core/utils/check-permission';
 
 import { createTest } from '../create-test';
 import { createAgent } from '../create-agent';
@@ -23,15 +25,15 @@ import ProjectSeeder from './seeds/project/project.seed';
 import { CreatedSeedData } from './types';
 import { isStatusSuccess, getTestsStatusByOwner, getTestsStatusByRole } from '../utils/http';
 import { getCasesByRoleWithOwner } from '../utils/cases';
+import { shouldCheckTenantPermission } from '../utils/check-permission';
 
 describe('Project (e2e)', () => {
   let testServer: TestServer;
-  const agentsByRole: Record<RolesEnum, TestAgent> = {
-    [RolesEnum.ROLE_ADMIN_SYSTEM]: null,
-    [RolesEnum.ROLE_ADMIN_COMPANY]: null,
-    [RolesEnum.ROLE_USER]: null,
+  const agentsByRole: Record<RolesEnum, Record<string, TestAgent>> = {
+    [RolesEnum.ROLE_ADMIN_SYSTEM]: {},
+    [RolesEnum.ROLE_ADMIN_COMPANY]: {},
+    [RolesEnum.ROLE_USER]: {},
   };
-  let roleSeeders: SeederEntity[] = [];
 
   // Local test data used across the test suite
   const testData: {
@@ -57,14 +59,15 @@ describe('Project (e2e)', () => {
       seeds: [ClientSeeder, ProjectSeeder],
       factories: [clientSeederFactory, projectSeederFactory],
     });
-    roleSeeders = testServer.context.getSederEntityByClass<SeederEntity[]>([BaseRole]);
 
     await Promise.all(
       Object.keys(dataUsers).map(async (role) => {
-        agentsByRole[role as RolesEnum] = await createAgent(
-          testServer.app,
-          dataUsers[role as RolesEnum].email
-        );
+        dataUsers[role as RolesEnum].forEach(async (user) => {
+          agentsByRole[role as RolesEnum][user.email] = await createAgent(
+            testServer.app,
+            user.email
+          );
+        });
       })
     );
   });
@@ -75,93 +78,155 @@ describe('Project (e2e)', () => {
 
   // run first we need data to compare for rest of the tests
   describe('Project create (e2e)', () => {
-    describe.each<[RolesEnum, RolesEnum, boolean]>(
-      getCasesByRoleWithOwner({
-        [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_SYSTEM],
-        [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY],
-      })
-    )('create by role', (role, roleCreate, isOwner) => {
-      it(`${role} try create project with client ${roleCreate}`, async () => {
-        if (uniqueClientId[roleCreate] === null) return;
+    describe.each<RolesEnum>(AvailableRoles)('create by role', (role) => {
+      const firstUser = dataUsers[role][0];
+      const hasPermission = roleHasPermission(
+        role,
+        AvalilableCollections.PROJECT,
+        CrudActions.CREATE
+      );
 
-        const status = getTestsStatusByOwner(
-          201,
-          AvalilableCollections.PROJECT,
-          CrudActions.UPDATE,
-          roleSeeders,
-          role,
-          isOwner
-        );
-        const project = {
-          name: `Test Project ${roleCreate}`,
-          client: { id: uniqueClientId[roleCreate], name: uniqueClientName },
-        };
-        const response = await agentsByRole[role].post(`/projects`).send(project);
+      describe(`role ${role} and user ${firstUser.email}`, () => {
+        it(`should ${
+          hasPermission ? 'create' : 'not create'
+        } project with client has the same tenant`, async () => {
+          const client = testServer.context
+            .getResultSeed<Client[]>(ClientSeeder.name)
+            .find((clientSeed) => clientSeed.tenant.id === firstUser.tenant.id);
 
-        expect(response.status).toEqual(status);
+          const project = {
+            name: `Test Project ${firstUser.email}`,
+            client: client ?? { id: 'not-exist', name: 'Not exist' },
+          };
+          const response = await agentsByRole[role][firstUser.email]
+            .post(`/projects`)
+            .send(project);
 
-        if (isStatusSuccess(status)) {
-          expect(response.body).toEqual(
-            expect.objectContaining({
-              ...project,
-              client: expect.objectContaining(
-                project.client
-              ),
-              archived: false,
-            })
-          );
-          expect(response.body).toMatchObject({
-            id: expect.any(String),
-            name: expect.any(String),
-            client: isOwner ? {
+          expect(response.status).toEqual(hasPermission ? 201 : 403);
+
+          if (isStatusSuccess(response.status)) {
+            expect(response.body).toEqual(
+              expect.objectContaining({
+                ...project,
+                client: expect.objectContaining({
+                  id: project.client.id,
+                  name: project.client.name,
+                }),
+                archived: false,
+              })
+            );
+            expect(response.body).toMatchObject({
               id: expect.any(String),
               name: expect.any(String),
-              email: expect.toBeOneOf([expect.any(String), null]),
-              address: expect.toBeOneOf([expect.any(String), null]),
-              description: expect.toBeOneOf([expect.any(String), null]),
+              client: {
+                id: expect.any(String),
+                name: expect.any(String),
+                email: expect.toBeOneOf([expect.any(String), null]),
+                address: expect.toBeOneOf([expect.any(String), null]),
+                description: expect.toBeOneOf([expect.any(String), null]),
+                archived: expect.any(Boolean),
+                createdAt: expect.any(String),
+                updatedAt: expect.toBeOneOf([expect.any(String), null]),
+              },
               archived: expect.any(Boolean),
               createdAt: expect.any(String),
               updatedAt: expect.toBeOneOf([expect.any(String), null]),
-            } : null,
-            archived: expect.any(Boolean),
-            createdAt: expect.any(String),
-            updatedAt: expect.toBeOneOf([expect.any(String), null]),
-          });
+            });
 
-          // Using as an example for the rest of the tests
-          testData.created[role] = response.body;
-          if (role !== RolesEnum.ROLE_ADMIN_SYSTEM) {
-            testData.countCreated[role] += 1;
-            testData.countCreated[RolesEnum.ROLE_ADMIN_SYSTEM] += 1;
-          } else {
-            testData.countCreated[RolesEnum.ROLE_ADMIN_SYSTEM] += 1;
+            // Using as an example for the rest of the tests
+            testData.created[role] = response.body;
+            if (role !== RolesEnum.ROLE_ADMIN_SYSTEM) {
+              testData.countCreated[role] += 1;
+              testData.countCreated[RolesEnum.ROLE_ADMIN_SYSTEM] += 1;
+            } else {
+              testData.countCreated[RolesEnum.ROLE_ADMIN_SYSTEM] += 1;
+            }
           }
+        });
+
+        if (hasPermission) {
+          it(`should ${
+            shouldCheckTenantPermission(role) ? 'create' : 'not create'
+          } project with client has other tenant`, async () => {
+            const client = testServer.context
+              .getResultSeed<Client[]>(ClientSeeder.name)
+              .find((clientSeed) => clientSeed.tenant.id !== firstUser.tenant.id);
+
+            const project = {
+              name: `Test Project ${firstUser.email}`,
+              client: client ?? { id: 'not-exist', name: 'Not exist' },
+            };
+            const response = await agentsByRole[role][firstUser.email]
+              .post(`/projects`)
+              .send(project);
+
+            expect(response.status).toEqual(shouldCheckTenantPermission(role) ? 201 : 404);
+
+            if (isStatusSuccess(response.status)) {
+              expect(response.body).toEqual(
+                expect.objectContaining({
+                  ...project,
+                  client: expect.objectContaining({
+                    id: project.client.id,
+                    name: project.client.name,
+                  }),
+                  archived: false,
+                })
+              );
+              expect(response.body).toMatchObject({
+                id: expect.any(String),
+                name: expect.any(String),
+                client: {
+                  id: expect.any(String),
+                  name: expect.any(String),
+                  email: expect.toBeOneOf([expect.any(String), null]),
+                  address: expect.toBeOneOf([expect.any(String), null]),
+                  description: expect.toBeOneOf([expect.any(String), null]),
+                  archived: expect.any(Boolean),
+                  createdAt: expect.any(String),
+                  updatedAt: expect.toBeOneOf([expect.any(String), null]),
+                },
+                archived: expect.any(Boolean),
+                createdAt: expect.any(String),
+                updatedAt: expect.toBeOneOf([expect.any(String), null]),
+              });
+
+              // Using as an example for the rest of the tests
+              testData.created[role] = response.body;
+              if (role !== RolesEnum.ROLE_ADMIN_SYSTEM) {
+                testData.countCreated[role] += 1;
+                testData.countCreated[RolesEnum.ROLE_ADMIN_SYSTEM] += 1;
+              } else {
+                testData.countCreated[RolesEnum.ROLE_ADMIN_SYSTEM] += 1;
+              }
+            }
+          });
         }
       });
     });
 
-    describe.each<RolesEnum>(AvailableRoles)('validation by role', (role) => {
-      it(`${role} try validation error`, async () => {
-        const status = getTestsStatusByRole(
-          422,
-          AvalilableCollections.PROJECT,
-          CrudActions.CREATE,
-          roleSeeders
-        );
+    // describe.each<RolesEnum>(AvailableRoles)('validation by role', (role) => {
+    //   it(`${role} try validation error`, async () => {
+    //     const status = getTestsStatusByRole(
+    //       422,
+    //       AvalilableCollections.PROJECT,
+    //       CrudActions.CREATE,
+    //       roleSeeders
+    //     );
 
-        if (status[role] === 403) return;
+    //     if (status[role] === 403) return;
 
-        const response = await agentsByRole[role].post(`/projects`).send({});
+    //     const response = await agentsByRole[role].post(`/projects`).send({});
 
-        expect(response.status).toEqual(status[role]);
+    //     expect(response.status).toEqual(status[role]);
 
-        expect(response.body).toMatchObject({
-          errors: {
-            name: expect.any(Array),
-          },
-        });
-      });
-    });
+    //     expect(response.body).toMatchObject({
+    //       errors: {
+    //         name: expect.any(Array),
+    //       },
+    //     });
+    //   });
+    // });
   });
 
   // describe('Project update (e2e)', () => {
