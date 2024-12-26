@@ -22,7 +22,7 @@ import ClientSeeder from './seeds/client/client.seed';
 import projectSeederFactory from './seeds/project/project.factory';
 import ProjectSeeder from './seeds/project/project.seed';
 import { isStatusSuccess } from '../utils/http';
-import { shouldCheckTenantPermission } from '../utils/check-permission';
+import { hasPermissionAnotherTenant } from '../utils/check-permission';
 
 describe('Client (e2e)', () => {
   let testServer: TestServer;
@@ -109,7 +109,7 @@ describe('Client (e2e)', () => {
             // Using as an example for the rest of the tests
             testData.created[firstUser.tenant.id] = response.body;
 
-            if (!shouldCheckTenantPermission(role)) {
+            if (!hasPermissionAnotherTenant(role)) {
               if (testData.countCreated[firstUser.tenant.id]) {
                 testData.countCreated[firstUser.tenant.id] += 1;
               } else {
@@ -185,7 +185,7 @@ describe('Client (e2e)', () => {
 
         if (hasPermission) {
           it(`should ${
-            shouldCheckTenantPermission(role) ? 'update' : 'not update'
+            hasPermissionAnotherTenant(role) ? 'update' : 'not update'
           } client another tenant`, async () => {
             const client = testServer.context
               .getResultSeed<Client[]>(ClientSeeder.name)
@@ -205,7 +205,7 @@ describe('Client (e2e)', () => {
               .put(`/clients/${client.id}`)
               .send(dataClient);
 
-            expect(response.status).toEqual(shouldCheckTenantPermission(role) ? 202 : 404);
+            expect(response.status).toEqual(hasPermissionAnotherTenant(role) ? 202 : 404);
 
             if (isStatusSuccess(response.status)) {
               expect(response.body).toEqual(expect.objectContaining(dataClient));
@@ -270,7 +270,7 @@ describe('Client (e2e)', () => {
           expect(response.status).toEqual(hasPermission ? 200 : 403);
 
           if (isStatusSuccess(response.status)) {
-            if (shouldCheckTenantPermission(role)) {
+            if (hasPermissionAnotherTenant(role)) {
               const resultSeed = testServer.context.getResultSeed<Client[]>(ClientSeeder.name);
               const countClients = resultSeed.length + testData.countAllCreated;
 
@@ -281,7 +281,8 @@ describe('Client (e2e)', () => {
               const resultSeed = testServer.context
                 .getResultSeed<Client[]>(ClientSeeder.name)
                 .filter((clientSeed) => clientSeed.tenant.id === firstUser.tenant.id);
-              const countClients = resultSeed.length + (testData.countCreated[firstUser.tenant.id] ?? 0);
+              const countClients =
+                resultSeed.length + (testData.countCreated[firstUser.tenant.id] ?? 0);
 
               expect(response.body).toHaveProperty('metadata.total', countClients);
               expect(response.body).toHaveProperty('items');
@@ -300,7 +301,7 @@ describe('Client (e2e)', () => {
           expect(response.status).toEqual(hasPermission ? 200 : 403);
 
           if (isStatusSuccess(response.status)) {
-            if (shouldCheckTenantPermission(role)) {
+            if (hasPermissionAnotherTenant(role)) {
               const resultSeed = testServer.context
                 .getResultSeed<Client[]>(ClientSeeder.name)
                 .filter((clientSeed) => !clientSeed.archived);
@@ -316,7 +317,8 @@ describe('Client (e2e)', () => {
                   (clientSeed) =>
                     clientSeed.tenant.id === firstUser.tenant.id && !clientSeed.archived
                 );
-              const countClients = resultSeed.length + (testData.countCreated[firstUser.tenant.id] ?? 0);
+              const countClients =
+                resultSeed.length + (testData.countCreated[firstUser.tenant.id] ?? 0);
 
               expect(response.body).toHaveProperty('metadata.total', countClients);
               expect(response.body).toHaveProperty('items');
@@ -335,7 +337,7 @@ describe('Client (e2e)', () => {
           expect(response.status).toEqual(hasPermission ? 200 : 403);
 
           if (isStatusSuccess(response.status)) {
-            if (shouldCheckTenantPermission(role)) {
+            if (hasPermissionAnotherTenant(role)) {
               const resultSeed = testServer.context
                 .getResultSeed<Client[]>(ClientSeeder.name)
                 .filter((clientSeed) => uniqueClientName === clientSeed.name);
@@ -363,7 +365,6 @@ describe('Client (e2e)', () => {
   });
 
   describe('Client find (e2e)', () => {
-
     describe.each<RolesEnum>(AvailableRoles)('find by role', (role) => {
       const firstUser = dataUsers[role][0];
       const hasPermission = roleHasPermission(
@@ -373,17 +374,12 @@ describe('Client (e2e)', () => {
       );
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
-
         it(`should ${hasPermission ? 'find' : 'not find'} client`, async () => {
           const client = testServer.context
             .getResultSeed<Client[]>(ClientSeeder.name)
-            .find(
-              (clientSeed) =>
-                clientSeed.tenant.id === firstUser.tenant.id
-            );
+            .find((clientSeed) => clientSeed.tenant.id === firstUser.tenant.id);
 
-          const response = await agentsByRole[role][firstUser.email]
-            .get(`/clients/${client.id}`);
+          const response = await agentsByRole[role][firstUser.email].get(`/clients/${client.id}`);
 
           expect(response.status).toEqual(hasPermission ? 200 : 403);
 
@@ -409,7 +405,7 @@ describe('Client (e2e)', () => {
 
         if (hasPermission) {
           it(`should ${
-            shouldCheckTenantPermission(role) ? 'find' : 'not find'
+            hasPermissionAnotherTenant(role) ? 'find' : 'not find'
           } client another tenant`, async () => {
             const client = testServer.context
               .getResultSeed<Client[]>(ClientSeeder.name)
@@ -419,10 +415,9 @@ describe('Client (e2e)', () => {
                   uniqueClientName === clientSeed.name
               );
 
-            const response = await agentsByRole[role][firstUser.email]
-              .get(`/clients/${client.id}`)
+            const response = await agentsByRole[role][firstUser.email].get(`/clients/${client.id}`);
 
-            expect(response.status).toEqual(shouldCheckTenantPermission(role) ? 200 : 404);
+            expect(response.status).toEqual(hasPermissionAnotherTenant(role) ? 200 : 404);
 
             if (isStatusSuccess(response.status)) {
               expect(response.body).toEqual(
@@ -444,8 +439,8 @@ describe('Client (e2e)', () => {
             }
           });
         }
-      })
-    })
+      });
+    });
   });
 
   describe('Client archive (e2e)', () => {
@@ -457,81 +452,17 @@ describe('Client (e2e)', () => {
         CommonActions.ARCHIVE
       );
 
-      describe.each<boolean>([false, true])(`role ${role} and user ${firstUser.email}`, (withProjects) => {
-        describe(withProjects ? 'with projects' : 'without projects', () => {
-          it(`should ${hasPermission ? 'archive' : 'not archive'} client`, async () => {
-            const project = testServer.context
-              .getResultSeed<Project[]>(ProjectSeeder.name)
-              .find(
-                (projectSeed) =>
-                  projectSeed.tenant.id === firstUser.tenant.id
-                  && !testData.changedArchivedClients.includes(projectSeed.client.id)
-              );
-
-            const data = {
-              archived: true,
-              withProjects,
-            };
-
-            const response = await agentsByRole[role][firstUser.email]
-              .patch(`/clients/archive/${project.client.id}`)
-              .send(data);
-
-            expect(response.status).toEqual(hasPermission ? 202 : 403);
-
-            if (isStatusSuccess(response.status)) {
-              const responseProjects = await agentsByRole[role][firstUser.email].get(
-                `/projects?filters[archived]=all&filters[clients]=${project.client.id}&limit=100`
-              );
-
-              let resultSeed: Project[] = [];
-              let resultSeedCountProjectsActive = 0;
-              let resultSeedCountProjectsArchived = 0;
-
-              const activeProjects = responseProjects.body.items.filter(
-                (responseProject: Project) => !responseProject.archived
-              );
-              const archivedProjects = responseProjects.body.items.filter(
-                (responseProject: Project) => responseProject.archived
-              );
-
-              testData.changedArchivedClients.push(project.client.id);
-
-              resultSeed = testServer.context.getResultSeed<Project[]>(
-                ProjectSeeder.name
-              )
-
-              if (withProjects) {
-                resultSeedCountProjectsActive = 0;
-                resultSeedCountProjectsArchived = resultSeed.filter(
-                  (projectSeed) => projectSeed.client.id === project.client.id
-                ).length;
-              } else {
-                resultSeedCountProjectsActive = resultSeed.filter(
-                  (projectSeed) => !projectSeed.archived && projectSeed.client.id === project.client.id
-                ).length;
-                resultSeedCountProjectsArchived = resultSeed.filter(
-                  (projectSeed) => projectSeed.archived && projectSeed.client.id === project.client.id
-                ).length;
-              }
-
-              expect(activeProjects.length).toEqual(resultSeedCountProjectsActive);
-              expect(archivedProjects.length).toEqual(resultSeedCountProjectsArchived);
-            }
-          })
-        })
-
-        if (hasPermission) {
+      describe.each<boolean>([false, true])(
+        `role ${role} and user ${firstUser.email}`,
+        (withProjects) => {
           describe(withProjects ? 'with projects' : 'without projects', () => {
-            it(`should ${
-              shouldCheckTenantPermission(role) ? 'archive' : 'not archive'
-            } client another tenant`, async () => {
+            it(`should ${hasPermission ? 'archive' : 'not archive'} client`, async () => {
               const project = testServer.context
                 .getResultSeed<Project[]>(ProjectSeeder.name)
                 .find(
                   (projectSeed) =>
-                    projectSeed.tenant.id !== firstUser.tenant.id
-                    && !testData.changedArchivedClients.includes(projectSeed.client.id)
+                    projectSeed.tenant.id === firstUser.tenant.id &&
+                    !testData.changedArchivedClients.includes(projectSeed.client.id)
                 );
 
               const data = {
@@ -543,11 +474,11 @@ describe('Client (e2e)', () => {
                 .patch(`/clients/archive/${project.client.id}`)
                 .send(data);
 
-              expect(response.status).toEqual(shouldCheckTenantPermission(role) ? 202 : 404);
+              expect(response.status).toEqual(hasPermission ? 202 : 403);
 
               if (isStatusSuccess(response.status)) {
                 const responseProjects = await agentsByRole[role][firstUser.email].get(
-                  `/projects?filters[archived]=all&filters[clients]=${project.client.id}&limit=25`
+                  `/projects?filters[archived]=all&filters[clients]=${project.client.id}&limit=100`
                 );
 
                 let resultSeed: Project[] = [];
@@ -563,9 +494,7 @@ describe('Client (e2e)', () => {
 
                 testData.changedArchivedClients.push(project.client.id);
 
-                resultSeed = testServer.context.getResultSeed<Project[]>(
-                  ProjectSeeder.name
-                )
+                resultSeed = testServer.context.getResultSeed<Project[]>(ProjectSeeder.name);
 
                 if (withProjects) {
                   resultSeedCountProjectsActive = 0;
@@ -574,10 +503,12 @@ describe('Client (e2e)', () => {
                   ).length;
                 } else {
                   resultSeedCountProjectsActive = resultSeed.filter(
-                    (projectSeed) => !projectSeed.archived && projectSeed.client.id === project.client.id
+                    (projectSeed) =>
+                      !projectSeed.archived && projectSeed.client.id === project.client.id
                   ).length;
                   resultSeedCountProjectsArchived = resultSeed.filter(
-                    (projectSeed) => projectSeed.archived && projectSeed.client.id === project.client.id
+                    (projectSeed) =>
+                      projectSeed.archived && projectSeed.client.id === project.client.id
                   ).length;
                 }
 
@@ -585,9 +516,76 @@ describe('Client (e2e)', () => {
                 expect(archivedProjects.length).toEqual(resultSeedCountProjectsArchived);
               }
             });
-          })
+          });
+
+          if (hasPermission) {
+            describe(withProjects ? 'with projects' : 'without projects', () => {
+              it(`should ${
+                hasPermissionAnotherTenant(role) ? 'archive' : 'not archive'
+              } client another tenant`, async () => {
+                const project = testServer.context
+                  .getResultSeed<Project[]>(ProjectSeeder.name)
+                  .find(
+                    (projectSeed) =>
+                      projectSeed.tenant.id !== firstUser.tenant.id &&
+                      !testData.changedArchivedClients.includes(projectSeed.client.id)
+                  );
+
+                const data = {
+                  archived: true,
+                  withProjects,
+                };
+
+                const response = await agentsByRole[role][firstUser.email]
+                  .patch(`/clients/archive/${project.client.id}`)
+                  .send(data);
+
+                expect(response.status).toEqual(hasPermissionAnotherTenant(role) ? 202 : 404);
+
+                if (isStatusSuccess(response.status)) {
+                  const responseProjects = await agentsByRole[role][firstUser.email].get(
+                    `/projects?filters[archived]=all&filters[clients]=${project.client.id}&limit=25`
+                  );
+
+                  let resultSeed: Project[] = [];
+                  let resultSeedCountProjectsActive = 0;
+                  let resultSeedCountProjectsArchived = 0;
+
+                  const activeProjects = responseProjects.body.items.filter(
+                    (responseProject: Project) => !responseProject.archived
+                  );
+                  const archivedProjects = responseProjects.body.items.filter(
+                    (responseProject: Project) => responseProject.archived
+                  );
+
+                  testData.changedArchivedClients.push(project.client.id);
+
+                  resultSeed = testServer.context.getResultSeed<Project[]>(ProjectSeeder.name);
+
+                  if (withProjects) {
+                    resultSeedCountProjectsActive = 0;
+                    resultSeedCountProjectsArchived = resultSeed.filter(
+                      (projectSeed) => projectSeed.client.id === project.client.id
+                    ).length;
+                  } else {
+                    resultSeedCountProjectsActive = resultSeed.filter(
+                      (projectSeed) =>
+                        !projectSeed.archived && projectSeed.client.id === project.client.id
+                    ).length;
+                    resultSeedCountProjectsArchived = resultSeed.filter(
+                      (projectSeed) =>
+                        projectSeed.archived && projectSeed.client.id === project.client.id
+                    ).length;
+                  }
+
+                  expect(activeProjects.length).toEqual(resultSeedCountProjectsActive);
+                  expect(archivedProjects.length).toEqual(resultSeedCountProjectsArchived);
+                }
+              });
+            });
+          }
         }
-      });
+      );
     });
   });
 
@@ -600,81 +598,17 @@ describe('Client (e2e)', () => {
         CommonActions.RESTORE
       );
 
-      describe.each<boolean>([false, true])(`role ${role} and user ${firstUser.email}`, (withProjects) => {
-        describe(withProjects ? 'with projects' : 'without projects', () => {
-          it(`should ${hasPermission ? 'restore' : 'not restore'} client`, async () => {
-            const project = testServer.context
-              .getResultSeed<Project[]>(ProjectSeeder.name)
-              .find(
-                (projectSeed) =>
-                  projectSeed.tenant.id === firstUser.tenant.id
-                  && !testData.changedArchivedClients.includes(projectSeed.client.id)
-              );
-
-            const data = {
-              archived: false,
-              withProjects,
-            };
-
-            const response = await agentsByRole[role][firstUser.email]
-              .patch(`/clients/archive/${project.client.id}`)
-              .send(data);
-
-            expect(response.status).toEqual(hasPermission ? 202 : 403);
-
-            if (isStatusSuccess(response.status)) {
-              const responseProjects = await agentsByRole[role][firstUser.email].get(
-                `/projects?filters[archived]=all&filters[clients]=${project.client.id}&limit=100`
-              );
-
-              let resultSeed: Project[] = [];
-              let resultSeedCountProjectsActive = 0;
-              let resultSeedCountProjectsArchived = 0;
-
-              const activeProjects = responseProjects.body.items.filter(
-                (responseProject: Project) => !responseProject.archived
-              );
-              const archivedProjects = responseProjects.body.items.filter(
-                (responseProject: Project) => responseProject.archived
-              );
-
-              testData.changedArchivedClients.push(project.client.id);
-
-              resultSeed = testServer.context.getResultSeed<Project[]>(
-                ProjectSeeder.name
-              )
-
-              if (withProjects) {
-                resultSeedCountProjectsActive = resultSeed.filter(
-                  (projectSeed) => projectSeed.client.id === project.client.id
-                ).length;
-                resultSeedCountProjectsArchived = 0;
-              } else {
-                resultSeedCountProjectsActive = resultSeed.filter(
-                  (projectSeed) => !projectSeed.archived && projectSeed.client.id === project.client.id
-                ).length;
-                resultSeedCountProjectsArchived = resultSeed.filter(
-                  (projectSeed) => projectSeed.archived && projectSeed.client.id === project.client.id
-                ).length;
-              }
-
-              expect(activeProjects.length).toEqual(resultSeedCountProjectsActive);
-              expect(archivedProjects.length).toEqual(resultSeedCountProjectsArchived);
-            }
-          })
-        })
-
-        if (hasPermission) {
+      describe.each<boolean>([false, true])(
+        `role ${role} and user ${firstUser.email}`,
+        (withProjects) => {
           describe(withProjects ? 'with projects' : 'without projects', () => {
-            it(`should ${
-              shouldCheckTenantPermission(role) ? 'restore' : 'not restore'
-            } client another tenant`, async () => {
+            it(`should ${hasPermission ? 'restore' : 'not restore'} client`, async () => {
               const project = testServer.context
                 .getResultSeed<Project[]>(ProjectSeeder.name)
                 .find(
                   (projectSeed) =>
-                    projectSeed.tenant.id !== firstUser.tenant.id
-                    && !testData.changedArchivedClients.includes(projectSeed.client.id)
+                    projectSeed.tenant.id === firstUser.tenant.id &&
+                    !testData.changedArchivedClients.includes(projectSeed.client.id)
                 );
 
               const data = {
@@ -686,11 +620,11 @@ describe('Client (e2e)', () => {
                 .patch(`/clients/archive/${project.client.id}`)
                 .send(data);
 
-              expect(response.status).toEqual(shouldCheckTenantPermission(role) ? 202 : 404);
+              expect(response.status).toEqual(hasPermission ? 202 : 403);
 
               if (isStatusSuccess(response.status)) {
                 const responseProjects = await agentsByRole[role][firstUser.email].get(
-                  `/projects?filters[archived]=all&filters[clients]=${project.client.id}&limit=25`
+                  `/projects?filters[archived]=all&filters[clients]=${project.client.id}&limit=100`
                 );
 
                 let resultSeed: Project[] = [];
@@ -706,9 +640,7 @@ describe('Client (e2e)', () => {
 
                 testData.changedArchivedClients.push(project.client.id);
 
-                resultSeed = testServer.context.getResultSeed<Project[]>(
-                  ProjectSeeder.name
-                )
+                resultSeed = testServer.context.getResultSeed<Project[]>(ProjectSeeder.name);
 
                 if (withProjects) {
                   resultSeedCountProjectsActive = resultSeed.filter(
@@ -717,10 +649,12 @@ describe('Client (e2e)', () => {
                   resultSeedCountProjectsArchived = 0;
                 } else {
                   resultSeedCountProjectsActive = resultSeed.filter(
-                    (projectSeed) => !projectSeed.archived && projectSeed.client.id === project.client.id
+                    (projectSeed) =>
+                      !projectSeed.archived && projectSeed.client.id === project.client.id
                   ).length;
                   resultSeedCountProjectsArchived = resultSeed.filter(
-                    (projectSeed) => projectSeed.archived && projectSeed.client.id === project.client.id
+                    (projectSeed) =>
+                      projectSeed.archived && projectSeed.client.id === project.client.id
                   ).length;
                 }
 
@@ -728,9 +662,76 @@ describe('Client (e2e)', () => {
                 expect(archivedProjects.length).toEqual(resultSeedCountProjectsArchived);
               }
             });
-          })
+          });
+
+          if (hasPermission) {
+            describe(withProjects ? 'with projects' : 'without projects', () => {
+              it(`should ${
+                hasPermissionAnotherTenant(role) ? 'restore' : 'not restore'
+              } client another tenant`, async () => {
+                const project = testServer.context
+                  .getResultSeed<Project[]>(ProjectSeeder.name)
+                  .find(
+                    (projectSeed) =>
+                      projectSeed.tenant.id !== firstUser.tenant.id &&
+                      !testData.changedArchivedClients.includes(projectSeed.client.id)
+                  );
+
+                const data = {
+                  archived: false,
+                  withProjects,
+                };
+
+                const response = await agentsByRole[role][firstUser.email]
+                  .patch(`/clients/archive/${project.client.id}`)
+                  .send(data);
+
+                expect(response.status).toEqual(hasPermissionAnotherTenant(role) ? 202 : 404);
+
+                if (isStatusSuccess(response.status)) {
+                  const responseProjects = await agentsByRole[role][firstUser.email].get(
+                    `/projects?filters[archived]=all&filters[clients]=${project.client.id}&limit=25`
+                  );
+
+                  let resultSeed: Project[] = [];
+                  let resultSeedCountProjectsActive = 0;
+                  let resultSeedCountProjectsArchived = 0;
+
+                  const activeProjects = responseProjects.body.items.filter(
+                    (responseProject: Project) => !responseProject.archived
+                  );
+                  const archivedProjects = responseProjects.body.items.filter(
+                    (responseProject: Project) => responseProject.archived
+                  );
+
+                  testData.changedArchivedClients.push(project.client.id);
+
+                  resultSeed = testServer.context.getResultSeed<Project[]>(ProjectSeeder.name);
+
+                  if (withProjects) {
+                    resultSeedCountProjectsActive = resultSeed.filter(
+                      (projectSeed) => projectSeed.client.id === project.client.id
+                    ).length;
+                    resultSeedCountProjectsArchived = 0;
+                  } else {
+                    resultSeedCountProjectsActive = resultSeed.filter(
+                      (projectSeed) =>
+                        !projectSeed.archived && projectSeed.client.id === project.client.id
+                    ).length;
+                    resultSeedCountProjectsArchived = resultSeed.filter(
+                      (projectSeed) =>
+                        projectSeed.archived && projectSeed.client.id === project.client.id
+                    ).length;
+                  }
+
+                  expect(activeProjects.length).toEqual(resultSeedCountProjectsActive);
+                  expect(archivedProjects.length).toEqual(resultSeedCountProjectsArchived);
+                }
+              });
+            });
+          }
         }
-      });
+      );
     });
   });
 
@@ -744,68 +745,79 @@ describe('Client (e2e)', () => {
         CommonActions.ARCHIVE
       );
 
-      describe.each<boolean>([false, true])(`role ${role} and user ${firstUser.email}`, (archived) => {
-        describe(archived ? 'archived' : 'active', () => {
-          it(`should ${hasPermission && archived ? 'delete' : 'not delete'} client`, async () => {
-            const client = testServer.context
-              .getResultSeed<Client[]>(ClientSeeder.name)
-              .find(
-                (clientSeed) =>
-                  clientSeed.tenant.id === firstUser.tenant.id &&
-                  clientSeed.archived === archived &&
-                  !deletedClients.includes(clientSeed.id) &&
-                  !testData.changedArchivedClients.includes(clientSeed.id)
-              );
-
-            const response = await agentsByRole[role][firstUser.email].delete(`/clients/${client.id}`);
-
-            let expectedStatus;
-
-            if (hasPermission) {
-              expectedStatus = archived ? 202 : 404;
-            } else {
-              expectedStatus = 403;
-            }
-            expect(response.status).toEqual(expectedStatus);
-
-            if (isStatusSuccess(expectedStatus)) {
-              deletedClients.push(client.id);
-            }
-          })
-        })
-
-        if (hasPermission) {
+      describe.each<boolean>([false, true])(
+        `role ${role} and user ${firstUser.email}`,
+        (archived) => {
           describe(archived ? 'archived' : 'active', () => {
-            it(`should ${shouldCheckTenantPermission(role) && hasPermission && archived ? 'delete' : 'not delete'} client another tenant`, async () => {
+            it(`should ${hasPermission && archived ? 'delete' : 'not delete'} client`, async () => {
               const client = testServer.context
                 .getResultSeed<Client[]>(ClientSeeder.name)
                 .find(
                   (clientSeed) =>
-                    clientSeed.tenant.id !== firstUser.tenant.id &&
+                    clientSeed.tenant.id === firstUser.tenant.id &&
                     clientSeed.archived === archived &&
                     !deletedClients.includes(clientSeed.id) &&
                     !testData.changedArchivedClients.includes(clientSeed.id)
                 );
 
-              const response = await agentsByRole[role][firstUser.email].delete(`/clients/${client.id}`);
+              const response = await agentsByRole[role][firstUser.email].delete(
+                `/clients/${client.id}`
+              );
 
               let expectedStatus;
 
-              if (archived) {
-                expectedStatus = shouldCheckTenantPermission(role) ? 202 : 404;
+              if (hasPermission) {
+                expectedStatus = archived ? 202 : 404;
               } else {
-                expectedStatus = 404;
+                expectedStatus = 403;
               }
-
               expect(response.status).toEqual(expectedStatus);
 
               if (isStatusSuccess(expectedStatus)) {
                 deletedClients.push(client.id);
               }
-            })
-          })
+            });
+          });
+
+          if (hasPermission) {
+            describe(archived ? 'archived' : 'active', () => {
+              it(`should ${
+                hasPermissionAnotherTenant(role) && hasPermission && archived
+                  ? 'delete'
+                  : 'not delete'
+              } client another tenant`, async () => {
+                const client = testServer.context
+                  .getResultSeed<Client[]>(ClientSeeder.name)
+                  .find(
+                    (clientSeed) =>
+                      clientSeed.tenant.id !== firstUser.tenant.id &&
+                      clientSeed.archived === archived &&
+                      !deletedClients.includes(clientSeed.id) &&
+                      !testData.changedArchivedClients.includes(clientSeed.id)
+                  );
+
+                const response = await agentsByRole[role][firstUser.email].delete(
+                  `/clients/${client.id}`
+                );
+
+                let expectedStatus;
+
+                if (archived) {
+                  expectedStatus = hasPermissionAnotherTenant(role) ? 202 : 404;
+                } else {
+                  expectedStatus = 404;
+                }
+
+                expect(response.status).toEqual(expectedStatus);
+
+                if (isStatusSuccess(expectedStatus)) {
+                  deletedClients.push(client.id);
+                }
+              });
+            });
+          }
         }
-      });
+      );
     });
   });
 });

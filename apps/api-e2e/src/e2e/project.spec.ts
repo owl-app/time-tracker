@@ -25,7 +25,7 @@ import ProjectSeeder from './seeds/project/project.seed';
 import { CreatedSeedData } from './types';
 import { isStatusSuccess, getTestsStatusByOwner, getTestsStatusByRole } from '../utils/http';
 import { getCasesByRoleWithOwner } from '../utils/cases';
-import { shouldCheckTenantPermission } from '../utils/check-permission';
+import { hasPermissionAnotherTenant } from '../utils/check-permission';
 
 describe('Project (e2e)', () => {
   let testServer: TestServer;
@@ -146,7 +146,7 @@ describe('Project (e2e)', () => {
 
         if (hasPermission) {
           it(`should ${
-            shouldCheckTenantPermission(role) ? 'create' : 'not create'
+            hasPermissionAnotherTenant(role) ? 'create' : 'not create'
           } project with client has other tenant`, async () => {
             const client = testServer.context
               .getResultSeed<Client[]>(ClientSeeder.name)
@@ -160,7 +160,7 @@ describe('Project (e2e)', () => {
               .post(`/projects`)
               .send(project);
 
-            expect(response.status).toEqual(shouldCheckTenantPermission(role) ? 201 : 404);
+            expect(response.status).toEqual(hasPermissionAnotherTenant(role) ? 201 : 404);
 
             if (isStatusSuccess(response.status)) {
               expect(response.body).toEqual(

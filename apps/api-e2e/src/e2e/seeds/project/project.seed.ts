@@ -19,16 +19,15 @@ export default class ProjectSeeder implements Seeder {
     const clientRepository = dataSource.getRepository<Client>(CLIENT_ENTITY);
     const userFactory = await factoryManager.get(ProjectEntitySchema);
 
-
     const clientTenant1 = await clientRepository
-      .createQueryBuilder("client")
-      .innerJoinAndSelect("client.tenant", "tenant")
-      .where("tenant.id = :tenantId", { tenantId: dataTenants.tenantFirst.id })
-      .getMany()
+      .createQueryBuilder('client')
+      .innerJoinAndSelect('client.tenant', 'tenant')
+      .where('tenant.id = :tenantId', { tenantId: dataTenants.tenantFirst.id })
+      .getMany();
     const clientTenant2 = await clientRepository
-      .createQueryBuilder("client")
-      .innerJoinAndSelect("client.tenant", "tenant")
-      .where("tenant.id = :tenantId", { tenantId: dataTenants.tenantSecond.id })
+      .createQueryBuilder('client')
+      .innerJoinAndSelect('client.tenant', 'tenant')
+      .where('tenant.id = :tenantId', { tenantId: dataTenants.tenantSecond.id })
       .getMany();
 
     const clientsByTenant = {
@@ -72,12 +71,12 @@ export default class ProjectSeeder implements Seeder {
             archived: false,
           })
         );
-      })
+      });
 
       clientIterator += 1;
-    })
+    });
 
-    projects = await Promise.all(promisesProjects).then(results => results.flat());
+    projects = await Promise.all(promisesProjects).then((results) => results.flat());
 
     return projects;
   }

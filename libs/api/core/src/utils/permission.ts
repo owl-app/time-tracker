@@ -1,4 +1,9 @@
-import { AvalilableCollections, CrudActions, Permission, PermissionReferType } from "@owl-app/lib-contracts";
+import {
+  AvalilableCollections,
+  CrudActions,
+  Permission,
+  PermissionReferType,
+} from '@owl-app/lib-contracts';
 
 export function getCrudPermissions(collectionName: string = null): Permission[] {
   const permissions: Permission[] = [];

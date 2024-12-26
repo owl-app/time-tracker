@@ -106,7 +106,7 @@ export class ProjectCrudController {
 
     try {
       created = await this.service.createWithRelations(createProjectRequest);
-    }catch (error: unknown) {
+    } catch (error: unknown) {
       if (error instanceof NotFoundException) {
         throw new NotFoundHttpException(error.message);
       }

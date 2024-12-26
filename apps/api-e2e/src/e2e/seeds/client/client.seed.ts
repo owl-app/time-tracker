@@ -43,9 +43,9 @@ export default class ClientSeeder implements Seeder {
           })
         );
       })
-    )
+    );
 
-    clients = await Promise.all(promisesClients).then(results => results.flat());
+    clients = await Promise.all(promisesClients).then((results) => results.flat());
 
     return clients;
   }

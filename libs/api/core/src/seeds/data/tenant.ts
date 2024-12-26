@@ -1,4 +1,4 @@
-import { Tenant } from "@owl-app/lib-contracts";
+import { Tenant } from '@owl-app/lib-contracts';
 
 export const dataTenants: Record<string, Tenant> = {
   tenantFirst: {
@@ -9,4 +9,4 @@ export const dataTenants: Record<string, Tenant> = {
     id: '4a2576d3-9830-4790-8535-b708d42faa32',
     name: 'Tenant 2',
   },
-}
+};

@@ -22,7 +22,7 @@ export const dataUsers: UserData = {
       password: 'test',
       roles: [{ name: RolesEnum.ROLE_ADMIN_SYSTEM } as Role],
       tenant: dataTenants.tenantSecond,
-    }
+    },
   ],
   [RolesEnum.ROLE_ADMIN_COMPANY]: [
     {
@@ -42,7 +42,7 @@ export const dataUsers: UserData = {
       password: 'test',
       roles: [{ name: RolesEnum.ROLE_ADMIN_COMPANY } as Role],
       tenant: dataTenants.tenantSecond,
-    }
+    },
   ],
   [RolesEnum.ROLE_USER]: [
     {
@@ -62,6 +62,6 @@ export const dataUsers: UserData = {
       password: 'test',
       roles: [{ name: RolesEnum.ROLE_USER } as Role],
       tenant: dataTenants.tenantSecond,
-    }
+    },
   ],
 };

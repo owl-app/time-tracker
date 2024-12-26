@@ -13,5 +13,9 @@ export const checkPermissionToRoute = (
       `${PermissionReferType.ROUTE.toUpperCase()}_${collection.toUpperCase()}_${action.toUpperCase()}`
   );
 
-export const roleHasPermission = (role: RolesEnum, collection: AvalilableCollections, action: string): boolean =>
+export const roleHasPermission = (
+  role: RolesEnum,
+  collection: AvalilableCollections,
+  action: string
+): boolean =>
   dataRoles[role].some((permission) => permission.name === getRouteName(collection, action));
