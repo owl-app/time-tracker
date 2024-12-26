@@ -12,7 +12,7 @@ export const dataUsers: UserData = {
       lastName: 'System 1',
       password: 'test',
       roles: [{ name: RolesEnum.ROLE_ADMIN_SYSTEM } as Role],
-      tenant: dataTenants.tenant_1,
+      tenant: dataTenants.tenantFirst,
     },
     {
       id: 'cc54121c-7d55-4a36-95ca-668fd2c082f2',
@@ -21,7 +21,7 @@ export const dataUsers: UserData = {
       lastName: 'System 2',
       password: 'test',
       roles: [{ name: RolesEnum.ROLE_ADMIN_SYSTEM } as Role],
-      tenant: dataTenants.tenant_2,
+      tenant: dataTenants.tenantSecond,
     }
   ],
   [RolesEnum.ROLE_ADMIN_COMPANY]: [
@@ -32,7 +32,7 @@ export const dataUsers: UserData = {
       lastName: 'Company 1',
       password: 'test',
       roles: [{ name: RolesEnum.ROLE_ADMIN_COMPANY } as Role],
-      tenant: dataTenants.tenant_1,
+      tenant: dataTenants.tenantFirst,
     },
     {
       id: '1bfeeb7f-d460-463e-be00-44793942d913',
@@ -41,7 +41,7 @@ export const dataUsers: UserData = {
       lastName: 'Company 2',
       password: 'test',
       roles: [{ name: RolesEnum.ROLE_ADMIN_COMPANY } as Role],
-      tenant: dataTenants.tenant_2,
+      tenant: dataTenants.tenantSecond,
     }
   ],
   [RolesEnum.ROLE_USER]: [
@@ -52,7 +52,7 @@ export const dataUsers: UserData = {
       lastName: 'User 1',
       password: 'test',
       roles: [{ name: RolesEnum.ROLE_USER } as Role],
-      tenant: dataTenants.tenant_1,
+      tenant: dataTenants.tenantFirst,
     },
     {
       id: 'cf16e229-b882-4589-9fc0-dde8f1ed4482',
@@ -61,7 +61,7 @@ export const dataUsers: UserData = {
       lastName: 'User 1',
       password: 'test',
       roles: [{ name: RolesEnum.ROLE_USER } as Role],
-      tenant: dataTenants.tenant_2,
+      tenant: dataTenants.tenantSecond,
     }
   ],
 };
