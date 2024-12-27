@@ -9,6 +9,7 @@ import {
   CommonActions,
   CrudActions,
   RolesEnum,
+  TagActions,
 } from '@owl-app/lib-contracts';
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
 import { roleHasPermission } from '@owl-app/lib-api-core/utils/check-permission';
@@ -20,7 +21,7 @@ import tagSeederFactory from './seeds/tag/tag.factory';
 import TagSeeder from './seeds/tag/tag.seed';
 import projectSeederFactory from './seeds/project/project.factory';
 import { isStatusSuccess } from '../utils/http';
-import { hasPermissionAnotherTenant } from '../utils/check-permission';
+import { hasPermissionAnotherTenant, hasPermissionToArchived } from '../utils/check-permission';
 
 describe('Tag (e2e)', () => {
   let testServer: TestServer;
@@ -32,14 +33,12 @@ describe('Tag (e2e)', () => {
 
   // Local test data used across the test suite
   const testData: {
-    created: Record<string, Partial<Tag>>;
-    countCreated: Record<string, number>;
-    countAllCreated: number;
+    createdByTenant: Record<string, Partial<Tag>[]>;
+    createdAll: Partial<Tag>[];
     changedArchived: string[];
   } = {
-    created: {},
-    countCreated: {},
-    countAllCreated: 0,
+    createdByTenant: {},
+    createdAll: [],
     changedArchived: [],
   };
 
@@ -73,18 +72,18 @@ describe('Tag (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'create' : 'not create'} tag`, async () => {
-          const tag = {
+          const data = {
             name: `Test Tag ${firstUser.email}`,
           };
 
-          const response = await agentsByRole[role][firstUser.email].post(`/tags`).send(tag);
+          const response = await agentsByRole[role][firstUser.email].post(`/tags`).send(data);
 
           expect(response.status).toEqual(hasPermission ? 201 : 403);
 
           if (isStatusSuccess(response.status)) {
             expect(response.body).toEqual(
               expect.objectContaining({
-                ...tag,
+                ...data,
                 archived: false,
               })
             );
@@ -97,18 +96,15 @@ describe('Tag (e2e)', () => {
               updatedAt: expect.toBeOneOf([expect.any(String), null]),
             });
 
-            // Using as an example for the rest of the tests
-            testData.created[firstUser.tenant.id] = response.body;
-
             if (!hasPermissionAnotherTenant(role)) {
-              if (testData.countCreated[firstUser.tenant.id]) {
-                testData.countCreated[firstUser.tenant.id] += 1;
+              if (testData.createdByTenant[firstUser.tenant.id]) {
+                testData.createdByTenant[firstUser.tenant.id].push(response.body);
               } else {
-                testData.countCreated[firstUser.tenant.id] = 1;
+                testData.createdByTenant[firstUser.tenant.id] = [response.body];
               }
             }
 
-            testData.countAllCreated += 1;
+            testData.createdAll.push(response.body);
           }
         });
 
@@ -138,7 +134,9 @@ describe('Tag (e2e)', () => {
         it(`should ${hasPermission ? 'update' : 'not update'} tag`, async () => {
           const tag = testServer.context
             .getResultSeed<Tag[]>(TagSeeder.name)
-            .find((seed) => seed.tenant.id === firstUser.tenant.id && uniqueTagName !== seed.name);
+            .find(
+              (result) => result.tenant.id === firstUser.tenant.id && uniqueTagName !== result.name
+            );
           const data = {
             name: `Updated Tag ${firstUser.email}`,
             color: '#06960d',
@@ -170,7 +168,8 @@ describe('Tag (e2e)', () => {
             const tag = testServer.context
               .getResultSeed<Tag[]>(TagSeeder.name)
               .find(
-                (seed) => seed.tenant.id !== firstUser.tenant.id && uniqueTagName !== seed.name
+                (result) =>
+                  result.tenant.id !== firstUser.tenant.id && uniqueTagName !== result.name
               );
             const data = {
               name: `Updated Tag ${firstUser.email}`,
@@ -199,7 +198,7 @@ describe('Tag (e2e)', () => {
           it(`should validation error`, async () => {
             const tag = testServer.context
               .getResultSeed<Tag[]>(TagSeeder.name)
-              .find((seed) => seed.tenant.id === firstUser.tenant.id);
+              .find((result) => result.tenant.id === firstUser.tenant.id);
 
             const response = await agentsByRole[role][firstUser.email]
               .put(`/tags/${tag.id}`)
@@ -228,7 +227,10 @@ describe('Tag (e2e)', () => {
 
     describe.each<RolesEnum>(AvailableRoles)('list by role', (role) => {
       const firstUser = dataUsers[role][0];
-      const hasPermission = roleHasPermission(role, AvalilableCollections.TAG, CrudActions.LIST);
+      const hasPermission = roleHasPermission(role, AvalilableCollections.TAG, [
+        CrudActions.LIST,
+        TagActions.AVAILABLE,
+      ]);
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'list' : 'not list'} tags without filters`, async () => {
@@ -239,18 +241,64 @@ describe('Tag (e2e)', () => {
           if (isStatusSuccess(response.status)) {
             if (hasPermissionAnotherTenant(role)) {
               const resultSeed = testServer.context.getResultSeed<Tag[]>(TagSeeder.name);
-              const count = resultSeed.length + testData.countAllCreated;
+              const count = resultSeed.length + testData.createdAll.length;
 
               expect(response.body).toHaveProperty('metadata.total', count);
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
+              const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
               const resultSeed = testServer.context
                 .getResultSeed<Tag[]>(TagSeeder.name)
-                .filter((seed) => seed.tenant.id === firstUser.tenant.id);
-              const count = resultSeed.length + (testData.countCreated[firstUser.tenant.id] ?? 0);
+                .filter(
+                  (result) =>
+                    filterArchived.includes(result.archived) &&
+                    result.tenant.id === firstUser.tenant.id
+                );
+              const count =
+                resultSeed.length +
+                (testData.createdByTenant[firstUser.tenant.id].filter((created) =>
+                  filterArchived.includes(created.archived)
+                ).length ?? 0);
 
               expect(response.body).toHaveProperty('metadata.total', count);
+              expect(response.body).toHaveProperty('items');
+              expect(response.body).toMatchObject(exceptedBodyFormats);
+            }
+          }
+        });
+
+        it(`should ${hasPermission ? 'list' : 'not list'} all tags without filters`, async () => {
+          const response = await agentsByRole[role][firstUser.email].get('/tags?pageable=0');
+
+          expect(response.status).toEqual(hasPermission ? 200 : 403);
+
+          if (isStatusSuccess(response.status)) {
+            if (hasPermissionAnotherTenant(role)) {
+              const resultSeed = testServer.context.getResultSeed<Tag[]>(TagSeeder.name);
+              const count = resultSeed.length + testData.createdAll.length;
+
+              expect(response.body).toHaveProperty('metadata.total', count);
+              expect(response.body.items.length).toEqual(count);
+              expect(response.body).toHaveProperty('items');
+              expect(response.body).toMatchObject(exceptedBodyFormats);
+            } else {
+              const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
+              const resultSeed = testServer.context
+                .getResultSeed<Tag[]>(TagSeeder.name)
+                .filter(
+                  (result) =>
+                    filterArchived.includes(result.archived) &&
+                    result.tenant.id === firstUser.tenant.id
+                );
+              const count =
+                resultSeed.length +
+                (testData.createdByTenant[firstUser.tenant.id].filter((created) =>
+                  filterArchived.includes(created.archived)
+                ).length ?? 0);
+
+              expect(response.body).toHaveProperty('metadata.total', count);
+              expect(response.body.items.length).toEqual(count);
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             }
@@ -270,20 +318,25 @@ describe('Tag (e2e)', () => {
             if (hasPermissionAnotherTenant(role)) {
               const resultSeed = testServer.context
                 .getResultSeed<Tag[]>(TagSeeder.name)
-                .filter((seed) => !seed.archived);
-              const countTags = resultSeed.length + testData.countAllCreated;
+                .filter((result) => !result.archived);
+              const count =
+                resultSeed.length +
+                testData.createdAll.filter((created) => !created.archived).length;
 
-              expect(response.body).toHaveProperty('metadata.total', countTags);
+              expect(response.body).toHaveProperty('metadata.total', count);
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
               const resultSeed = testServer.context
                 .getResultSeed<Tag[]>(TagSeeder.name)
-                .filter((seed) => seed.tenant.id === firstUser.tenant.id && !seed.archived);
-              const countTags =
-                resultSeed.length + (testData.countCreated[firstUser.tenant.id] ?? 0);
+                .filter((result) => result.tenant.id === firstUser.tenant.id && !result.archived);
+              const count =
+                resultSeed.length +
+                (testData.createdByTenant[firstUser.tenant.id].filter(
+                  (created) => !created.archived
+                ).length ?? 0);
 
-              expect(response.body).toHaveProperty('metadata.total', countTags);
+              expect(response.body).toHaveProperty('metadata.total', count);
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             }
@@ -303,16 +356,20 @@ describe('Tag (e2e)', () => {
             if (hasPermissionAnotherTenant(role)) {
               const resultSeed = testServer.context
                 .getResultSeed<Tag[]>(TagSeeder.name)
-                .filter((seed) => uniqueTagName === seed.name);
+                .filter((result) => uniqueTagName === result.name);
 
               expect(response.body).toHaveProperty('metadata.total', resultSeed.length);
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
+              const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
               const resultSeed = testServer.context
                 .getResultSeed<Tag[]>(TagSeeder.name)
                 .filter(
-                  (seed) => seed.tenant.id === firstUser.tenant.id && uniqueTagName === seed.name
+                  (result) =>
+                    filterArchived.includes(result.archived) &&
+                    result.tenant.id === firstUser.tenant.id &&
+                    uniqueTagName === result.name
                 );
 
               expect(response.body).toHaveProperty('metadata.total', resultSeed.length);
@@ -334,7 +391,7 @@ describe('Tag (e2e)', () => {
         it(`should ${hasPermission ? 'find' : 'not find'} tag`, async () => {
           const tag = testServer.context
             .getResultSeed<Tag[]>(TagSeeder.name)
-            .find((seed) => seed.tenant.id === firstUser.tenant.id);
+            .find((result) => result.tenant.id === firstUser.tenant.id);
 
           const response = await agentsByRole[role][firstUser.email].get(`/tags/${tag.id}`);
 
@@ -365,7 +422,8 @@ describe('Tag (e2e)', () => {
             const tag = testServer.context
               .getResultSeed<Tag[]>(TagSeeder.name)
               .find(
-                (seed) => seed.tenant.id !== firstUser.tenant.id && uniqueTagName === seed.name
+                (result) =>
+                  result.tenant.id !== firstUser.tenant.id && uniqueTagName === result.name
               );
 
             const response = await agentsByRole[role][firstUser.email].get(`/tags/${tag.id}`);
@@ -408,9 +466,9 @@ describe('Tag (e2e)', () => {
           const tag = testServer.context
             .getResultSeed<Tag[]>(TagSeeder.name)
             .find(
-              (seed) =>
-                seed.tenant.id === firstUser.tenant.id &&
-                !testData.changedArchived.includes(seed.id)
+              (result) =>
+                result.tenant.id === firstUser.tenant.id &&
+                !testData.changedArchived.includes(result.id)
             );
 
           const data = {
@@ -431,9 +489,9 @@ describe('Tag (e2e)', () => {
             const tag = testServer.context
               .getResultSeed<Tag[]>(TagSeeder.name)
               .find(
-                (seed) =>
-                  seed.tenant.id !== firstUser.tenant.id &&
-                  !testData.changedArchived.includes(seed.id)
+                (result) =>
+                  result.tenant.id !== firstUser.tenant.id &&
+                  !testData.changedArchived.includes(result.id)
               );
 
             const data = {
@@ -465,9 +523,9 @@ describe('Tag (e2e)', () => {
           const tag = testServer.context
             .getResultSeed<Tag[]>(TagSeeder.name)
             .find(
-              (seed) =>
-                seed.tenant.id === firstUser.tenant.id &&
-                !testData.changedArchived.includes(seed.id)
+              (result) =>
+                result.tenant.id === firstUser.tenant.id &&
+                !testData.changedArchived.includes(result.id)
             );
 
           const data = {
@@ -488,9 +546,9 @@ describe('Tag (e2e)', () => {
             const tag = testServer.context
               .getResultSeed<Tag[]>(TagSeeder.name)
               .find(
-                (seed) =>
-                  seed.tenant.id !== firstUser.tenant.id &&
-                  !testData.changedArchived.includes(seed.id)
+                (result) =>
+                  result.tenant.id !== firstUser.tenant.id &&
+                  !testData.changedArchived.includes(result.id)
               );
 
             const data = {
@@ -522,11 +580,11 @@ describe('Tag (e2e)', () => {
               const tag = testServer.context
                 .getResultSeed<Tag[]>(TagSeeder.name)
                 .find(
-                  (seed) =>
-                    seed.tenant.id === firstUser.tenant.id &&
-                    seed.archived === archived &&
-                    !deleted.includes(seed.id) &&
-                    !testData.changedArchived.includes(seed.id)
+                  (result) =>
+                    result.tenant.id === firstUser.tenant.id &&
+                    result.archived === archived &&
+                    !deleted.includes(result.id) &&
+                    !testData.changedArchived.includes(result.id)
                 );
 
               const response = await agentsByRole[role][firstUser.email].delete(`/tags/${tag.id}`);
@@ -556,11 +614,11 @@ describe('Tag (e2e)', () => {
                 const tag = testServer.context
                   .getResultSeed<Tag[]>(TagSeeder.name)
                   .find(
-                    (seed) =>
-                      seed.tenant.id !== firstUser.tenant.id &&
-                      seed.archived === archived &&
-                      !deleted.includes(seed.id) &&
-                      !testData.changedArchived.includes(seed.id)
+                    (result) =>
+                      result.tenant.id !== firstUser.tenant.id &&
+                      result.archived === archived &&
+                      !deleted.includes(result.id) &&
+                      !testData.changedArchived.includes(result.id)
                   );
 
                 const response = await agentsByRole[role][firstUser.email].delete(

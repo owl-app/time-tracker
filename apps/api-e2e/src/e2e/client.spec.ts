@@ -35,14 +35,12 @@ describe('Client (e2e)', () => {
 
   // Local test data used across the test suite
   const testData: {
-    created: Record<string, Partial<Client>[]>;
-    countCreated: Record<string, number>;
-    countAllCreated: number;
+    createdByTenant: Record<string, Partial<Client>[]>;
+    createdAll: Partial<Client>[];
     changedArchived: string[];
   } = {
-    created: {},
-    countCreated: {},
-    countAllCreated: 0,
+    createdByTenant: {},
+    createdAll: [],
     changedArchived: [],
   };
 
@@ -65,9 +63,9 @@ describe('Client (e2e)', () => {
     );
   });
 
-  // afterAll(async () => {
-  //   await testServer.close();
-  // });
+  afterAll(async () => {
+    await testServer.close();
+  });
 
   describe('Client create (e2e)', () => {
     describe.each<RolesEnum>(AvailableRoles)('create by role', (role) => {
@@ -80,18 +78,18 @@ describe('Client (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'create' : 'not create'} client`, async () => {
-          const client = {
+          const data = {
             name: `Test Client ${firstUser.email}`,
           };
 
-          const response = await agentsByRole[role][firstUser.email].post(`/clients`).send(client);
+          const response = await agentsByRole[role][firstUser.email].post(`/clients`).send(data);
 
           expect(response.status).toEqual(hasPermission ? 201 : 403);
 
           if (isStatusSuccess(response.status)) {
             expect(response.body).toEqual(
               expect.objectContaining({
-                ...client,
+                ...data,
                 archived: false,
               })
             );
@@ -107,16 +105,14 @@ describe('Client (e2e)', () => {
             });
 
             if (!hasPermissionAnotherTenant(role)) {
-              if (testData.countCreated[firstUser.tenant.id]) {
-                testData.created[firstUser.tenant.id].push(response.body);
-                testData.countCreated[firstUser.tenant.id] += 1;
+              if (testData.createdByTenant[firstUser.tenant.id]) {
+                testData.createdByTenant[firstUser.tenant.id].push(response.body);
               } else {
-                testData.countCreated[firstUser.tenant.id] = 1;
-                testData.created[firstUser.tenant.id] = [response.body];
+                testData.createdByTenant[firstUser.tenant.id] = [response.body];
               }
             }
 
-            testData.countAllCreated += 1;
+            testData.createdAll.push(response.body);
           }
         });
 
@@ -151,10 +147,10 @@ describe('Client (e2e)', () => {
           const client = testServer.context
             .getResultSeed<Client[]>(ClientSeeder.name)
             .find(
-              (clientSeed) =>
-                clientSeed.tenant.id === firstUser.tenant.id && uniqueClientName !== clientSeed.name
+              (result) =>
+                result.tenant.id === firstUser.tenant.id && uniqueClientName !== result.name
             );
-          const dataClient = {
+          const data = {
             name: `Updated Client ${firstUser.email}`,
             email: 'test@wp.pl',
             address: 'Test address',
@@ -163,12 +159,12 @@ describe('Client (e2e)', () => {
 
           const response = await agentsByRole[role][firstUser.email]
             .put(`/clients/${client.id}`)
-            .send(dataClient);
+            .send(data);
 
           expect(response.status).toEqual(hasPermission ? 202 : 403);
 
           if (isStatusSuccess(response.status)) {
-            expect(response.body).toEqual(expect.objectContaining(dataClient));
+            expect(response.body).toEqual(expect.objectContaining(data));
             expect(response.body).toMatchObject({
               id: expect.any(String),
               name: expect.any(String),
@@ -189,11 +185,10 @@ describe('Client (e2e)', () => {
             const client = testServer.context
               .getResultSeed<Client[]>(ClientSeeder.name)
               .find(
-                (clientSeed) =>
-                  clientSeed.tenant.id !== firstUser.tenant.id &&
-                  uniqueClientName !== clientSeed.name
+                (result) =>
+                  result.tenant.id !== firstUser.tenant.id && uniqueClientName !== result.name
               );
-            const dataClient = {
+            const data = {
               name: `Updated Client ${firstUser.email}`,
               email: 'test@wp.pl',
               address: 'Test address',
@@ -202,12 +197,12 @@ describe('Client (e2e)', () => {
 
             const response = await agentsByRole[role][firstUser.email]
               .put(`/clients/${client.id}`)
-              .send(dataClient);
+              .send(data);
 
             expect(response.status).toEqual(hasPermissionAnotherTenant(role) ? 202 : 404);
 
             if (isStatusSuccess(response.status)) {
-              expect(response.body).toEqual(expect.objectContaining(dataClient));
+              expect(response.body).toEqual(expect.objectContaining(data));
               expect(response.body).toMatchObject({
                 id: expect.any(String),
                 name: expect.any(String),
@@ -224,7 +219,7 @@ describe('Client (e2e)', () => {
           it(`should validation error`, async () => {
             const client = testServer.context
               .getResultSeed<Client[]>(ClientSeeder.name)
-              .find((clientSeed) => clientSeed.tenant.id === firstUser.tenant.id);
+              .find((result) => result.tenant.id === firstUser.tenant.id);
 
             const response = await agentsByRole[role][firstUser.email]
               .put(`/clients/${client.id}`)
@@ -267,9 +262,9 @@ describe('Client (e2e)', () => {
           if (isStatusSuccess(response.status)) {
             if (hasPermissionAnotherTenant(role)) {
               const resultSeed = testServer.context.getResultSeed<Client[]>(ClientSeeder.name);
-              const countClients = resultSeed.length + testData.countAllCreated;
+              const count = resultSeed.length + testData.createdAll.length;
 
-              expect(response.body).toHaveProperty('metadata.total', countClients);
+              expect(response.body).toHaveProperty('metadata.total', count);
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
@@ -277,17 +272,17 @@ describe('Client (e2e)', () => {
               const resultSeed = testServer.context
                 .getResultSeed<Client[]>(ClientSeeder.name)
                 .filter(
-                  (clientSeed) =>
-                    filterArchived.includes(clientSeed.archived) &&
-                    clientSeed.tenant.id === firstUser.tenant.id
+                  (result) =>
+                    filterArchived.includes(result.archived) &&
+                    result.tenant.id === firstUser.tenant.id
                 );
-              const countClients =
+              const count =
                 resultSeed.length +
-                (testData.created[firstUser.tenant.id].filter((item) =>
-                  filterArchived.includes(item.archived)
+                (testData.createdByTenant[firstUser.tenant.id].filter((created) =>
+                  filterArchived.includes(created.archived)
                 ).length ?? 0);
 
-              expect(response.body).toHaveProperty('metadata.total', countClients);
+              expect(response.body).toHaveProperty('metadata.total', count);
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             }
@@ -304,10 +299,10 @@ describe('Client (e2e)', () => {
           if (isStatusSuccess(response.status)) {
             if (hasPermissionAnotherTenant(role)) {
               const resultSeed = testServer.context.getResultSeed<Client[]>(ClientSeeder.name);
-              const countClients = resultSeed.length + testData.countAllCreated;
+              const count = resultSeed.length + testData.createdAll.length;
 
-              expect(response.body).toHaveProperty('metadata.total', countClients);
-              expect(response.body.items.length).toEqual(countClients);
+              expect(response.body).toHaveProperty('metadata.total', count);
+              expect(response.body.items.length).toEqual(count);
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
@@ -315,18 +310,18 @@ describe('Client (e2e)', () => {
               const resultSeed = testServer.context
                 .getResultSeed<Client[]>(ClientSeeder.name)
                 .filter(
-                  (clientSeed) =>
-                    filterArchived.includes(clientSeed.archived) &&
-                    clientSeed.tenant.id === firstUser.tenant.id
+                  (result) =>
+                    filterArchived.includes(result.archived) &&
+                    result.tenant.id === firstUser.tenant.id
                 );
-              const countClients =
+              const count =
                 resultSeed.length +
-                (testData.created[firstUser.tenant.id].filter((item) =>
-                  filterArchived.includes(item.archived)
+                (testData.createdByTenant[firstUser.tenant.id].filter((created) =>
+                  filterArchived.includes(created.archived)
                 ).length ?? 0);
 
-              expect(response.body).toHaveProperty('metadata.total', countClients);
-              expect(response.body.items.length).toEqual(countClients);
+              expect(response.body).toHaveProperty('metadata.total', count);
+              expect(response.body.items.length).toEqual(count);
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             }
@@ -346,25 +341,25 @@ describe('Client (e2e)', () => {
             if (hasPermissionAnotherTenant(role)) {
               const resultSeed = testServer.context
                 .getResultSeed<Client[]>(ClientSeeder.name)
-                .filter((clientSeed) => !clientSeed.archived);
-              const countClients = resultSeed.length + testData.countAllCreated;
+                .filter((result) => !result.archived);
+              const count =
+                resultSeed.length +
+                testData.createdAll.filter((created) => !created.archived).length;
 
-              expect(response.body).toHaveProperty('metadata.total', countClients);
+              expect(response.body).toHaveProperty('metadata.total', count);
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
               const resultSeed = testServer.context
                 .getResultSeed<Client[]>(ClientSeeder.name)
-                .filter(
-                  (clientSeed) =>
-                    clientSeed.tenant.id === firstUser.tenant.id && !clientSeed.archived
-                );
-              const countClients =
+                .filter((result) => result.tenant.id === firstUser.tenant.id && !result.archived);
+              const count =
                 resultSeed.length +
-                (testData.created[firstUser.tenant.id].filter((item) => !item.archived).length ??
-                  0);
+                (testData.createdByTenant[firstUser.tenant.id].filter(
+                  (created) => !created.archived
+                ).length ?? 0);
 
-              expect(response.body).toHaveProperty('metadata.total', countClients);
+              expect(response.body).toHaveProperty('metadata.total', count);
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             }
@@ -384,7 +379,7 @@ describe('Client (e2e)', () => {
             if (hasPermissionAnotherTenant(role)) {
               const resultSeed = testServer.context
                 .getResultSeed<Client[]>(ClientSeeder.name)
-                .filter((clientSeed) => uniqueClientName === clientSeed.name);
+                .filter((result) => uniqueClientName === result.name);
 
               expect(response.body).toHaveProperty('metadata.total', resultSeed.length);
               expect(response.body).toHaveProperty('items');
@@ -394,10 +389,10 @@ describe('Client (e2e)', () => {
               const resultSeed = testServer.context
                 .getResultSeed<Client[]>(ClientSeeder.name)
                 .filter(
-                  (clientSeed) =>
-                    filterArchived.includes(clientSeed.archived) &&
-                    clientSeed.tenant.id === firstUser.tenant.id &&
-                    uniqueClientName === clientSeed.name
+                  (result) =>
+                    filterArchived.includes(result.archived) &&
+                    result.tenant.id === firstUser.tenant.id &&
+                    uniqueClientName === result.name
                 );
 
               expect(response.body).toHaveProperty('metadata.total', resultSeed.length);
@@ -419,7 +414,7 @@ describe('Client (e2e)', () => {
         it(`should ${hasPermission ? 'find' : 'not find'} client`, async () => {
           const client = testServer.context
             .getResultSeed<Client[]>(ClientSeeder.name)
-            .find((clientSeed) => clientSeed.tenant.id === firstUser.tenant.id);
+            .find((result) => result.tenant.id === firstUser.tenant.id);
 
           const response = await agentsByRole[role][firstUser.email].get(`/clients/${client.id}`);
 
@@ -452,9 +447,8 @@ describe('Client (e2e)', () => {
             const client = testServer.context
               .getResultSeed<Client[]>(ClientSeeder.name)
               .find(
-                (clientSeed) =>
-                  clientSeed.tenant.id !== firstUser.tenant.id &&
-                  uniqueClientName === clientSeed.name
+                (result) =>
+                  result.tenant.id !== firstUser.tenant.id && uniqueClientName === result.name
               );
 
             const response = await agentsByRole[role][firstUser.email].get(`/clients/${client.id}`);
@@ -502,9 +496,9 @@ describe('Client (e2e)', () => {
               const project = testServer.context
                 .getResultSeed<Project[]>(ProjectSeeder.name)
                 .find(
-                  (projectSeed) =>
-                    projectSeed.tenant.id === firstUser.tenant.id &&
-                    !testData.changedArchived.includes(projectSeed.client.id)
+                  (result) =>
+                    result.tenant.id === firstUser.tenant.id &&
+                    !testData.changedArchived.includes(result.client.id)
                 );
 
               const data = {
@@ -541,16 +535,14 @@ describe('Client (e2e)', () => {
                 if (withProjects) {
                   resultSeedCountProjectsActive = 0;
                   resultSeedCountProjectsArchived = resultSeed.filter(
-                    (projectSeed) => projectSeed.client.id === project.client.id
+                    (result) => result.client.id === project.client.id
                   ).length;
                 } else {
                   resultSeedCountProjectsActive = resultSeed.filter(
-                    (projectSeed) =>
-                      !projectSeed.archived && projectSeed.client.id === project.client.id
+                    (result) => !result.archived && result.client.id === project.client.id
                   ).length;
                   resultSeedCountProjectsArchived = resultSeed.filter(
-                    (projectSeed) =>
-                      projectSeed.archived && projectSeed.client.id === project.client.id
+                    (result) => result.archived && result.client.id === project.client.id
                   ).length;
                 }
 
@@ -568,9 +560,9 @@ describe('Client (e2e)', () => {
                 const project = testServer.context
                   .getResultSeed<Project[]>(ProjectSeeder.name)
                   .find(
-                    (projectSeed) =>
-                      projectSeed.tenant.id !== firstUser.tenant.id &&
-                      !testData.changedArchived.includes(projectSeed.client.id)
+                    (result) =>
+                      result.tenant.id !== firstUser.tenant.id &&
+                      !testData.changedArchived.includes(result.client.id)
                   );
 
                 const data = {
@@ -607,16 +599,14 @@ describe('Client (e2e)', () => {
                   if (withProjects) {
                     resultSeedCountProjectsActive = 0;
                     resultSeedCountProjectsArchived = resultSeed.filter(
-                      (projectSeed) => projectSeed.client.id === project.client.id
+                      (result) => result.client.id === project.client.id
                     ).length;
                   } else {
                     resultSeedCountProjectsActive = resultSeed.filter(
-                      (projectSeed) =>
-                        !projectSeed.archived && projectSeed.client.id === project.client.id
+                      (result) => !result.archived && result.client.id === project.client.id
                     ).length;
                     resultSeedCountProjectsArchived = resultSeed.filter(
-                      (projectSeed) =>
-                        projectSeed.archived && projectSeed.client.id === project.client.id
+                      (result) => result.archived && result.client.id === project.client.id
                     ).length;
                   }
 
@@ -648,9 +638,9 @@ describe('Client (e2e)', () => {
               const project = testServer.context
                 .getResultSeed<Project[]>(ProjectSeeder.name)
                 .find(
-                  (projectSeed) =>
-                    projectSeed.tenant.id === firstUser.tenant.id &&
-                    !testData.changedArchived.includes(projectSeed.client.id)
+                  (result) =>
+                    result.tenant.id === firstUser.tenant.id &&
+                    !testData.changedArchived.includes(result.client.id)
                 );
 
               const data = {
@@ -686,17 +676,15 @@ describe('Client (e2e)', () => {
 
                 if (withProjects) {
                   resultSeedCountProjectsActive = resultSeed.filter(
-                    (projectSeed) => projectSeed.client.id === project.client.id
+                    (result) => result.client.id === project.client.id
                   ).length;
                   resultSeedCountProjectsArchived = 0;
                 } else {
                   resultSeedCountProjectsActive = resultSeed.filter(
-                    (projectSeed) =>
-                      !projectSeed.archived && projectSeed.client.id === project.client.id
+                    (result) => !result.archived && result.client.id === project.client.id
                   ).length;
                   resultSeedCountProjectsArchived = resultSeed.filter(
-                    (projectSeed) =>
-                      projectSeed.archived && projectSeed.client.id === project.client.id
+                    (result) => result.archived && result.client.id === project.client.id
                   ).length;
                 }
 
@@ -714,9 +702,9 @@ describe('Client (e2e)', () => {
                 const project = testServer.context
                   .getResultSeed<Project[]>(ProjectSeeder.name)
                   .find(
-                    (projectSeed) =>
-                      projectSeed.tenant.id !== firstUser.tenant.id &&
-                      !testData.changedArchived.includes(projectSeed.client.id)
+                    (result) =>
+                      result.tenant.id !== firstUser.tenant.id &&
+                      !testData.changedArchived.includes(result.client.id)
                   );
 
                 const data = {
@@ -752,17 +740,15 @@ describe('Client (e2e)', () => {
 
                   if (withProjects) {
                     resultSeedCountProjectsActive = resultSeed.filter(
-                      (projectSeed) => projectSeed.client.id === project.client.id
+                      (result) => result.client.id === project.client.id
                     ).length;
                     resultSeedCountProjectsArchived = 0;
                   } else {
                     resultSeedCountProjectsActive = resultSeed.filter(
-                      (projectSeed) =>
-                        !projectSeed.archived && projectSeed.client.id === project.client.id
+                      (result) => !result.archived && result.client.id === project.client.id
                     ).length;
                     resultSeedCountProjectsArchived = resultSeed.filter(
-                      (projectSeed) =>
-                        projectSeed.archived && projectSeed.client.id === project.client.id
+                      (result) => result.archived && result.client.id === project.client.id
                     ).length;
                   }
 
@@ -795,11 +781,11 @@ describe('Client (e2e)', () => {
               const client = testServer.context
                 .getResultSeed<Client[]>(ClientSeeder.name)
                 .find(
-                  (clientSeed) =>
-                    clientSeed.tenant.id === firstUser.tenant.id &&
-                    clientSeed.archived === archived &&
-                    !deletedClients.includes(clientSeed.id) &&
-                    !testData.changedArchived.includes(clientSeed.id)
+                  (result) =>
+                    result.tenant.id === firstUser.tenant.id &&
+                    result.archived === archived &&
+                    !deletedClients.includes(result.id) &&
+                    !testData.changedArchived.includes(result.id)
                 );
 
               const response = await agentsByRole[role][firstUser.email].delete(
@@ -831,11 +817,11 @@ describe('Client (e2e)', () => {
                 const client = testServer.context
                   .getResultSeed<Client[]>(ClientSeeder.name)
                   .find(
-                    (clientSeed) =>
-                      clientSeed.tenant.id !== firstUser.tenant.id &&
-                      clientSeed.archived === archived &&
-                      !deletedClients.includes(clientSeed.id) &&
-                      !testData.changedArchived.includes(clientSeed.id)
+                    (result) =>
+                      result.tenant.id !== firstUser.tenant.id &&
+                      result.archived === archived &&
+                      !deletedClients.includes(result.id) &&
+                      !testData.changedArchived.includes(result.id)
                   );
 
                 const response = await agentsByRole[role][firstUser.email].delete(

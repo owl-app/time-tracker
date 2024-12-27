@@ -32,20 +32,13 @@ describe('Project (e2e)', () => {
 
   // Local test data used across the test suite
   const testData: {
-    created: Record<RolesEnum, Partial<Project>>;
-    countCreated: Record<RolesEnum, number>;
+    createdByTenant: Record<string, Partial<Project>[]>;
+    createdAll: Partial<Project>[];
+    changedArchived: string[];
   } = {
-    created: {
-      [RolesEnum.ROLE_ADMIN_SYSTEM]: {},
-      [RolesEnum.ROLE_ADMIN_COMPANY]: {},
-      // set it earlier because it will never created
-      [RolesEnum.ROLE_USER]: { id: undefined },
-    },
-    countCreated: {
-      [RolesEnum.ROLE_ADMIN_SYSTEM]: 0,
-      [RolesEnum.ROLE_ADMIN_COMPANY]: 0,
-      [RolesEnum.ROLE_USER]: 0,
-    },
+    createdByTenant: {},
+    createdAll: [],
+    changedArchived: [],
   };
 
   beforeAll(async () => {
@@ -71,7 +64,6 @@ describe('Project (e2e)', () => {
     await testServer.close();
   });
 
-  // run first we need data to compare for rest of the tests
   describe('Project create (e2e)', () => {
     describe.each<RolesEnum>(AvailableRoles)('create by role', (role) => {
       const firstUser = dataUsers[role][0];
@@ -87,25 +79,23 @@ describe('Project (e2e)', () => {
         } project with client has the same tenant`, async () => {
           const client = testServer.context
             .getResultSeed<Client[]>(ClientSeeder.name)
-            .find((clientSeed) => clientSeed.tenant.id === firstUser.tenant.id);
+            .find((result) => result.tenant.id === firstUser.tenant.id);
 
-          const project = {
+          const data = {
             name: `Test Project ${firstUser.email}`,
             client: client ?? { id: 'not-exist', name: 'Not exist' },
           };
-          const response = await agentsByRole[role][firstUser.email]
-            .post(`/projects`)
-            .send(project);
+          const response = await agentsByRole[role][firstUser.email].post(`/projects`).send(data);
 
           expect(response.status).toEqual(hasPermission ? 201 : 403);
 
           if (isStatusSuccess(response.status)) {
             expect(response.body).toEqual(
               expect.objectContaining({
-                ...project,
+                ...data,
                 client: expect.objectContaining({
-                  id: project.client.id,
-                  name: project.client.name,
+                  id: data.client.id,
+                  name: data.client.name,
                 }),
                 archived: false,
               })
@@ -129,13 +119,15 @@ describe('Project (e2e)', () => {
             });
 
             // Using as an example for the rest of the tests
-            testData.created[role] = response.body;
-            if (role !== RolesEnum.ROLE_ADMIN_SYSTEM) {
-              testData.countCreated[role] += 1;
-              testData.countCreated[RolesEnum.ROLE_ADMIN_SYSTEM] += 1;
-            } else {
-              testData.countCreated[RolesEnum.ROLE_ADMIN_SYSTEM] += 1;
+            if (!hasPermissionAnotherTenant(role)) {
+              if (testData.createdByTenant[firstUser.tenant.id]) {
+                testData.createdByTenant[firstUser.tenant.id].push(response.body);
+              } else {
+                testData.createdByTenant[firstUser.tenant.id] = [response.body];
+              }
             }
+
+            testData.createdAll.push(response.body);
           }
         });
 
@@ -145,25 +137,23 @@ describe('Project (e2e)', () => {
           } project with client has other tenant`, async () => {
             const client = testServer.context
               .getResultSeed<Client[]>(ClientSeeder.name)
-              .find((clientSeed) => clientSeed.tenant.id !== firstUser.tenant.id);
+              .find((result) => result.tenant.id !== firstUser.tenant.id);
 
-            const project = {
+            const data = {
               name: `Test Project ${firstUser.email}`,
               client: client ?? { id: 'not-exist', name: 'Not exist' },
             };
-            const response = await agentsByRole[role][firstUser.email]
-              .post(`/projects`)
-              .send(project);
+            const response = await agentsByRole[role][firstUser.email].post(`/projects`).send(data);
 
             expect(response.status).toEqual(hasPermissionAnotherTenant(role) ? 201 : 404);
 
             if (isStatusSuccess(response.status)) {
               expect(response.body).toEqual(
                 expect.objectContaining({
-                  ...project,
+                  ...data,
                   client: expect.objectContaining({
-                    id: project.client.id,
-                    name: project.client.name,
+                    id: data.client.id,
+                    name: data.client.name,
                   }),
                   archived: false,
                 })
@@ -187,13 +177,15 @@ describe('Project (e2e)', () => {
               });
 
               // Using as an example for the rest of the tests
-              testData.created[role] = response.body;
-              if (role !== RolesEnum.ROLE_ADMIN_SYSTEM) {
-                testData.countCreated[role] += 1;
-                testData.countCreated[RolesEnum.ROLE_ADMIN_SYSTEM] += 1;
-              } else {
-                testData.countCreated[RolesEnum.ROLE_ADMIN_SYSTEM] += 1;
+              if (!hasPermissionAnotherTenant(role)) {
+                if (testData.createdByTenant[firstUser.tenant.id]) {
+                  testData.createdByTenant[firstUser.tenant.id].push(response.body);
+                } else {
+                  testData.createdByTenant[firstUser.tenant.id] = [response.body];
+                }
               }
+
+              testData.createdAll.push(response.body);
             }
           });
         }
