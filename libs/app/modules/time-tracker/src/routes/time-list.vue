@@ -251,11 +251,12 @@ async function exportCsv(filters: Record<string, string | string[]>) {
           </div>
           <div class="col-start-8 col-end-10">
             <select-filter
-              url="tags"
+              url="tags?pageable=0"
               label="Tags"
               name="tags"
               textBy="name"
               trackBy="id"
+              :eagerLoading="true"
               :loading="loadingData"
               :options="tags"
               :data="filters?.tags"

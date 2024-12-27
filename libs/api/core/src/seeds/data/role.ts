@@ -1,5 +1,6 @@
 import {
   AvalilableCollections,
+  ClientActions,
   CommonActions,
   Permission,
   ProjectActions,
@@ -84,5 +85,12 @@ export const dataRoles: Record<RolesEnum, Permission[]> = {
     // time
     ...getCrudPermissions(AvalilableCollections.TIME),
     ...getPermissionsByCollection<typeof TimeActions>(AvalilableCollections.TIME, TimeActions),
+
+    // user
+    getRoutePermission(AvalilableCollections.USER, UserActions.ME),
+    getRoutePermission(AvalilableCollections.USER, UserActions.PERMISSIONS),
+
+    // clients
+    getRoutePermission(AvalilableCollections.CLIENT, ClientActions.AVAILABLE),
   ],
 };

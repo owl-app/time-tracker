@@ -16,6 +16,11 @@ export const checkPermissionToRoute = (
 export const roleHasPermission = (
   role: RolesEnum,
   collection: AvalilableCollections,
-  action: string
-): boolean =>
-  dataRoles[role].some((permission) => permission.name === getRouteName(collection, action));
+  action: string | string[]
+): boolean => {
+  if (Array.isArray(action)) {
+    return action.some((act) => roleHasPermission(role, collection, act));
+  }
+
+  return dataRoles[role].some((permission) => permission.name === getRouteName(collection, action));
+};

@@ -16,6 +16,7 @@ import {
 import { ROLE_ENTITY } from '../../entity-tokens';
 
 import BaseRole from './base.role';
+import { dataRoles } from '../data/role';
 
 export class AdminCompanyRoleSeeder extends BaseRole {
   getRoleName(): RolesEnum {
@@ -25,59 +26,10 @@ export class AdminCompanyRoleSeeder extends BaseRole {
   public async run(dataSource: DataSource): Promise<Role> {
     const repository = dataSource.getRepository(ROLE_ENTITY);
 
-    const permissions: Permission[] = [
-      // client
-      ...this.getCrudPermissions(AvalilableCollections.CLIENT),
-      ...this.getPermissionsByCollection<typeof CommonActions>(
-        AvalilableCollections.CLIENT,
-        CommonActions
-      ),
-
-      // project
-      ...this.getCrudPermissions(AvalilableCollections.PROJECT),
-      ...this.getPermissionsByCollection<typeof ProjectActions>(
-        AvalilableCollections.PROJECT,
-        ProjectActions
-      ),
-      ...this.getPermissionsByCollection<typeof CommonActions>(
-        AvalilableCollections.PROJECT,
-        CommonActions
-      ),
-
-      // tag
-      ...this.getCrudPermissions(AvalilableCollections.TAG),
-      ...this.getPermissionsByCollection<typeof TagActions>(AvalilableCollections.TAG, TagActions),
-      ...this.getPermissionsByCollection<typeof CommonActions>(
-        AvalilableCollections.TAG,
-        CommonActions
-      ),
-
-      // time
-      ...this.getCrudPermissions(AvalilableCollections.TIME),
-      ...this.getPermissionsByCollection<typeof TimeActions>(
-        AvalilableCollections.TIME,
-        TimeActions
-      ),
-
-      // user
-      ...this.getCrudPermissions(AvalilableCollections.USER),
-      ...this.getPermissionsByCollection<typeof UserActions>(
-        AvalilableCollections.USER,
-        UserActions
-      ).filter(
-        (permission) =>
-          permission.name !==
-          this.getRouteName(AvalilableCollections.USER, UserActions.ASSIGN_ACCESS)
-      ),
-
-      // role
-      this.getRoutePermission(AvalilableCollections.ROLE, RoleActions.AVAILABLE),
-    ];
-
     const roleAdmin = {
       name: RolesEnum.ROLE_ADMIN_COMPANY,
       description: 'Admin company',
-      permissions,
+      permissions: dataRoles[RolesEnum.ROLE_ADMIN_COMPANY],
       setting: { displayName: 'Admin company' },
     };
 

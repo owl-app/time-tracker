@@ -29,7 +29,6 @@ import {
   updateClientValidationSchema,
 } from '@owl-app/lib-contracts';
 
-import { PaginatedQuery } from '@owl-app/lib-api-core/pagination/paginated.query';
 import { InjectAssemblerQueryService } from '@owl-app/nestjs-query-core';
 import { UUIDValidationPipe } from '@owl-app/lib-api-core/pipes/uuid-validation.pipe';
 import { ApiErrorResponse } from '@owl-app/lib-api-core/api/api-error.response';
@@ -51,6 +50,7 @@ import {
 } from './dto';
 import { ClientAssembler } from './client.assembler';
 import { FindOneQuery } from './dto/find-one.query';
+import { ClientPaginatedQuery } from './dto/client-paginated.query';
 
 @ApiTags('Client')
 @Controller('clients')
@@ -163,9 +163,13 @@ export class ClientCrudController {
   @RoutePermissions(AvalilableCollections.CLIENT, [CrudActions.LIST, ClientActions.AVAILABLE])
   async paginated(
     @Query('filters') filters: FilterClientDto,
-    @Query() pagination: PaginatedQuery
+    @Query(new ValidationPipe({ transform: true }))
+    pagination: ClientPaginatedQuery
   ): Promise<ClientPaginatedResponseDto> {
-    const paginated = await this.paginatedService.getData(filters, pagination);
+    const paginated = await this.paginatedService.getData(
+      filters,
+      pagination.pageable === 0 ? null : pagination
+    );
 
     return new ClientPaginatedResponseDto(paginated);
   }

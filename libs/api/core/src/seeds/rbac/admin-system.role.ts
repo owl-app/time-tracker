@@ -16,6 +16,7 @@ import {
 import { ROLE_ENTITY } from '../../entity-tokens';
 
 import BaseRole from './base.role';
+import { dataRoles } from '../data/role';
 
 export class AdminSystemRoleSeeder extends BaseRole {
   getRoleName(): RolesEnum {
@@ -25,44 +26,10 @@ export class AdminSystemRoleSeeder extends BaseRole {
   public async run(dataSource: DataSource): Promise<Role> {
     const repository = dataSource.getRepository(ROLE_ENTITY);
 
-    const permissions: Permission[] = [
-      ...this.getCrudPermissions(),
-      ...this.getPermissionsByCollection<typeof UserActions>(
-        AvalilableCollections.USER,
-        UserActions
-      ),
-      ...this.getPermissionsByCollection<typeof TagActions>(AvalilableCollections.TAG, TagActions),
-      ...this.getPermissionsByCollection<typeof ProjectActions>(
-        AvalilableCollections.PROJECT,
-        ProjectActions
-      ),
-      ...this.getPermissionsByCollection<typeof RoleActions>(
-        AvalilableCollections.ROLE,
-        RoleActions
-      ),
-      ...this.getPermissionsByCollection<typeof TimeActions>(
-        AvalilableCollections.TIME,
-        TimeActions
-      ),
-      // archive
-      ...this.getPermissionsByCollection<typeof CommonActions>(
-        AvalilableCollections.CLIENT,
-        CommonActions
-      ),
-      ...this.getPermissionsByCollection<typeof CommonActions>(
-        AvalilableCollections.PROJECT,
-        CommonActions
-      ),
-      ...this.getPermissionsByCollection<typeof CommonActions>(
-        AvalilableCollections.TAG,
-        CommonActions
-      ),
-    ];
-
     const roleAdmin = {
       name: RolesEnum.ROLE_ADMIN_SYSTEM,
       description: 'Admin system',
-      permissions,
+      permissions: dataRoles[RolesEnum.ROLE_ADMIN_SYSTEM],
       setting: { displayName: 'Admin system' },
     };
 

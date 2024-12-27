@@ -6,6 +6,7 @@ import {
   AvailableRoles,
   AvalilableCollections,
   Client,
+  ClientActions,
   CommonActions,
   CrudActions,
   Project,
@@ -22,7 +23,7 @@ import ClientSeeder from './seeds/client/client.seed';
 import projectSeederFactory from './seeds/project/project.factory';
 import ProjectSeeder from './seeds/project/project.seed';
 import { isStatusSuccess } from '../utils/http';
-import { hasPermissionAnotherTenant } from '../utils/check-permission';
+import { hasPermissionAnotherTenant, hasPermissionToArchived } from '../utils/check-permission';
 
 describe('Client (e2e)', () => {
   let testServer: TestServer;
@@ -34,7 +35,7 @@ describe('Client (e2e)', () => {
 
   // Local test data used across the test suite
   const testData: {
-    created: Record<string, Partial<Client>>;
+    created: Record<string, Partial<Client>[]>;
     countCreated: Record<string, number>;
     countAllCreated: number;
     changedArchived: string[];
@@ -64,9 +65,9 @@ describe('Client (e2e)', () => {
     );
   });
 
-  afterAll(async () => {
-    await testServer.close();
-  });
+  // afterAll(async () => {
+  //   await testServer.close();
+  // });
 
   describe('Client create (e2e)', () => {
     describe.each<RolesEnum>(AvailableRoles)('create by role', (role) => {
@@ -105,14 +106,13 @@ describe('Client (e2e)', () => {
               updatedAt: expect.toBeOneOf([expect.any(String), null]),
             });
 
-            // Using as an example for the rest of the tests
-            testData.created[firstUser.tenant.id] = response.body;
-
             if (!hasPermissionAnotherTenant(role)) {
               if (testData.countCreated[firstUser.tenant.id]) {
+                testData.created[firstUser.tenant.id].push(response.body);
                 testData.countCreated[firstUser.tenant.id] += 1;
               } else {
                 testData.countCreated[firstUser.tenant.id] = 1;
+                testData.created[firstUser.tenant.id] = [response.body];
               }
             }
 
@@ -143,7 +143,7 @@ describe('Client (e2e)', () => {
       const hasPermission = roleHasPermission(
         role,
         AvalilableCollections.CLIENT,
-        CrudActions.CREATE
+        CrudActions.UPDATE
       );
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
@@ -218,9 +218,6 @@ describe('Client (e2e)', () => {
                 createdAt: expect.any(String),
                 updatedAt: expect.toBeOneOf([expect.any(String), null]),
               });
-
-              // Using as an example for the rest of the tests
-              // testData.created[roleUpdate] = response.body;
             }
           });
 
@@ -256,11 +253,10 @@ describe('Client (e2e)', () => {
 
     describe.each<RolesEnum>(AvailableRoles)('list by role', (role) => {
       const firstUser = dataUsers[role][0];
-      const hasPermission = roleHasPermission(
-        role,
-        AvalilableCollections.CLIENT,
-        CrudActions.UPDATE
-      );
+      const hasPermission = roleHasPermission(role, AvalilableCollections.CLIENT, [
+        CrudActions.LIST,
+        ClientActions.AVAILABLE,
+      ]);
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'list' : 'not list'} clients without filters`, async () => {
@@ -277,13 +273,60 @@ describe('Client (e2e)', () => {
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
+              const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
               const resultSeed = testServer.context
                 .getResultSeed<Client[]>(ClientSeeder.name)
-                .filter((clientSeed) => clientSeed.tenant.id === firstUser.tenant.id);
+                .filter(
+                  (clientSeed) =>
+                    filterArchived.includes(clientSeed.archived) &&
+                    clientSeed.tenant.id === firstUser.tenant.id
+                );
               const countClients =
-                resultSeed.length + (testData.countCreated[firstUser.tenant.id] ?? 0);
+                resultSeed.length +
+                (testData.created[firstUser.tenant.id].filter((item) =>
+                  filterArchived.includes(item.archived)
+                ).length ?? 0);
 
               expect(response.body).toHaveProperty('metadata.total', countClients);
+              expect(response.body).toHaveProperty('items');
+              expect(response.body).toMatchObject(exceptedBodyFormats);
+            }
+          }
+        });
+
+        it(`should ${
+          hasPermission ? 'list' : 'not list'
+        } all clients without filters`, async () => {
+          const response = await agentsByRole[role][firstUser.email].get('/clients?pageable=0');
+
+          expect(response.status).toEqual(hasPermission ? 200 : 403);
+
+          if (isStatusSuccess(response.status)) {
+            if (hasPermissionAnotherTenant(role)) {
+              const resultSeed = testServer.context.getResultSeed<Client[]>(ClientSeeder.name);
+              const countClients = resultSeed.length + testData.countAllCreated;
+
+              expect(response.body).toHaveProperty('metadata.total', countClients);
+              expect(response.body.items.length).toEqual(countClients);
+              expect(response.body).toHaveProperty('items');
+              expect(response.body).toMatchObject(exceptedBodyFormats);
+            } else {
+              const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
+              const resultSeed = testServer.context
+                .getResultSeed<Client[]>(ClientSeeder.name)
+                .filter(
+                  (clientSeed) =>
+                    filterArchived.includes(clientSeed.archived) &&
+                    clientSeed.tenant.id === firstUser.tenant.id
+                );
+              const countClients =
+                resultSeed.length +
+                (testData.created[firstUser.tenant.id].filter((item) =>
+                  filterArchived.includes(item.archived)
+                ).length ?? 0);
+
+              expect(response.body).toHaveProperty('metadata.total', countClients);
+              expect(response.body.items.length).toEqual(countClients);
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             }
@@ -317,7 +360,9 @@ describe('Client (e2e)', () => {
                     clientSeed.tenant.id === firstUser.tenant.id && !clientSeed.archived
                 );
               const countClients =
-                resultSeed.length + (testData.countCreated[firstUser.tenant.id] ?? 0);
+                resultSeed.length +
+                (testData.created[firstUser.tenant.id].filter((item) => !item.archived).length ??
+                  0);
 
               expect(response.body).toHaveProperty('metadata.total', countClients);
               expect(response.body).toHaveProperty('items');
@@ -345,10 +390,12 @@ describe('Client (e2e)', () => {
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
+              const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
               const resultSeed = testServer.context
                 .getResultSeed<Client[]>(ClientSeeder.name)
                 .filter(
                   (clientSeed) =>
+                    filterArchived.includes(clientSeed.archived) &&
                     clientSeed.tenant.id === firstUser.tenant.id &&
                     uniqueClientName === clientSeed.name
                 );
@@ -366,11 +413,7 @@ describe('Client (e2e)', () => {
   describe('Client find (e2e)', () => {
     describe.each<RolesEnum>(AvailableRoles)('find by role', (role) => {
       const firstUser = dataUsers[role][0];
-      const hasPermission = roleHasPermission(
-        role,
-        AvalilableCollections.CLIENT,
-        CrudActions.CREATE
-      );
+      const hasPermission = roleHasPermission(role, AvalilableCollections.CLIENT, CrudActions.READ);
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'find' : 'not find'} client`, async () => {
@@ -741,7 +784,7 @@ describe('Client (e2e)', () => {
       const hasPermission = roleHasPermission(
         role,
         AvalilableCollections.CLIENT,
-        CommonActions.ARCHIVE
+        CrudActions.DELETE
       );
 
       describe.each<boolean>([false, true])(

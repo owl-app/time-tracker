@@ -69,11 +69,7 @@ describe('Tag (e2e)', () => {
   describe('Tag create (e2e)', () => {
     describe.each<RolesEnum>(AvailableRoles)('create by role', (role) => {
       const firstUser = dataUsers[role][0];
-      const hasPermission = roleHasPermission(
-        role,
-        AvalilableCollections.TAG,
-        CrudActions.CREATE
-      );
+      const hasPermission = roleHasPermission(role, AvalilableCollections.TAG, CrudActions.CREATE);
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'create' : 'not create'} tag`, async () => {
@@ -136,20 +132,13 @@ describe('Tag (e2e)', () => {
   describe('Tag update (e2e)', () => {
     describe.each<RolesEnum>(AvailableRoles)('update by role', (role) => {
       const firstUser = dataUsers[role][0];
-      const hasPermission = roleHasPermission(
-        role,
-        AvalilableCollections.TAG,
-        CrudActions.CREATE
-      );
+      const hasPermission = roleHasPermission(role, AvalilableCollections.TAG, CrudActions.UPDATE);
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'update' : 'not update'} tag`, async () => {
           const tag = testServer.context
             .getResultSeed<Tag[]>(TagSeeder.name)
-            .find(
-              (seed) =>
-                seed.tenant.id === firstUser.tenant.id && uniqueTagName !== seed.name
-            );
+            .find((seed) => seed.tenant.id === firstUser.tenant.id && uniqueTagName !== seed.name);
           const data = {
             name: `Updated Tag ${firstUser.email}`,
             color: '#06960d',
@@ -239,11 +228,7 @@ describe('Tag (e2e)', () => {
 
     describe.each<RolesEnum>(AvailableRoles)('list by role', (role) => {
       const firstUser = dataUsers[role][0];
-      const hasPermission = roleHasPermission(
-        role,
-        AvalilableCollections.TAG,
-        CrudActions.UPDATE
-      );
+      const hasPermission = roleHasPermission(role, AvalilableCollections.TAG, CrudActions.LIST);
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'list' : 'not list'} tags without filters`, async () => {
@@ -263,8 +248,7 @@ describe('Tag (e2e)', () => {
               const resultSeed = testServer.context
                 .getResultSeed<Tag[]>(TagSeeder.name)
                 .filter((seed) => seed.tenant.id === firstUser.tenant.id);
-              const count =
-                resultSeed.length + (testData.countCreated[firstUser.tenant.id] ?? 0);
+              const count = resultSeed.length + (testData.countCreated[firstUser.tenant.id] ?? 0);
 
               expect(response.body).toHaveProperty('metadata.total', count);
               expect(response.body).toHaveProperty('items');
@@ -344,11 +328,7 @@ describe('Tag (e2e)', () => {
   describe('Tag find (e2e)', () => {
     describe.each<RolesEnum>(AvailableRoles)('find by role', (role) => {
       const firstUser = dataUsers[role][0];
-      const hasPermission = roleHasPermission(
-        role,
-        AvalilableCollections.TAG,
-        CrudActions.CREATE
-      );
+      const hasPermission = roleHasPermission(role, AvalilableCollections.TAG, CrudActions.READ);
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'find' : 'not find'} tag`, async () => {
@@ -532,11 +512,7 @@ describe('Tag (e2e)', () => {
     const deleted: string[] = [];
     describe.each<RolesEnum>(AvailableRoles)('delete by role', (role) => {
       const firstUser = dataUsers[role][0];
-      const hasPermission = roleHasPermission(
-        role,
-        AvalilableCollections.TAG,
-        CommonActions.ARCHIVE
-      );
+      const hasPermission = roleHasPermission(role, AvalilableCollections.TAG, CrudActions.DELETE);
 
       describe.each<boolean>([false, true])(
         `role ${role} and user ${firstUser.email}`,
@@ -553,9 +529,7 @@ describe('Tag (e2e)', () => {
                     !testData.changedArchived.includes(seed.id)
                 );
 
-              const response = await agentsByRole[role][firstUser.email].delete(
-                `/tags/${tag.id}`
-              );
+              const response = await agentsByRole[role][firstUser.email].delete(`/tags/${tag.id}`);
 
               let expectedStatus;
 
