@@ -6,7 +6,6 @@ import { Client, Project } from '@owl-app/lib-contracts';
 import { ProjectEntitySchema } from '@owl-app/lib-api-module-project/database/entity-schema/project.entity-schema';
 import { CLIENT_ENTITY } from '@owl-app/lib-api-core/entity-tokens';
 import { dataTenants } from '@owl-app/lib-api-core/seeds/data/tenant';
-import { ClientEntity } from '@owl-app/lib-api-module-client/domain/entity/client.entity';
 
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
 import { uniqueProjectName } from '../unique';
@@ -36,13 +35,13 @@ export default class ProjectSeeder implements Seeder {
     };
 
     let projects: Project[] = [];
-    const promisesProjects: Promise<Project[]>[] = [];
+    const promises: Promise<Project[]>[] = [];
     let clientIterator = 0;
 
     Object.values(dataUsers).forEach((users) => {
       users.map(async (user) => {
         userFactory.setMeta({ unique: uniqueProjectName });
-        promisesProjects.push(
+        promises.push(
           userFactory.saveMany(1, {
             name: uniqueProjectName,
             tenant: user.tenant,
@@ -54,7 +53,7 @@ export default class ProjectSeeder implements Seeder {
         clientIterator += 1;
 
         userFactory.setMeta({});
-        promisesProjects.push(
+        promises.push(
           userFactory.saveMany(5, {
             tenant: user.tenant,
             client: clientsByTenant[user.tenant.id][clientIterator],
@@ -64,7 +63,7 @@ export default class ProjectSeeder implements Seeder {
 
         clientIterator += 1;
 
-        promisesProjects.push(
+        promises.push(
           userFactory.saveMany(5, {
             tenant: user.tenant,
             client: clientsByTenant[user.tenant.id][clientIterator],
@@ -76,12 +75,8 @@ export default class ProjectSeeder implements Seeder {
       clientIterator += 1;
     });
 
-    projects = await Promise.all(promisesProjects).then((results) => results.flat());
+    projects = await Promise.all(promises).then((results) => results.flat());
 
     return projects;
-  }
-
-  private getRandomClient(clients: Client[]): Client {
-    return clients[Math.floor(Math.random() * clients.length)];
   }
 }

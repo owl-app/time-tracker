@@ -29,13 +29,14 @@ describe('Auth (e2e)', () => {
     it(`should login user ${role}`, async () => {
       const { refreshTokenExpirationTime, expirationTime } =
         configService.get<IJwtConfig>(JWT_CONFIG_NAME);
+      const firstUser = dataUsers[role][0];
 
       const response = await request(testServer.getHttpServer())
         .post('/api/v1/auth/login')
         .set('Accept', 'application/json')
         .send({
-          email: dataUsers[role].email,
-          password: dataUsers[role].password,
+          email: firstUser.email,
+          password: firstUser.password,
         });
 
       expect(response.status).toEqual(200);
@@ -45,30 +46,31 @@ describe('Auth (e2e)', () => {
       });
     });
   });
+  describe('Validation', () => {
+    it(`should invalid data`, async () => {
+      const response = await request(testServer.getHttpServer())
+        .post('/api/v1/auth/login')
+        .set('Accept', 'application/json')
+        .send({});
 
-  it(`should invalid data`, async () => {
-    const response = await request(testServer.getHttpServer())
-      .post('/api/v1/auth/login')
-      .set('Accept', 'application/json')
-      .send({});
+      expect(response.status).toEqual(422);
+      expect(response.body).toHaveProperty('errors.email');
+      expect(response.body).toHaveProperty('errors.password');
+    });
 
-    expect(response.status).toEqual(422);
-    expect(response.body).toHaveProperty('errors.email');
-    expect(response.body).toHaveProperty('errors.password');
-  });
+    it(`should invalid credentials`, async () => {
+      const response = await request(testServer.getHttpServer())
+        .post('/api/v1/auth/login')
+        .set('Accept', 'application/json')
+        .send({
+          email: 'invalid@example.com',
+          password: 'invalid',
+        });
 
-  it(`should invalid credentials`, async () => {
-    const response = await request(testServer.getHttpServer())
-      .post('/api/v1/auth/login')
-      .set('Accept', 'application/json')
-      .send({
-        email: 'invalid@example.com',
-        password: 'invalid',
-      });
-
-    expect(response.status).toEqual(422);
-    expect(response.body).toHaveProperty('message');
-    expect(response.body).toHaveProperty('error', 'Unprocessable Entity');
-    expect(response.body).toHaveProperty('statusCode', 422);
+      expect(response.status).toEqual(422);
+      expect(response.body).toHaveProperty('message');
+      expect(response.body).toHaveProperty('error', 'Unprocessable Entity');
+      expect(response.body).toHaveProperty('statusCode', 422);
+    });
   });
 });

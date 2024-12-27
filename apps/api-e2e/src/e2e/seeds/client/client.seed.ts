@@ -16,12 +16,12 @@ export default class ClientSeeder implements Seeder {
     const userFactory = await factoryManager.get(ClientEntitySchema);
 
     let clients: Client[] = [];
-    const promisesClients: Promise<Client[]>[] = [];
+    const promises: Promise<Client[]>[] = [];
 
     Object.values(dataUsers).map((users) =>
       users.map(async (user) => {
         userFactory.setMeta({ unique: uniqueClientName });
-        promisesClients.push(
+        promises.push(
           userFactory.saveMany(1, {
             name: uniqueClientName,
             tenant: user.tenant,
@@ -30,13 +30,13 @@ export default class ClientSeeder implements Seeder {
         );
 
         userFactory.setMeta({});
-        promisesClients.push(
+        promises.push(
           userFactory.saveMany(5, {
             tenant: user.tenant,
             archived: true,
           })
         );
-        promisesClients.push(
+        promises.push(
           userFactory.saveMany(5, {
             tenant: user.tenant,
             archived: false,
@@ -45,7 +45,7 @@ export default class ClientSeeder implements Seeder {
       })
     );
 
-    clients = await Promise.all(promisesClients).then((results) => results.flat());
+    clients = await Promise.all(promises).then((results) => results.flat());
 
     return clients;
   }

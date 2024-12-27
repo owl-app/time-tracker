@@ -37,12 +37,12 @@ describe('Client (e2e)', () => {
     created: Record<string, Partial<Client>>;
     countCreated: Record<string, number>;
     countAllCreated: number;
-    changedArchivedClients: string[];
+    changedArchived: string[];
   } = {
     created: {},
     countCreated: {},
     countAllCreated: 0,
-    changedArchivedClients: [],
+    changedArchived: [],
   };
 
   beforeAll(async () => {
@@ -68,7 +68,6 @@ describe('Client (e2e)', () => {
     await testServer.close();
   });
 
-  // run first we need data to compare for rest of the tests
   describe('Client create (e2e)', () => {
     describe.each<RolesEnum>(AvailableRoles)('create by role', (role) => {
       const firstUser = dataUsers[role][0];
@@ -462,7 +461,7 @@ describe('Client (e2e)', () => {
                 .find(
                   (projectSeed) =>
                     projectSeed.tenant.id === firstUser.tenant.id &&
-                    !testData.changedArchivedClients.includes(projectSeed.client.id)
+                    !testData.changedArchived.includes(projectSeed.client.id)
                 );
 
               const data = {
@@ -492,7 +491,7 @@ describe('Client (e2e)', () => {
                   (responseProject: Project) => responseProject.archived
                 );
 
-                testData.changedArchivedClients.push(project.client.id);
+                testData.changedArchived.push(project.client.id);
 
                 resultSeed = testServer.context.getResultSeed<Project[]>(ProjectSeeder.name);
 
@@ -528,7 +527,7 @@ describe('Client (e2e)', () => {
                   .find(
                     (projectSeed) =>
                       projectSeed.tenant.id !== firstUser.tenant.id &&
-                      !testData.changedArchivedClients.includes(projectSeed.client.id)
+                      !testData.changedArchived.includes(projectSeed.client.id)
                   );
 
                 const data = {
@@ -558,7 +557,7 @@ describe('Client (e2e)', () => {
                     (responseProject: Project) => responseProject.archived
                   );
 
-                  testData.changedArchivedClients.push(project.client.id);
+                  testData.changedArchived.push(project.client.id);
 
                   resultSeed = testServer.context.getResultSeed<Project[]>(ProjectSeeder.name);
 
@@ -608,7 +607,7 @@ describe('Client (e2e)', () => {
                 .find(
                   (projectSeed) =>
                     projectSeed.tenant.id === firstUser.tenant.id &&
-                    !testData.changedArchivedClients.includes(projectSeed.client.id)
+                    !testData.changedArchived.includes(projectSeed.client.id)
                 );
 
               const data = {
@@ -638,7 +637,7 @@ describe('Client (e2e)', () => {
                   (responseProject: Project) => responseProject.archived
                 );
 
-                testData.changedArchivedClients.push(project.client.id);
+                testData.changedArchived.push(project.client.id);
 
                 resultSeed = testServer.context.getResultSeed<Project[]>(ProjectSeeder.name);
 
@@ -674,7 +673,7 @@ describe('Client (e2e)', () => {
                   .find(
                     (projectSeed) =>
                       projectSeed.tenant.id !== firstUser.tenant.id &&
-                      !testData.changedArchivedClients.includes(projectSeed.client.id)
+                      !testData.changedArchived.includes(projectSeed.client.id)
                   );
 
                 const data = {
@@ -704,7 +703,7 @@ describe('Client (e2e)', () => {
                     (responseProject: Project) => responseProject.archived
                   );
 
-                  testData.changedArchivedClients.push(project.client.id);
+                  testData.changedArchived.push(project.client.id);
 
                   resultSeed = testServer.context.getResultSeed<Project[]>(ProjectSeeder.name);
 
@@ -757,7 +756,7 @@ describe('Client (e2e)', () => {
                     clientSeed.tenant.id === firstUser.tenant.id &&
                     clientSeed.archived === archived &&
                     !deletedClients.includes(clientSeed.id) &&
-                    !testData.changedArchivedClients.includes(clientSeed.id)
+                    !testData.changedArchived.includes(clientSeed.id)
                 );
 
               const response = await agentsByRole[role][firstUser.email].delete(
@@ -793,7 +792,7 @@ describe('Client (e2e)', () => {
                       clientSeed.tenant.id !== firstUser.tenant.id &&
                       clientSeed.archived === archived &&
                       !deletedClients.includes(clientSeed.id) &&
-                      !testData.changedArchivedClients.includes(clientSeed.id)
+                      !testData.changedArchived.includes(clientSeed.id)
                   );
 
                 const response = await agentsByRole[role][firstUser.email].delete(
