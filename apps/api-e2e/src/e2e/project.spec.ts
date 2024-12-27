@@ -1,5 +1,4 @@
 import TestAgent from 'supertest/lib/agent';
-import { SeederEntity } from 'typeorm-extension';
 
 import { TestServer } from '@owl-app/testing';
 
@@ -12,19 +11,15 @@ import {
   Client,
 } from '@owl-app/lib-contracts';
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
-import BaseRole from '@owl-app/lib-api-core/seeds/rbac/base.role';
 import { roleHasPermission } from '@owl-app/lib-api-core/utils/check-permission';
 
 import { createTest } from '../create-test';
 import { createAgent } from '../create-agent';
-import { uniqueClientId, uniqueClientName } from './seeds/unique';
 import clientSeederFactory from './seeds/client/client.factory';
 import ClientSeeder from './seeds/client/client.seed';
 import projectSeederFactory from './seeds/project/project.factory';
 import ProjectSeeder from './seeds/project/project.seed';
-import { CreatedSeedData } from './types';
-import { isStatusSuccess, getTestsStatusByOwner, getTestsStatusByRole } from '../utils/http';
-import { getCasesByRoleWithOwner } from '../utils/cases';
+import { isStatusSuccess } from '../utils/http';
 import { hasPermissionAnotherTenant } from '../utils/check-permission';
 
 describe('Project (e2e)', () => {
