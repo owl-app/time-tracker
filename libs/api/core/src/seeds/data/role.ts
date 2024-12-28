@@ -92,5 +92,8 @@ export const dataRoles: Record<RolesEnum, Permission[]> = {
 
     // clients
     getRoutePermission(AvalilableCollections.CLIENT, ClientActions.AVAILABLE),
+
+    // projects
+    getRoutePermission(AvalilableCollections.PROJECT, ClientActions.AVAILABLE),
   ],
 };

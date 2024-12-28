@@ -14,6 +14,7 @@ export default setSeederFactory(ClientEntitySchema, (faker, meta: { unique: stri
     user.name = faker.company.name();
   }
 
+  user.email = faker.internet.email();
   user.archived = faker.datatype.boolean();
 
   return user;

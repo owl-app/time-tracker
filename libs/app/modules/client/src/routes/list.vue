@@ -35,6 +35,7 @@ const headerBar = {
 
 const columns = defineVaDataTableColumns([
   { label: 'Name', key: 'name', sortable: true, tdClass: ['is-line-through'] },
+  { label: 'E-mail', key: 'email', sortable: true, tdClass: ['is-line-through'] },
   { label: ' ', key: 'actions' },
 ]);
 

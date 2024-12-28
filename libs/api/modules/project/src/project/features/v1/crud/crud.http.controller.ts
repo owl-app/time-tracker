@@ -144,6 +144,8 @@ export class ProjectCrudController {
       if (error instanceof NotFoundException) {
         throw new NotFoundHttpException(error.message);
       }
+
+      throw error;
     }
 
     return updated;
