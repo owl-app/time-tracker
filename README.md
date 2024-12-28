@@ -83,6 +83,6 @@ If you wish to contribute to the project, please report issues and propose enhan
 
 ## License
 
-This project does not have an assigned license.
+Owl Timetracker is completely free and released under the [MIT License](https://github.com/owl-app/time-tracker/blob/main/LICENSE).
 
 If you have any additional details or specific sections you'd like to include, please let me know!
