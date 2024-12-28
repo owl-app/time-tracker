@@ -32,6 +32,8 @@ export class RbacPermissionMapper<
     role.ruleName = item.ruleName;
     role.refer = item.refer;
     role.collection = item.collection;
+    role.createdAt = item.createdAt;
+    role.updatedAt = item.updatedAt;
 
     return role;
   }

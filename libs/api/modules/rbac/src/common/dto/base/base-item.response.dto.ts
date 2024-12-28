@@ -19,11 +19,11 @@ export abstract class BaseRbacItemResponse implements RbacItemResponse {
   @IsOptional()
   ruleName: string | null = null;
 
-  @ApiPropertyOptional({ type: () => String })
+  @ApiPropertyOptional({ type: () => Date })
   @IsOptional()
   createdAt: string | null = null;
 
-  @ApiPropertyOptional({ type: () => String })
+  @ApiPropertyOptional({ type: () => Date })
   @IsOptional()
   updatedAt: string | null = null;
 }
