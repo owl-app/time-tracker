@@ -66,6 +66,8 @@ const columns = defineVaDataTableColumns([
         <div class="grid grid-cols-12 gap-2">
           <div class="col-span-4">
             <string-filter
+              single-filter="contains"
+              labelSearchInput="Search by name and description"
               :data="filters?.search"
               :change-filter="changeFilter"
               :remove-filter="removeFilter"

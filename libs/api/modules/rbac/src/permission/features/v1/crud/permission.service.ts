@@ -51,9 +51,16 @@ export class PermissionService extends AppTypeOrmQueryService<PermissionEntity> 
     id: number | string,
     update: DeepPartial<PermissionEntity>
   ): Promise<PermissionEntity> {
-    await this.rbacManager.updatePermission(id as string, mapper.toPersistence(update));
+    const existPermission = await this.findById(id as string);
 
-    return mapper.toResponse(update);
+    const permission = mapper.toPersistence({
+      ...existPermission,
+      ...update,
+    });
+
+    await this.rbacManager.updatePermission(id as string, permission);
+
+    return mapper.toResponse(permission);
   }
 
   public async deleteOne(id: string | number): Promise<PermissionEntity> {

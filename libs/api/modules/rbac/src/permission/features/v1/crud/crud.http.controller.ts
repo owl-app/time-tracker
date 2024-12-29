@@ -25,7 +25,8 @@ import {
 import {
   AvalilableCollections,
   CrudActions,
-  permissionValidationSchema,
+  createPermissionValidationSchema,
+  updatePermissionValidationSchema,
 } from '@owl-app/lib-contracts';
 import { AssemblerQueryService, InjectAssemblerQueryService } from '@owl-app/nestjs-query-core';
 import { Paginated } from '@owl-app/lib-api-core/pagination/pagination';
@@ -95,7 +96,7 @@ export class RbacPermissionCrudController {
   })
   @Post()
   @RoutePermissions(AvalilableCollections.PERMISSION, CrudActions.CREATE)
-  @UsePipes(new ValibotValidationPipe(permissionValidationSchema))
+  @UsePipes(new ValibotValidationPipe(createPermissionValidationSchema))
   async createPermission(@Body() createPermissionDto: CreatePermissionRequest) {
     const addedPermission = await this.service.createOne(createPermissionDto);
 
@@ -115,11 +116,12 @@ export class RbacPermissionCrudController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid input, The response body may contain clues as to what went wrong',
   })
+  @HttpCode(HttpStatus.ACCEPTED)
   @Put(':name')
   @RoutePermissions(AvalilableCollections.PERMISSION, CrudActions.UPDATE)
   async updatePermission(
     @Param('name') name: string,
-    @Body(new ValibotValidationPipe(permissionValidationSchema))
+    @Body(new ValibotValidationPipe(updatePermissionValidationSchema))
     updatePermissionDto: UpdatePermissionRequest
   ) {
     const updatedPermission = await this.service.updateOne(name, updatePermissionDto);

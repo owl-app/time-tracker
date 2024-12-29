@@ -9,7 +9,7 @@ export class ListFilterBuilder extends QueryFilterBuilder<Permission, FilterPerm
     const filters: Filter<Permission>[] = [];
 
     if (data?.search) {
-      filters.push(this.filterRegistry.get('string').apply(['name'], data?.search));
+      filters.push(this.filterRegistry.get('string').apply(['name', 'description'], data?.search));
     }
 
     if (data?.refer) {

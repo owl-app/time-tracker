@@ -20,7 +20,9 @@ export class RbacPermissionMapper<
       request.description,
       request.ruleName,
       request.createdAt || new Date(),
-      request.updatedAt || new Date()
+      request.updatedAt || new Date(),
+      request.collection || null,
+      request.refer || null
     );
   }
 

@@ -12,7 +12,7 @@
         class-form="flex flex-col gap-2"
         collection="rbac/permissions"
         :primaryKey="item?.name"
-        :schema="permissionValidationSchema"
+        :schema="item?.name ? updatePermissionValidationSchema : createPermissionValidationSchema"
         @saved="
           ok();
           $emit('saved');
@@ -76,7 +76,10 @@
 import { ref } from 'vue';
 import { isEmpty } from 'lodash';
 
-import { permissionValidationSchema } from '@owl-app/lib-contracts';
+import {
+  createPermissionValidationSchema,
+  updatePermissionValidationSchema,
+} from '@owl-app/lib-contracts';
 import OwlForm from '@owl-app/lib-app-core/components/form/form.vue';
 import HeaderBar from '@owl-app/lib-app-core/layouts/panel/components/header-bar.vue';
 

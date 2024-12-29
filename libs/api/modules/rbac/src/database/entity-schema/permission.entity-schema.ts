@@ -9,8 +9,6 @@ export const PermissionEntitySchema = new EntitySchema<PermissionEntity>({
   target: PermissionEntity,
   name: PERMISSION_ENITY,
   type: 'entity-child',
-  // When saving instances of 'A', the "type" column will have the value
-  // specified on the 'discriminatorValue' property
   discriminatorValue: 'permission',
   columns: {
     ...BaseAuthEntitySchema.options.columns,

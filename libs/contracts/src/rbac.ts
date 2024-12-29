@@ -15,8 +15,8 @@ export interface Permission {
   ruleName?: string;
   refer?: string;
   collection?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export enum PermissionReferType {
@@ -49,8 +49,6 @@ export interface IBaseRbacItemRequest {
 }
 
 export interface ICreatePermissionRequest extends IBaseRbacItemRequest {}
-
-export interface IUpdatePermissionRequest extends IBaseRbacItemRequest {}
 
 export interface ICreateRoleRequest extends IBaseRbacItemRequest {}
 

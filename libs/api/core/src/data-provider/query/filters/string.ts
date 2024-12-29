@@ -2,7 +2,11 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional } from 'class-validator';
 import { Transform, TransformFnParams } from 'class-transformer';
 
-import { FilterFieldComparison, Filter as FilterQueryService } from '@owl-app/nestjs-query-core';
+import {
+  FilterComparisons,
+  FilterFieldComparison,
+  Filter as FilterQueryService,
+} from '@owl-app/nestjs-query-core';
 import { isEmpty } from '@owl-app/utils';
 
 import { Filter } from '../../filtering/filter';
@@ -56,7 +60,7 @@ export class StringFilter<Entity> implements Filter<FilterQueryService<Entity>> 
     fields: string[],
     data: QueryData
   ): FilterQueryService<Entity> {
-    const filters: FilterQueryService<Entity> = {};
+    const filters: FilterComparisons<Entity>[] = [];
 
     if (
       isEmpty(data?.type) ||
@@ -66,13 +70,10 @@ export class StringFilter<Entity> implements Filter<FilterQueryService<Entity>> 
       return {};
 
     fields.forEach((field) => {
-      filters[field as keyof Entity] = this.getQuery(
-        data.type,
-        data.value
-      ) as FilterQueryService<Entity>[keyof Entity];
+      filters.push({ [field]: this.getQuery(data.type, data.value) } as FilterComparisons<Entity>);
     });
 
-    return filters;
+    return { or: filters } as FilterQueryService<Entity>;
   }
 
   private getQuery<K extends keyof Entity>(type: string, value: string): FilterFieldComparison<K> {
