@@ -9,6 +9,7 @@ import {
   RolesEnum,
   Permission,
   PermissionReferType,
+  User,
 } from '@owl-app/lib-contracts';
 
 import { getRouteName } from '@owl-app/lib-api-core/utils/permission';
@@ -35,15 +36,18 @@ describe('Permission (e2e)', () => {
     [RolesEnum.ROLE_USER]: {},
   };
 
+  // Local test data used across the test suite
   const testData: {
-    created: Permission;
+    createdByTenant: Record<string, Partial<User>[]>;
+    createdAll: Partial<User>[];
   } = {
-    created: null,
+    createdByTenant: {},
+    createdAll: [],
   };
 
   beforeAll(async () => {
     testServer = await createTest({
-      dbName: 'permission',
+      dbName: 'user',
       seeds: [TestPermissionSeeder],
       factories: [permissionSeederFactory],
     });

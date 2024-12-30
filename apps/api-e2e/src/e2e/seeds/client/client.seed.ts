@@ -8,7 +8,7 @@ import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
 
 import { uniqueClientName } from '../unique';
 
-export default class ClientSeeder implements Seeder {
+export default class TestClientSeeder implements Seeder {
   public async run(
     dataSource: DataSource,
     factoryManager: SeederFactoryManager

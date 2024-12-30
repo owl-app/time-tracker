@@ -13,8 +13,9 @@ export default function createUserSeeder(
   passwordBcryptSaltRounds: number
 ): SeederConstructor {
   return class UserSeeder implements Seeder {
-    public async run(dataSource: DataSource): Promise<void> {
-      const createdUsers: Partial<User>[] = [];
+    public async run(dataSource: DataSource): Promise<Partial<User>[]> {
+      const usersToCreate: Partial<User>[] = [];
+      const created: Partial<User>[] = [];
       const savedTenantsIds: string[] = [];
       const allUsers: Partial<User & { password: string }>[] = [];
 
@@ -31,12 +32,14 @@ export default function createUserSeeder(
               await manager.save(TENANT_ENTITY, user.tenant);
             }
 
-            createdUsers.push(omit(user, 'password'));
+            usersToCreate.push(omit(user, 'password'));
           })
         );
 
-        await manager.save(USER_ENTITY, createdUsers);
+        created.push(...await manager.save(USER_ENTITY, usersToCreate));
       });
+
+      return created;
     }
   };
 }

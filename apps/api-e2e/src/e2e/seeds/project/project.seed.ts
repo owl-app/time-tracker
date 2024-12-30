@@ -10,7 +10,7 @@ import { dataTenants } from '@owl-app/lib-api-core/seeds/data/tenant';
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
 import { uniqueProjectName } from '../unique';
 
-export default class ProjectSeeder implements Seeder {
+export default class TestProjectSeeder implements Seeder {
   public async run(
     dataSource: DataSource,
     factoryManager: SeederFactoryManager

@@ -7,7 +7,7 @@ import { PermissionEntitySchema } from '@owl-app/lib-api-module-rbac/database/en
 
 import { uniquePermissionName, uniquePermissionDescription } from '../unique';
 
-export default class PermissionSeeder implements Seeder {
+export default class TestPermissionSeeder implements Seeder {
   public async run(
     dataSource: DataSource,
     factoryManager: SeederFactoryManager

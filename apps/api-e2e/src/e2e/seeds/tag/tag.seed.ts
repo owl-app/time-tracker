@@ -8,7 +8,7 @@ import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
 
 import { uniqueTagName } from '../unique';
 
-export default class TagSeeder implements Seeder {
+export default class TestTagSeeder implements Seeder {
   public async run(
     dataSource: DataSource,
     factoryManager: SeederFactoryManager
