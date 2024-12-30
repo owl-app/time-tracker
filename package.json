@@ -82,6 +82,7 @@
     "winston": "^3.11.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.4.1",
     "@modyfi/vite-plugin-yaml": "^1.1.0",
     "@nestjs/schematics": "^10.0.1",
     "@nestjs/testing": "^10.0.2",

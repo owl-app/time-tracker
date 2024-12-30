@@ -10,6 +10,7 @@ import {
   Param,
   HttpCode,
   Injectable,
+  NotFoundException as NotFoundHttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -39,6 +40,7 @@ import { InjectPaginatedQueryService } from '@owl-app/lib-api-core/data-provider
 import { ApiFilterQuery } from '@owl-app/lib-api-core/data-provider/query/decorators/api-filter-query.decorator';
 import { FilterStringApiProperty } from '@owl-app/lib-api-core/data-provider/query/filters/string';
 import { RoutePermissions } from '@owl-app/lib-api-core/rbac/decorators/route-permission';
+import { NotFoundException } from '@owl-app/lib-api-core/exceptions/exceptions';
 
 import { UserEntity } from '../../../../domain/entity/user.entity';
 import { UserDto } from '../../../dto/user.dto';
@@ -105,7 +107,14 @@ export class UserCrudController {
     @Body(new ValibotValidationPipe(createUserValidationSchema))
     createUserRequest: CreateUserRequest
   ) {
-    const createdUser = await this.service.createWithRelations(createUserRequest);
+    let createdUser;
+    try {
+      createdUser = await this.service.createWithRelations(createUserRequest);
+    } catch (error: unknown) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundHttpException(error.message);
+      }
+    }
 
     return createdUser;
   }
