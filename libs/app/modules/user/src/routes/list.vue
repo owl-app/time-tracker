@@ -57,9 +57,10 @@ const { hasRoutePermission } = usePermissions(AvalilableCollections.USER);
         </VaButton>
       </template>
       <template #filters="{ filters, changeFilter, removeFilter }">
-        {{ filters?.search }}
         <div class="grid grid-cols-3 gap-4">
           <string-filter
+            single-filter="contains"
+            labelSearchInput="Search"
             :data="filters?.search"
             :change-filter="changeFilter"
             :remove-filter="removeFilter"

@@ -4,14 +4,21 @@ export const hasPermissionAnotherTenant = (role: RolesEnum): boolean =>
   role === RolesEnum.ROLE_ADMIN_SYSTEM;
 
 export const hasPermissionToArchived = (role: RolesEnum): boolean =>
-  role === RolesEnum.ROLE_ADMIN_SYSTEM || role === RolesEnum.ROLE_ADMIN_COMPANY;
+  [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY].includes(role);
 
-export const hasPermissionToUsersByRole = (role: RolesEnum, roleToCheck: RolesEnum): boolean => {
+export const getPermissionsToUsersByRole = (role: RolesEnum): RolesEnum[] => {
   const permissions: { [key in RolesEnum]: RolesEnum[] } = {
-    [RolesEnum.ROLE_ADMIN_SYSTEM]: [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY, RolesEnum.ROLE_USER],
-    [RolesEnum.ROLE_ADMIN_COMPANY]: [ RolesEnum.ROLE_ADMIN_COMPANY, RolesEnum.ROLE_USER],
-    [RolesEnum.ROLE_USER]: [],
-  }
+    [RolesEnum.ROLE_ADMIN_SYSTEM]: [
+      RolesEnum.ROLE_ADMIN_SYSTEM,
+      RolesEnum.ROLE_ADMIN_COMPANY,
+      RolesEnum.ROLE_USER,
+    ],
+    [RolesEnum.ROLE_ADMIN_COMPANY]: [RolesEnum.ROLE_ADMIN_COMPANY, RolesEnum.ROLE_USER],
+    [RolesEnum.ROLE_USER]: [RolesEnum.ROLE_USER],
+  };
 
-  return permissions[role].includes(roleToCheck);
-}
+  return permissions[role];
+};
+
+export const hasPermissionToUsersByRole = (role: RolesEnum, roleToCheck: RolesEnum): boolean =>
+  getPermissionsToUsersByRole(role).includes(roleToCheck);

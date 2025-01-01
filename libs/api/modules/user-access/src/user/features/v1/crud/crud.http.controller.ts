@@ -140,7 +140,17 @@ export class UserCrudController {
     @Body(new ValibotValidationPipe(updateUserValidationSchema))
     updateUserRequest: UpdateUserRequest
   ): Promise<UserDto> {
-    const updatedUser = await this.service.updateWithRelations(id, updateUserRequest);
+    let updatedUser;
+
+    try {
+      updatedUser = await this.service.updateWithRelations(id, updateUserRequest);
+    } catch (error: unknown) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundHttpException(error.message);
+      }
+
+      throw error;
+    }
 
     return updatedUser;
   }

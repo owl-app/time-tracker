@@ -8,6 +8,8 @@ import { Role, User } from '@owl-app/lib-contracts';
 import { UserData } from './data/users';
 import { TENANT_ENTITY, USER_ENTITY } from '../entity-tokens';
 
+export const USER_SEEDER = 'UserSeeder';
+
 export default function createUserSeeder(
   dataUsers: UserData,
   passwordBcryptSaltRounds: number
@@ -36,7 +38,7 @@ export default function createUserSeeder(
           })
         );
 
-        created.push(...await manager.save(USER_ENTITY, usersToCreate));
+        created.push(...(await manager.save(USER_ENTITY, usersToCreate)));
       });
 
       return created;

@@ -8,7 +8,9 @@ export class ListFilterBuilder extends QueryFilterBuilder<User, FilterUserDto> {
   build(data: FilterUserDto): Filter<User> {
     const filters: Filter<User>[] = [];
 
-    filters.push(this.filterRegistry.get('string').apply(['email'], data?.search));
+    filters.push(
+      this.filterRegistry.get('string').apply(['firstName', 'lastName', 'email'], data?.search)
+    );
 
     return {
       or: filters,

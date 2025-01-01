@@ -410,7 +410,9 @@ describe('Project (e2e)', () => {
 
           if (isStatusSuccess(response.status)) {
             if (hasPermissionAnotherTenant(role)) {
-              const resultSeed = testServer.context.getResultSeed<Project[]>(TestProjectSeeder.name);
+              const resultSeed = testServer.context.getResultSeed<Project[]>(
+                TestProjectSeeder.name
+              );
               const count = resultSeed.length + testData.createdAll.length;
 
               expect(response.body).toHaveProperty('metadata.total', count);

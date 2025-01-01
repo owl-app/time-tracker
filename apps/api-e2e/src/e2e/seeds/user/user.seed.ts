@@ -18,7 +18,6 @@ export default class TestUserSeeder implements Seeder {
 
     Object.values(dataUsers).map((users) =>
       users.map(async (user) => {
-
         promises.push(
           userFactory.saveMany(5, {
             tenant: user.tenant,
