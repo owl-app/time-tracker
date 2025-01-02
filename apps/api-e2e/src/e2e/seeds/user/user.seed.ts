@@ -5,6 +5,7 @@ import { Role, RolesEnum, User } from '@owl-app/lib-contracts';
 
 import { UserEntitySchema } from '@owl-app/lib-api-module-user-access/database/entity-schema/user.entity-schema';
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
+import { uniqueUserFirstName, uniqueUserLastName } from '../unique';
 
 export default class TestUserSeeder implements Seeder {
   public async run(
@@ -16,8 +17,27 @@ export default class TestUserSeeder implements Seeder {
     let usersCreated: User[] = [];
     const promises: Promise<User[]>[] = [];
 
+
+
     Object.values(dataUsers).map((users) =>
       users.map(async (user) => {
+        userFactory.setMeta({
+          unique: {
+            firstName: uniqueUserFirstName,
+            lastName: uniqueUserLastName,
+            email: user.email,
+          },
+        });
+
+        promises.push(
+          userFactory.saveMany(1, {
+            firstName: uniqueUserFirstName,
+            lastName: uniqueUserLastName,
+            tenant: user.tenant,
+            roles: [{ name: RolesEnum.ROLE_USER } as Role],
+          })
+        );
+
         promises.push(
           userFactory.saveMany(5, {
             tenant: user.tenant,

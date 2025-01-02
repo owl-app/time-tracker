@@ -30,6 +30,7 @@ import {
   hasPermissionAnotherTenant,
   hasPermissionToUsersByRole,
 } from '../utils/check-permission';
+import { uniqueUserFirstName, uniqueUserLastName } from './seeds/unique';
 
 describe('User (e2e)', () => {
   let testServer: TestServer;
@@ -134,6 +135,7 @@ describe('User (e2e)', () => {
                 phoneNumber: expect.any(String),
                 role: expect.any(Object),
               });
+
               users[response.body.id] = {
                 ...response.body,
                 tenant: hasPermissionAnotherTenant(role) ? firstUser.tenant : null,
@@ -233,6 +235,7 @@ describe('User (e2e)', () => {
 
               users[response.body.id] = {
                 ...users[response.body.id],
+                ...response.body,
                 roles: [roleToUpdate],
               };
             }
@@ -300,6 +303,7 @@ describe('User (e2e)', () => {
 
                   users[response.body.id] = {
                     ...users[response.body.id],
+                    ...response.body,
                     roles: [roleToUpdate],
                   };
                 }
@@ -398,43 +402,302 @@ describe('User (e2e)', () => {
           }
         });
 
-        // it(`should ${
-        //   hasPermission ? 'list' : 'not list'
-        // } projects with filter search`, async () => {
-        //   const search = uniqueProjectName.substring(0, uniqueProjectName.lastIndexOf(' '));
+        if (hasPermission) {
+          it(`should ${
+            hasPermission ? 'list' : 'not list'
+          } users with filter search "email"`, async () => {
+            const response = await agentsByRole[role][firstUser.email].get(
+              `/users?filters[search][type]=contains&filters[search][value]=${firstUser.email}`
+            );
 
-        //   const response = await agentsByRole[role][firstUser.email].get(
-        //     `/projects?filters[search][type]=contains&filters[search][value]=${search}`
-        //   );
+            expect(response.status).toEqual(200);
 
-        //   expect(response.status).toEqual(hasPermission ? 200 : 403);
+            if (hasPermissionAnotherTenant(role)) {
+              expect(response.body).toHaveProperty(
+                'metadata.total',
+                Object.values(users).filter((user) => user.email === firstUser.email).length
+              );
+              expect(response.body).toHaveProperty('items');
+              expect(response.body).toMatchObject(exceptedBodyFormats);
+            } else {
+              const count = Object.values(users).filter(
+                (result) =>
+                  getPermissionsToUsersByRole(firstUser.roles[0].name as RolesEnum).includes(
+                    result.roles[0].name as RolesEnum
+                  ) &&
+                  result.tenant &&
+                  result.tenant.id === firstUser.tenant.id &&
+                  result.email === firstUser.email
+              ).length;
 
-        //   if (isStatusSuccess(response.status)) {
-        //     if (hasPermissionAnotherTenant(role)) {
-        //       const resultSeed = testServer.context
-        //         .getResultSeed<Project[]>(TestProjectSeeder.name)
-        //         .filter((result) => uniqueProjectName === result.name);
+              expect(response.body).toHaveProperty('metadata.total', count);
+              expect(response.body).toHaveProperty('items');
+              expect(response.body).toMatchObject(exceptedBodyFormats);
+            }
+          });
 
-        //       expect(response.body).toHaveProperty('metadata.total', resultSeed.length);
-        //       expect(response.body).toHaveProperty('items');
-        //       expect(response.body).toMatchObject(exceptedBodyFormats);
-        //     } else {
-        //       const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
-        //       const resultSeed = testServer.context
-        //         .getResultSeed<Project[]>(TestProjectSeeder.name)
-        //         .filter(
-        //           (result) =>
-        //             filterArchived.includes(result.archived) &&
-        //             result.tenant.id === firstUser.tenant.id &&
-        //             uniqueProjectName === result.name
-        //         );
+          it(`should ${
+            hasPermission ? 'list' : 'not list'
+          } users with filter search "firstName"`, async () => {
+            const response = await agentsByRole[role][firstUser.email].get(
+              `/users?filters[search][type]=contains&filters[search][value]=${uniqueUserFirstName}`
+            );
 
-        //       expect(response.body).toHaveProperty('metadata.total', resultSeed.length);
-        //       expect(response.body).toHaveProperty('items');
-        //       expect(response.body).toMatchObject(exceptedBodyFormats);
-        //     }
-        //   }
-        // });
+            expect(response.status).toEqual(200);
+
+            if (hasPermissionAnotherTenant(role)) {
+              expect(response.body).toHaveProperty(
+                'metadata.total',
+                Object.values(users).filter((user) => user.firstName === uniqueUserFirstName).length
+              );
+              expect(response.body).toHaveProperty('items');
+              expect(response.body).toMatchObject(exceptedBodyFormats);
+            } else {
+              const count = Object.values(users).filter(
+                (result) =>
+                  getPermissionsToUsersByRole(firstUser.roles[0].name as RolesEnum).includes(
+                    result.roles[0].name as RolesEnum
+                  ) &&
+                  result.tenant &&
+                  result.tenant.id === firstUser.tenant.id &&
+                  result.firstName === uniqueUserFirstName
+              ).length;
+
+              expect(response.body).toHaveProperty('metadata.total', count);
+              expect(response.body).toHaveProperty('items');
+              expect(response.body).toMatchObject(exceptedBodyFormats);
+            }
+          });
+
+          it(`should ${
+            hasPermission ? 'list' : 'not list'
+          } users with filter search "lastName"`, async () => {
+            const response = await agentsByRole[role][firstUser.email].get(
+              `/users?filters[search][type]=contains&filters[search][value]=${uniqueUserLastName}`
+            );
+
+            expect(response.status).toEqual(200);
+
+            if (hasPermissionAnotherTenant(role)) {
+              expect(response.body).toHaveProperty(
+                'metadata.total',
+                Object.values(users).filter((user) => user.lastName === uniqueUserLastName).length
+              );
+              expect(response.body).toHaveProperty('items');
+              expect(response.body).toMatchObject(exceptedBodyFormats);
+            } else {
+              const count = Object.values(users).filter(
+                (result) =>
+                  getPermissionsToUsersByRole(firstUser.roles[0].name as RolesEnum).includes(
+                    result.roles[0].name as RolesEnum
+                  ) &&
+                  result.tenant &&
+                  result.tenant.id === firstUser.tenant.id &&
+                  result.lastName === uniqueUserLastName
+              ).length;
+
+              expect(response.body).toHaveProperty('metadata.total', count);
+              expect(response.body).toHaveProperty('items');
+              expect(response.body).toMatchObject(exceptedBodyFormats);
+            }
+          });
+        }
+      });
+    });
+  });
+
+  describe('User find (e2e)', () => {
+    describe.each<RolesEnum>(AvailableRoles)('find by role', (role) => {
+      const firstUser = dataUsers[role][0];
+      const hasPermission = roleHasPermission(role, AvalilableCollections.USER, CrudActions.READ);
+
+      describe(`role ${role} and user ${firstUser.email}`, () => {
+        describe.each<RolesEnum>(AvailableRoles)('find with role', (roleFind) => {
+          it(`should ${
+            hasPermission &&
+            hasPermissionToUsersByRole(firstUser.roles[0].name as RolesEnum, roleFind)
+              ? 'find'
+              : 'not find'
+          } user with role ${roleFind}`, async () => {
+            const userToFind = Object.values(users).find(
+              (user) => firstUser.tenant.id === user.tenant.id && user.roles[0].name === roleFind
+            );
+
+            const response = await agentsByRole[role][firstUser.email].get(
+              `/users/${userToFind.id}`
+            );
+
+            let expectedStatus;
+
+            if (!hasPermission) {
+              expectedStatus = 403;
+            } else {
+              expectedStatus = hasPermissionToUsersByRole(
+                firstUser.roles[0].name as RolesEnum,
+                roleFind
+              )
+                ? 200
+                : 404;
+            }
+
+            expect(response.status).toEqual(expectedStatus);
+
+            if (isStatusSuccess(response.status)) {
+              expect(response.body).toEqual(
+                expect.objectContaining({
+                  email: userToFind.email,
+                  firstName: userToFind.firstName,
+                  lastName: userToFind.lastName,
+                  phoneNumber: userToFind.phoneNumber,
+                  role: expect.objectContaining({
+                    name: userToFind.roles[0].name,
+                  }),
+                })
+              );
+              expect(response.body).toMatchObject({
+                email: expect.any(String),
+                firstName: expect.any(String),
+                lastName: expect.any(String),
+                phoneNumber: expect.any(String),
+                role: expect.any(Object),
+              });
+            }
+          });
+
+          if (hasPermission) {
+            describe('another tenant', () => {
+              it(`should ${
+                hasPermission &&
+                hasPermissionToUsersByRole(firstUser.roles[0].name as RolesEnum, roleFind) &&
+                hasPermissionAnotherTenant(role)
+                  ? 'find'
+                  : 'not find'
+              } another tenant with role ${roleFind}`, async () => {
+                const userToFind = Object.values(users).find(
+                  (user) =>
+                    firstUser.tenant.id !== user.tenant.id && user.roles[0].name === roleFind
+                );
+
+                const response = await agentsByRole[role][firstUser.email].get(
+                  `/users/${userToFind.id}`
+                );
+
+                const expectedStatus =
+                  hasPermissionToUsersByRole(firstUser.roles[0].name as RolesEnum, roleFind) &&
+                  hasPermissionAnotherTenant(role)
+                    ? 200
+                    : 404;
+
+                expect(response.status).toEqual(expectedStatus);
+
+                if (isStatusSuccess(response.status)) {
+                  expect(response.body).toEqual(
+                    expect.objectContaining({
+                      email: userToFind.email,
+                      firstName: userToFind.firstName,
+                      lastName: userToFind.lastName,
+                      phoneNumber: userToFind.phoneNumber,
+                      role: expect.objectContaining({
+                        name: userToFind.roles[0].name,
+                      }),
+                    })
+                  );
+                  expect(response.body).toMatchObject({
+                    email: expect.any(String),
+                    firstName: expect.any(String),
+                    lastName: expect.any(String),
+                    phoneNumber: expect.any(String),
+                    role: expect.any(Object),
+                  });
+                }
+              });
+            });
+          }
+        });
+      });
+    });
+  });
+
+  describe('User delete (e2e)', () => {
+    const deleted: string[] = [];
+    describe.each<RolesEnum>(AvailableRoles)('delete by role', (role) => {
+      const firstUser = dataUsers[role][0];
+      const hasPermission = roleHasPermission(role, AvalilableCollections.USER, CrudActions.READ);
+
+      describe(`role ${role} and user ${firstUser.email}`, () => {
+        describe.each<RolesEnum>(AvailableRoles)('delete with role', (roleFind) => {
+          it(`should ${
+            hasPermission &&
+            hasPermissionToUsersByRole(firstUser.roles[0].name as RolesEnum, roleFind)
+              ? 'delete'
+              : 'not delete'
+          } user with role ${roleFind}`, async () => {
+            const userToDelete = Object.values(users).find(
+              (user) =>
+                firstUser.tenant.id === user.tenant.id &&
+                user.roles[0].name === roleFind &&
+                !deleted.includes(user.id)
+            );
+
+            const response = await agentsByRole[role][firstUser.email].delete(
+              `/users/${userToDelete.id}`
+            );
+
+            let expectedStatus;
+
+            if (!hasPermission) {
+              expectedStatus = 403;
+            } else {
+              expectedStatus = hasPermissionToUsersByRole(
+                firstUser.roles[0].name as RolesEnum,
+                roleFind
+              )
+                ? 202
+                : 404;
+            }
+
+            expect(response.status).toEqual(expectedStatus);
+
+            if (isStatusSuccess(expectedStatus)) {
+              deleted.push(userToDelete.id);
+            }
+          });
+
+          if (hasPermission) {
+            describe('another tenant', () => {
+              it(`should ${
+                hasPermission &&
+                hasPermissionToUsersByRole(firstUser.roles[0].name as RolesEnum, roleFind) &&
+                hasPermissionAnotherTenant(role)
+                  ? 'delete'
+                  : 'not delete'
+              } another tenant with role ${roleFind}`, async () => {
+                const userToDelete = Object.values(users).find(
+                  (user) =>
+                    firstUser.tenant.id !== user.tenant.id &&
+                    user.roles[0].name === roleFind &&
+                    !deleted.includes(user.id)
+                );
+
+                const response = await agentsByRole[role][firstUser.email].delete(
+                  `/users/${userToDelete.id}`
+                );
+
+                const expectedStatus =
+                  hasPermissionToUsersByRole(firstUser.roles[0].name as RolesEnum, roleFind) &&
+                  hasPermissionAnotherTenant(role)
+                    ? 202
+                    : 404;
+
+                expect(response.status).toEqual(expectedStatus);
+
+                if (isStatusSuccess(expectedStatus)) {
+                  deleted.push(userToDelete.id);
+                }
+              });
+            });
+          }
+        });
       });
     });
   });

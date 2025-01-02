@@ -1,5 +1,10 @@
 export function isForbiddenWordIncluded(text: string, forbiddenWords: string[]): boolean {
-  return forbiddenWords.some((word) => text.toLowerCase().includes(word.toLowerCase()));
+
+  return forbiddenWords.some((word) => {
+    const regex = new RegExp(`^(?:(?!${word}).)*$`);
+
+    return !regex.test(text.toLowerCase());
+  });
 }
 
 export function generateWithoutWords(runable: () => string, forbiddenWords: string[]): string {

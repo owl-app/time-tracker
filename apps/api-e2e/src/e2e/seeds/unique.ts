@@ -14,3 +14,7 @@ export const uniquePermissionName = `route_${uniquePermissionDescription.replace
   ' ',
   '_'
 )}`.toLocaleUpperCase();
+
+// user
+export const uniqueUserFirstName = 'Unique first name';
+export const uniqueUserLastName = 'Unique last name';
