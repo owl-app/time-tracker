@@ -1,0 +1,1 @@
+export const RBAC_MANAGER_TOKEN = 'RBAC_MANAGER';

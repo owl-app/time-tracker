@@ -5,10 +5,10 @@ export class UserPermissionResponse {
   readonly routes: readonly string[];
 
   @ApiProperty({ type: String, isArray: true })
-  readonly fileds: readonly string[];
+  readonly fields: readonly string[];
 
-  constructor(routes: string[], fileds: string[]) {
+  constructor(routes: string[], fields: string[]) {
     this.routes = routes;
-    this.fileds = fileds;
+    this.fields = fields;
   }
 }

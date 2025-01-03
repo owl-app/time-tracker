@@ -1,9 +1,9 @@
-import * as bcrypt from 'bcrypt';
 import { faker } from '@faker-js/faker';
 
 import TestAgent from 'supertest/lib/agent';
 
 import { TestServer } from '@owl-app/testing';
+import { RBAC_MANAGER_TOKEN, RbacManager, Role as RoleRbac } from '@owl-app/rbac-manager';
 
 import {
   AvailableRoles,
@@ -12,12 +12,15 @@ import {
   RolesEnum,
   User,
   Role,
+  UserActions,
+  PermissionReferType,
 } from '@owl-app/lib-contracts';
 
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
 import { roleHasPermission } from '@owl-app/lib-api-core/utils/check-permission';
 import { RoleSeeder } from '@owl-app/lib-api-core/seeds/role';
 import { USER_SEEDER } from '@owl-app/lib-api-core/seeds/user';
+import { Permission as PermissionRbac } from '@owl-app/lib-api-core/rbac/types/permission';
 
 import { createTest } from '../create-test';
 import { createAgent } from '../create-agent';
@@ -614,6 +617,48 @@ describe('User (e2e)', () => {
             });
           }
         });
+      });
+    });
+  });
+
+  describe('User permissions (e2e)', () => {
+    let rbakManager: RbacManager<PermissionRbac, RoleRbac>;
+
+    beforeAll(async () => {
+        rbakManager = testServer.app.get(RBAC_MANAGER_TOKEN);
+    });
+
+    describe.each<RolesEnum>(AvailableRoles)('permissions by role', (role) => {
+      const firstUser = dataUsers[role][0];
+      const hasPermission = roleHasPermission(role, AvalilableCollections.USER, UserActions.PERMISSIONS);
+
+      it(`should ${hasPermission ? 'return' : 'not return'} user permissions ${firstUser.email}`, async () => {
+        const userPermissions = await rbakManager.getPermissionsByUserId(firstUser.id);
+        const response = await agentsByRole[role][firstUser.email].get(`/user/permissions`);
+
+        expect(response.status).toEqual(hasPermission ? 200 : 403);
+
+        if (isStatusSuccess(response.status)) {
+          const routes = userPermissions.reduce((permissions: string[], item) => {
+            if (item.refer === PermissionReferType.ROUTE) {
+              permissions.push(item.name);
+            }
+
+            return permissions;
+          }, []);
+
+          const fields = userPermissions.reduce((permissions: string[], item) => {
+            if (item.refer === PermissionReferType.FIELD) {
+              permissions.push(item.name);
+            }
+
+            return permissions;
+          }, []);
+
+          console.log(response.body);
+          expect(response.body).toHaveProperty('routes', routes);
+          expect(response.body).toHaveProperty('fields', fields);
+        }
       });
     });
   });
