@@ -7,12 +7,18 @@ import { generateWithoutWords } from '../../../utils/unique';
 
 export default setSeederFactory(
   UserEntitySchema,
-  async (faker, meta: { unique: { firstName: string; lastName: string; email: string; } }) => {
+  async (faker, meta: { unique: { firstName: string; lastName: string; email: string } }) => {
     const user = new UserEntity();
 
     if (meta.unique) {
-      user.firstName = generateWithoutWords(faker.person.firstName, meta.unique.firstName.split(/\s+/));
-      user.lastName = generateWithoutWords(faker.person.lastName, meta.unique.lastName.split(/\s+/));
+      user.firstName = generateWithoutWords(
+        faker.person.firstName,
+        meta.unique.firstName.split(/\s+/)
+      );
+      user.lastName = generateWithoutWords(
+        faker.person.lastName,
+        meta.unique.lastName.split(/\s+/)
+      );
       user.email = generateWithoutWords(faker.internet.email, meta.unique.lastName.split(/\s+/));
     } else {
       user.firstName = faker.person.firstName();

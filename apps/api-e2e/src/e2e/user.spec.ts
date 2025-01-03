@@ -622,18 +622,24 @@ describe('User (e2e)', () => {
   });
 
   describe('User permissions (e2e)', () => {
-    let rbakManager: RbacManager<PermissionRbac, RoleRbac>;
+    let rbacManager: RbacManager<PermissionRbac, RoleRbac>;
 
     beforeAll(async () => {
-        rbakManager = testServer.app.get(RBAC_MANAGER_TOKEN);
+      rbacManager = testServer.app.get(RBAC_MANAGER_TOKEN);
     });
 
     describe.each<RolesEnum>(AvailableRoles)('permissions by role', (role) => {
       const firstUser = dataUsers[role][0];
-      const hasPermission = roleHasPermission(role, AvalilableCollections.USER, UserActions.PERMISSIONS);
+      const hasPermission = roleHasPermission(
+        role,
+        AvalilableCollections.USER,
+        UserActions.PERMISSIONS
+      );
 
-      it(`should ${hasPermission ? 'return' : 'not return'} user permissions ${firstUser.email}`, async () => {
-        const userPermissions = await rbakManager.getPermissionsByUserId(firstUser.id);
+      it(`should ${hasPermission ? 'return' : 'not return'} user permissions ${
+        firstUser.email
+      } with role ${role}`, async () => {
+        const userPermissions = await rbacManager.getPermissionsByUserId(firstUser.id);
         const response = await agentsByRole[role][firstUser.email].get(`/user/permissions`);
 
         expect(response.status).toEqual(hasPermission ? 200 : 403);
@@ -655,10 +661,53 @@ describe('User (e2e)', () => {
             return permissions;
           }, []);
 
-          console.log(response.body);
           expect(response.body).toHaveProperty('routes', routes);
           expect(response.body).toHaveProperty('fields', fields);
         }
+      });
+    });
+  });
+
+  describe('User profile (e2e)', () => {
+    describe.each<RolesEnum>(AvailableRoles)('profile by role', (role) => {
+      const firstUser = dataUsers[role][0];
+      const hasPermission = roleHasPermission(
+        role,
+        AvalilableCollections.USER,
+        UserActions.PERMISSIONS
+      );
+
+      describe(`role ${role} and user ${firstUser.email}`, () => {
+        it(`should ${hasPermission ? 'return' : 'not return'} user profile data`, async () => {
+          const response = await agentsByRole[role][firstUser.email].get(`/user/profile`);
+
+          expect(response.status).toEqual(hasPermission ? 200 : 403);
+
+          if (isStatusSuccess(response.status)) {
+            expect(response.body).toEqual({
+              firstName: firstUser.firstName,
+              lastName: firstUser.lastName,
+              phoneNumber: firstUser.phoneNumber ?? null,
+            });
+          }
+        });
+
+        it(`should ${hasPermission ? 'update' : 'not update'} user profile`, async () => {
+          const data = {
+            firstName: faker.person.firstName(),
+            lastName: faker.person.lastName(),
+            phoneNumber: faker.phone.number(),
+          };
+          const response = await agentsByRole[role][firstUser.email]
+            .put(`/user/profile`)
+            .send(data);
+
+          expect(response.status).toEqual(hasPermission ? 202 : 403);
+
+          if (isStatusSuccess(response.status)) {
+            expect(response.body).toEqual(data);
+          }
+        });
       });
     });
   });

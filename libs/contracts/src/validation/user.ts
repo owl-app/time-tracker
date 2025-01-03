@@ -76,6 +76,7 @@ export const profileUserValidationSchema = createSchemaWithPasswordRepeat(
   v.object({
     firstName: v.pipe(v.string(), v.nonEmpty('Field is required')),
     lastName: v.pipe(v.string(), v.nonEmpty('Field is required')),
+    phoneNumber: v.optional(v.string(), ''),
   })
 );
 

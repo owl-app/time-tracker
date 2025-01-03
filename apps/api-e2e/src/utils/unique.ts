@@ -1,5 +1,4 @@
 export function isForbiddenWordIncluded(text: string, forbiddenWords: string[]): boolean {
-
   return forbiddenWords.some((word) => {
     const regex = new RegExp(`^(?:(?!${word}).)*$`);
 

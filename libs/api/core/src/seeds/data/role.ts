@@ -70,6 +70,7 @@ export const dataRoles: Record<RolesEnum, Permission[]> = {
     // user
     getRoutePermission(AvalilableCollections.USER, UserActions.ME),
     getRoutePermission(AvalilableCollections.USER, UserActions.PERMISSIONS),
+    getRoutePermission(AvalilableCollections.USER, UserActions.PROFILE),
 
     // clients
     getRoutePermission(AvalilableCollections.CLIENT, ClientActions.AVAILABLE),

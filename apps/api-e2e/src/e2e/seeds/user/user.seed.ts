@@ -17,8 +17,6 @@ export default class TestUserSeeder implements Seeder {
     let usersCreated: User[] = [];
     const promises: Promise<User[]>[] = [];
 
-
-
     Object.values(dataUsers).map((users) =>
       users.map(async (user) => {
         userFactory.setMeta({

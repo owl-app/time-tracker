@@ -7,7 +7,7 @@ export const hasPermissionToArchived = (role: RolesEnum): boolean =>
   [RolesEnum.ROLE_ADMIN_SYSTEM, RolesEnum.ROLE_ADMIN_COMPANY].includes(role);
 
 export const getPermissionsToUsersByRole = (role: RolesEnum): RolesEnum[] => {
-  const permissions: { [key in RolesEnum]: RolesEnum[] } = {
+  const permissions: Record<RolesEnum, RolesEnum[]> = {
     [RolesEnum.ROLE_ADMIN_SYSTEM]: [
       RolesEnum.ROLE_ADMIN_SYSTEM,
       RolesEnum.ROLE_ADMIN_COMPANY,
