@@ -5,8 +5,8 @@ export interface Role {
   description?: string;
   ruleName?: string;
   setting: RoleSetting;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Permission {

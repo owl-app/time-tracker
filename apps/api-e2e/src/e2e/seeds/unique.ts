@@ -18,3 +18,6 @@ export const uniquePermissionName = `route_${uniquePermissionDescription.replace
 // user
 export const uniqueUserFirstName = 'Unique first name';
 export const uniqueUserLastName = 'Unique last name';
+
+// role
+export const uniqueRoleName = 'UNIQUE_ROLE_NAME';

@@ -4,5 +4,5 @@ import { BaseAuthItemEntity } from './base-auth.entity';
 export class RoleEntity extends BaseAuthItemEntity {
   setting: RoleSetting;
 
-  permissions: Permission;
+  permissions: Permission[];
 }
