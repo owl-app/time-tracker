@@ -25,7 +25,8 @@ import {
   AvalilableCollections,
   CrudActions,
   RoleActions,
-  roleValidationSchema,
+  createRoleValidationSchema,
+  updateRoleValidationSchema,
 } from '@owl-app/lib-contracts';
 import { RoutePermissions } from '@owl-app/lib-api-core/rbac/decorators/route-permission';
 import { PaginatedQuery } from '@owl-app/lib-api-core/pagination/paginated.query';
@@ -88,8 +89,9 @@ export class CrudController {
   })
   @Post()
   @RoutePermissions(AvalilableCollections.ROLE, CrudActions.CREATE)
-  @UsePipes(new ValibotValidationPipe(roleValidationSchema))
-  async createRole(@Body() createRoleDto: CreateRoleRequest) {
+  async createRole(
+    @Body(new ValibotValidationPipe(createRoleValidationSchema)) createRoleDto: CreateRoleRequest
+  ) {
     const addedRole = await this.service.createOne(createRoleDto);
 
     return addedRole;
@@ -111,7 +113,10 @@ export class CrudController {
   @HttpCode(HttpStatus.ACCEPTED)
   @Put(':name')
   @RoutePermissions(AvalilableCollections.ROLE, CrudActions.UPDATE)
-  async updateRole(@Param('name') name: string, @Body() updateRoleDto: UpdateRoleRequest) {
+  async updateRole(
+    @Param('name') name: string,
+    @Body(new ValibotValidationPipe(updateRoleValidationSchema)) updateRoleDto: UpdateRoleRequest
+  ) {
     const updatedRole = await this.service.updateOne(name, updateRoleDto);
 
     return updatedRole;

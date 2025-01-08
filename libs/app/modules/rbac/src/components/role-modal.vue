@@ -13,7 +13,7 @@
         collection="rbac/roles"
         :primaryKey="item?.name"
         :default-value="defaultRole"
-        :schema="roleValidationSchema"
+        :schema="item?.name ? updateRoleValidationSchema : createRoleValidationSchema"
         @saved="
           ok();
           $emit('saved');
@@ -66,7 +66,7 @@
 import { ref } from 'vue';
 import { isEmpty } from 'lodash';
 
-import { type Role, roleValidationSchema } from '@owl-app/lib-contracts';
+import { type Role, createRoleValidationSchema, updateRoleValidationSchema } from '@owl-app/lib-contracts';
 import OwlForm from '@owl-app/lib-app-core/components/form/form.vue';
 
 import HeaderBar from '@owl-app/lib-app-core/layouts/panel/components/header-bar.vue';

@@ -61,9 +61,9 @@ describe('Role (e2e)', () => {
     );
   });
 
-  afterAll(async () => {
-    await testServer.close();
-  });
+  // afterAll(async () => {
+  //   await testServer.close();
+  // });
 
   describe('Role create (e2e)', () => {
     describe.each<RolesEnum>(AvailableRoles)('create by role', (role) => {
@@ -155,7 +155,7 @@ describe('Role (e2e)', () => {
       const firstUser = dataUsers[role][0];
       const hasPermission = roleHasPermission(
         role,
-        AvalilableCollections.PERMISSION,
+        AvalilableCollections.ROLE,
         CrudActions.UPDATE
       );
 
@@ -163,7 +163,7 @@ describe('Role (e2e)', () => {
         it(`should ${hasPermission ? 'update' : 'not update'} role`, async () => {
           const roleToUpdate = testServer.context
             .getResultSeed<Role[]>(TestRoleSeeder.name)
-            .find((result) => uniqueRoleName !== result.name);
+            .find((result) => uniqueRoleName === result.name);
           const data = {
             description: `Updated Role ${firstUser.email}`,
             setting: {
@@ -183,7 +183,6 @@ describe('Role (e2e)', () => {
               expect.objectContaining(data)
             );
             expect(response.body).toMatchObject({
-              name: expect.any(String),
               description: expect.any(String),
               setting: {
                 displayName: expect.any(String),
@@ -197,7 +196,7 @@ describe('Role (e2e)', () => {
           it(`should validation error`, async () => {
             const roleFromSeed = testServer.context
               .getResultSeed<Role[]>(TestRoleSeeder.name)
-              .find((result) => uniqueRoleName !== result.name);
+              .find((result) => uniqueRoleName === result.name);
 
             const response = await agentsByRole[role][firstUser.email]
               .put(`/rbac/roles/${roleFromSeed.name}`)
