@@ -29,7 +29,7 @@ import { isStatusSuccess } from '../utils/http';
 import TestUserSeeder from './seeds/user/user.seed';
 import userSeederFactory from './seeds/user/user.factory';
 import {
-  getPermissionsToUsersByRole,
+  getPermissionsToRoles,
   hasPermissionAnotherTenant,
   hasPermissionToUsersByRole,
 } from '../utils/check-permission';
@@ -391,7 +391,7 @@ describe('User (e2e)', () => {
             } else {
               const count = Object.values(users).filter(
                 (result) =>
-                  getPermissionsToUsersByRole(firstUser.roles[0].name as RolesEnum).includes(
+                  getPermissionsToRoles(firstUser.roles[0].name as RolesEnum).includes(
                     result.roles[0].name as RolesEnum
                   ) &&
                   result.tenant &&
@@ -425,7 +425,7 @@ describe('User (e2e)', () => {
             } else {
               const count = Object.values(users).filter(
                 (result) =>
-                  getPermissionsToUsersByRole(firstUser.roles[0].name as RolesEnum).includes(
+                  getPermissionsToRoles(firstUser.roles[0].name as RolesEnum).includes(
                     result.roles[0].name as RolesEnum
                   ) &&
                   result.tenant &&
@@ -458,7 +458,7 @@ describe('User (e2e)', () => {
             } else {
               const count = Object.values(users).filter(
                 (result) =>
-                  getPermissionsToUsersByRole(firstUser.roles[0].name as RolesEnum).includes(
+                  getPermissionsToRoles(firstUser.roles[0].name as RolesEnum).includes(
                     result.roles[0].name as RolesEnum
                   ) &&
                   result.tenant &&
@@ -491,7 +491,7 @@ describe('User (e2e)', () => {
             } else {
               const count = Object.values(users).filter(
                 (result) =>
-                  getPermissionsToUsersByRole(firstUser.roles[0].name as RolesEnum).includes(
+                  getPermissionsToRoles(firstUser.roles[0].name as RolesEnum).includes(
                     result.roles[0].name as RolesEnum
                   ) &&
                   result.tenant &&

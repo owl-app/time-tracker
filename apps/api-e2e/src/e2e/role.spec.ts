@@ -9,11 +9,11 @@ import {
   RolesEnum,
   Role,
   PermissionReferType,
+  RoleActions,
 } from '@owl-app/lib-contracts';
 
-import { getRouteName } from '@owl-app/lib-api-core/utils/permission';
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
-import { PermissionSeeder } from '@owl-app/lib-api-core/seeds/permission';
+import { RoleSeeder } from '@owl-app/lib-api-core/seeds/role';
 import { roleHasPermission } from '@owl-app/lib-api-core/utils/check-permission';
 
 import { createTest } from '../create-test';
@@ -24,9 +24,11 @@ import {
   uniquePermissionName,
   uniqueCollectionName,
   uniqueRoleName,
+  uniqueRoleDescription,
 } from './seeds/unique';
 import TestRoleSeeder from './seeds/role/role.seed';
 import roleSeederFactory from './seeds/role/role.factory';
+import { getPermissionsToRoles, hasPermissionToAllRoles } from '../utils/check-permission';
 
 describe('Role (e2e)', () => {
   let testServer: TestServer;
@@ -68,11 +70,7 @@ describe('Role (e2e)', () => {
   describe('Role create (e2e)', () => {
     describe.each<RolesEnum>(AvailableRoles)('create by role', (role) => {
       const firstUser = dataUsers[role][0];
-      const hasPermission = roleHasPermission(
-        role,
-        AvalilableCollections.ROLE,
-        CrudActions.CREATE
-      );
+      const hasPermission = roleHasPermission(role, AvalilableCollections.ROLE, CrudActions.CREATE);
       const nameCreated = 'CREATED';
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
@@ -86,23 +84,19 @@ describe('Role (e2e)', () => {
             },
           };
 
-          const response = await agentsByRole[role][firstUser.email]
-            .post(`/rbac/roles`)
-            .send(data);
+          const response = await agentsByRole[role][firstUser.email].post(`/rbac/roles`).send(data);
 
           expect(response.status).toEqual(hasPermission ? 201 : 403);
 
           if (isStatusSuccess(response.status)) {
-            expect(response.body).toEqual(
-              expect.objectContaining(data)
-            );
+            expect(response.body).toEqual(expect.objectContaining(data));
             expect(response.body).toMatchObject({
               name: expect.any(String),
               description: expect.any(String),
               setting: {
                 displayName: expect.any(String),
                 theme: expect.any(String),
-              }
+              },
             });
 
             testData.created = response.body;
@@ -111,9 +105,7 @@ describe('Role (e2e)', () => {
 
         if (hasPermission) {
           it(`should validation error`, async () => {
-            const response = await agentsByRole[role][firstUser.email]
-              .post(`/rbac/roles`)
-              .send({});
+            const response = await agentsByRole[role][firstUser.email].post(`/rbac/roles`).send({});
 
             expect(response.status).toEqual(422);
 
@@ -153,17 +145,13 @@ describe('Role (e2e)', () => {
   describe('Role update (e2e)', () => {
     describe.each<RolesEnum>(AvailableRoles)('update by role', (role) => {
       const firstUser = dataUsers[role][0];
-      const hasPermission = roleHasPermission(
-        role,
-        AvalilableCollections.ROLE,
-        CrudActions.UPDATE
-      );
+      const hasPermission = roleHasPermission(role, AvalilableCollections.ROLE, CrudActions.UPDATE);
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'update' : 'not update'} role`, async () => {
           const roleToUpdate = testServer.context
             .getResultSeed<Role[]>(TestRoleSeeder.name)
-            .find((result) => uniqueRoleName === result.name);
+            .find((result) => uniqueRoleName !== result.name);
           const data = {
             description: `Updated Role ${firstUser.email}`,
             setting: {
@@ -179,15 +167,13 @@ describe('Role (e2e)', () => {
           expect(response.status).toEqual(hasPermission ? 202 : 403);
 
           if (isStatusSuccess(response.status)) {
-            expect(response.body).toEqual(
-              expect.objectContaining(data)
-            );
+            expect(response.body).toEqual(expect.objectContaining(data));
             expect(response.body).toMatchObject({
               description: expect.any(String),
               setting: {
                 displayName: expect.any(String),
                 theme: expect.any(String),
-              }
+              },
             });
           }
         });
@@ -196,7 +182,7 @@ describe('Role (e2e)', () => {
           it(`should validation error`, async () => {
             const roleFromSeed = testServer.context
               .getResultSeed<Role[]>(TestRoleSeeder.name)
-              .find((result) => uniqueRoleName === result.name);
+              .find((result) => uniqueRoleName !== result.name);
 
             const response = await agentsByRole[role][firstUser.email]
               .put(`/rbac/roles/${roleFromSeed.name}`)
@@ -215,220 +201,193 @@ describe('Role (e2e)', () => {
     });
   });
 
-  // describe('Permission list (e2e)', () => {
-  //   let permissionAllResultSeed: Permission[];
-  //   const exceptedBodyFormats = {
-  //     metadata: {
-  //       total: expect.any(Number),
-  //     },
-  //     items: expect.any(Array),
-  //   };
-  //   const searchDescription = uniquePermissionDescription.substring(
-  //     0,
-  //     uniquePermissionDescription.lastIndexOf(' ')
-  //   );
+  describe('Role list (e2e)', () => {
+    let roleAllResultSeed: Role[];
+    const exceptedBodyFormats = {
+      metadata: {
+        total: expect.any(Number),
+      },
+      items: expect.any(Array),
+    };
+    const searchDescription = uniqueRoleDescription.substring(
+      0,
+      uniqueRoleDescription.lastIndexOf(' ')
+    );
 
-  //   beforeAll(async () => {
-  //     permissionAllResultSeed = testServer.context.getResultSeed<Permission[]>(
-  //       PermissionSeeder.name
-  //     );
-  //   });
+    beforeAll(async () => {
+      roleAllResultSeed = testServer.context.getResultSeed<Role[]>(RoleSeeder.name);
+    });
 
-  //   describe.each<RolesEnum>(AvailableRoles)('list by role', (role) => {
-  //     const firstUser = dataUsers[role][0];
-  //     const hasPermission = roleHasPermission(
-  //       role,
-  //       AvalilableCollections.PERMISSION,
-  //       CrudActions.LIST
-  //     );
+    describe.each<RolesEnum>(AvailableRoles)('list by role', (role) => {
+      const firstUser = dataUsers[role][0];
+      const hasPermission = roleHasPermission(role, AvalilableCollections.ROLE, [
+        CrudActions.LIST,
+        RoleActions.AVAILABLE,
+      ]);
 
-  //     describe(`role ${role} and user ${firstUser.email}`, () => {
-  //       it(`should ${
-  //         hasPermission ? 'list' : 'not list'
-  //       } permissions without filters`, async () => {
-  //         const response = await agentsByRole[role][firstUser.email].get('/rbac/permissions');
+      describe(`role ${role} and user ${firstUser.email}`, () => {
+        it(`should ${hasPermission ? 'list' : 'not list'} roles without filters`, async () => {
+          const response = await agentsByRole[role][firstUser.email].get('/rbac/roles');
 
-  //         expect(response.status).toEqual(hasPermission ? 200 : 403);
+          expect(response.status).toEqual(hasPermission ? 200 : 403);
 
-  //         if (isStatusSuccess(response.status)) {
-  //           const resultSeed = testServer.context.getResultSeed<Permission[]>(
-  //             TestPermissionSeeder.name
-  //           );
+          if (isStatusSuccess(response.status)) {
+            const resultSeed = testServer.context.getResultSeed<Role[]>(TestRoleSeeder.name);
 
-  //           const count =
-  //             permissionAllResultSeed.length + resultSeed.length + (testData.created ? 1 : 0);
+            let count;
 
-  //           expect(response.body).toHaveProperty('metadata.total', count);
-  //           expect(response.body).toHaveProperty('items');
-  //           expect(response.body).toMatchObject(exceptedBodyFormats);
-  //         }
-  //       });
+            if (hasPermissionToAllRoles(role)) {
+              count = roleAllResultSeed.length + resultSeed.length + (testData.created ? 1 : 0);
+            } else {
+              count = roleAllResultSeed.filter((result) =>
+                getPermissionsToRoles(role).includes(result.name as RolesEnum)
+              ).length;
+            }
 
-  //       it(`should ${
-  //         hasPermission ? 'list' : 'not list'
-  //       } permission with filter search by name "${uniquePermissionName}"`, async () => {
-  //         const response = await agentsByRole[role][firstUser.email].get(
-  //           `/rbac/permissions?filters[search][type]=contains&filters[search][value]=${uniquePermissionName}`
-  //         );
+            expect(response.body).toHaveProperty('metadata.total', count);
+            expect(response.body).toHaveProperty('items');
+            expect(response.body).toMatchObject(exceptedBodyFormats);
+          }
+        });
 
-  //         expect(response.status).toEqual(hasPermission ? 200 : 403);
+        it(`should ${
+          hasPermission ? 'list' : 'not list'
+        } roles with filter search by name "${uniqueRoleName}"`, async () => {
+          const response = await agentsByRole[role][firstUser.email].get(
+            `/rbac/roles?filters[search][type]=contains&filters[search][value]=${uniqueRoleName}`
+          );
 
-  //         if (isStatusSuccess(response.status)) {
-  //           const resultSeed = testServer.context
-  //             .getResultSeed<Permission[]>(TestPermissionSeeder.name)
-  //             .filter((result) => uniquePermissionName === result.name);
+          expect(response.status).toEqual(hasPermission ? 200 : 403);
 
-  //           expect(response.body).toHaveProperty('metadata.total', resultSeed.length);
-  //           expect(response.body).toHaveProperty('items');
-  //           expect(response.body).toMatchObject(exceptedBodyFormats);
-  //         }
-  //       });
+          if (isStatusSuccess(response.status)) {
+            let count;
 
-  //       it(`should ${
-  //         hasPermission ? 'list' : 'not list'
-  //       } permission with filter search by description "${searchDescription}"`, async () => {
-  //         const response = await agentsByRole[role][firstUser.email].get(
-  //           `/rbac/permissions?filters[search][type]=contains&filters[search][value]=${searchDescription}`
-  //         );
+            if (hasPermissionToAllRoles(role)) {
+              count = testServer.context
+                .getResultSeed<Role[]>(TestRoleSeeder.name)
+                .filter((result) => uniqueRoleName === result.name).length;
+            } else {
+              count = roleAllResultSeed.filter(
+                (result) =>
+                  getPermissionsToRoles(role).includes(result.name as RolesEnum) &&
+                  uniqueRoleName === result.name
+              ).length;
+            }
 
-  //         expect(response.status).toEqual(hasPermission ? 200 : 403);
+            expect(response.body).toHaveProperty('metadata.total', count);
+            expect(response.body).toHaveProperty('items');
+            expect(response.body).toMatchObject(exceptedBodyFormats);
+          }
+        });
 
-  //         if (isStatusSuccess(response.status)) {
-  //           const resultSeed = testServer.context
-  //             .getResultSeed<Permission[]>(TestPermissionSeeder.name)
-  //             .filter((result) => uniquePermissionName === result.name);
+        it(`should ${
+          hasPermission ? 'list' : 'not list'
+        } roles with filter search by description "${searchDescription}"`, async () => {
+          const response = await agentsByRole[role][firstUser.email].get(
+            `/rbac/roles?filters[search][type]=contains&filters[search][value]=${searchDescription}`
+          );
 
-  //           expect(response.body).toHaveProperty('metadata.total', resultSeed.length);
-  //           expect(response.body).toHaveProperty('items');
-  //           expect(response.body).toMatchObject(exceptedBodyFormats);
-  //         }
-  //       });
+          expect(response.status).toEqual(hasPermission ? 200 : 403);
 
-  //       it(`should ${hasPermission ? 'list' : 'not list'} permission with filter refer "${
-  //         PermissionReferType.ROUTE
-  //       }"`, async () => {
-  //         const response = await agentsByRole[role][firstUser.email].get(
-  //           `/rbac/permissions?filters[refer]=${PermissionReferType.ROUTE}`
-  //         );
+          if (isStatusSuccess(response.status)) {
+            let count;
 
-  //         expect(response.status).toEqual(hasPermission ? 200 : 403);
+            if (hasPermissionToAllRoles(role)) {
+              count = testServer.context
+                .getResultSeed<Role[]>(TestRoleSeeder.name)
+                .filter((result) => uniqueRoleName === result.name).length;
+            } else {
+              count = roleAllResultSeed.filter(
+                (result) =>
+                  getPermissionsToRoles(role).includes(result.name as RolesEnum) &&
+                  uniqueRoleName === result.name
+              ).length;
+            }
 
-  //         if (isStatusSuccess(response.status)) {
-  //           const resultSeed = testServer.context
-  //             .getResultSeed<Permission[]>(TestPermissionSeeder.name)
-  //             .filter((result) => result.refer === PermissionReferType.ROUTE);
-  //           const countPermissionAllResultSeed = permissionAllResultSeed.filter(
-  //             (result) => result.refer === PermissionReferType.ROUTE
-  //           ).length;
-  //           const createdCount = testData?.created.refer === PermissionReferType.ROUTE ? 1 : 0;
-  //           const count = countPermissionAllResultSeed + resultSeed.length + createdCount;
+            expect(response.body).toHaveProperty('metadata.total', count);
+            expect(response.body).toHaveProperty('items');
+            expect(response.body).toMatchObject(exceptedBodyFormats);
+          }
+        });
+      });
+    });
+  });
 
-  //           expect(response.body).toHaveProperty('metadata.total', count);
-  //           expect(response.body).toHaveProperty('items');
-  //           expect(response.body).toMatchObject(exceptedBodyFormats);
-  //         }
-  //       });
+  describe('Role find (e2e)', () => {
+    describe.each<RolesEnum>(AvailableRoles)('find by role', (role) => {
+      const firstUser = dataUsers[role][0];
+      const hasPermission = roleHasPermission(
+        role,
+        AvalilableCollections.ROLE,
+        CrudActions.READ
+      );
 
-  //       it(`should ${
-  //         hasPermission ? 'list' : 'not list'
-  //       } permission with filter collection "${uniqueCollectionName}"`, async () => {
-  //         const response = await agentsByRole[role][firstUser.email].get(
-  //           `/rbac/permissions?filters[collection]=${uniqueCollectionName}`
-  //         );
+      describe(`role ${role} and user ${firstUser.email}`, () => {
+        it(`should ${hasPermission ? 'find' : 'not find'} role`, async () => {
+          const roleTestSeeder = testServer.context.getResultSeed<Role[]>(
+            TestRoleSeeder.name
+          )[0];
 
-  //         expect(response.status).toEqual(hasPermission ? 200 : 403);
+          const response = await agentsByRole[role][firstUser.email].get(
+            `/rbac/roles/${roleTestSeeder.name}`
+          );
 
-  //         if (isStatusSuccess(response.status)) {
-  //           const resultSeed = testServer.context
-  //             .getResultSeed<Permission[]>(TestPermissionSeeder.name)
-  //             .filter((result) => result.collection === uniqueCollectionName);
-  //           const createdCount = testData?.created.collection === uniqueCollectionName ? 1 : 0;
-  //           const count = resultSeed.length + createdCount;
+          expect(response.status).toEqual(hasPermission ? 200 : 403);
 
-  //           expect(response.body).toHaveProperty('metadata.total', count);
-  //           expect(response.body).toHaveProperty('items');
-  //           expect(response.body).toMatchObject(exceptedBodyFormats);
-  //         }
-  //       });
-  //     });
-  //   });
-  // });
+          if (isStatusSuccess(response.status)) {
+            expect(response.body).toEqual(
+              expect.objectContaining({
+                name: roleTestSeeder.name,
+                description: roleTestSeeder.description,
+                setting: {
+                  displayName: roleTestSeeder.setting.displayName,
+                  theme: roleTestSeeder.setting.theme,
+                },
+              })
+            );
+            expect(response.body).toMatchObject({
+              name: expect.any(String),
+              description: expect.any(String),
+              setting: {
+                displayName: expect.any(String),
+                theme: expect.any(String),
+              },
+            });
+          }
+        });
+      });
+    });
+  });
 
-  // describe('Permission find (e2e)', () => {
-  //   describe.each<RolesEnum>(AvailableRoles)('find by role', (role) => {
-  //     const firstUser = dataUsers[role][0];
-  //     const hasPermission = roleHasPermission(
-  //       role,
-  //       AvalilableCollections.PERMISSION,
-  //       CrudActions.READ
-  //     );
+  describe('Role delete (e2e)', () => {
+    const deleted: string[] = [];
+    describe.each<RolesEnum>(AvailableRoles)('delete by role', (role) => {
+      const firstUser = dataUsers[role][0];
+      const hasPermission = roleHasPermission(
+        role,
+        AvalilableCollections.ROLE,
+        CrudActions.DELETE
+      );
 
-  //     describe(`role ${role} and user ${firstUser.email}`, () => {
-  //       it(`should ${hasPermission ? 'find' : 'not find'} permission`, async () => {
-  //         const permission = testServer.context.getResultSeed<Permission[]>(
-  //           TestPermissionSeeder.name
-  //         )[0];
+      describe(`role ${role} and user ${firstUser.email}`, () => {
+        it(`should ${hasPermission ? 'delete' : 'not delete'} role`, async () => {
+          const permission = testServer.context
+            .getResultSeed<Role[]>(TestRoleSeeder.name)
+            .find((result) => !deleted.includes(result.name));
 
-  //         const response = await agentsByRole[role][firstUser.email].get(
-  //           `/rbac/permissions/${permission.name}`
-  //         );
+          const response = await agentsByRole[role][firstUser.email].delete(
+            `/rbac/roles/${permission.name}`
+          );
 
-  //         expect(response.status).toEqual(hasPermission ? 200 : 403);
+          const expectedStatus = hasPermission ? 202 : 403;
 
-  //         if (isStatusSuccess(response.status)) {
-  //           expect(response.body).toEqual(
-  //             expect.objectContaining({
-  //               name: permission.name,
-  //               description: permission.description,
-  //               collection: permission.collection,
-  //               refer: permission.refer,
-  //               ruleName: permission.ruleName,
-  //             })
-  //           );
-  //           expect(response.body).toMatchObject({
-  //             name: expect.any(String),
-  //             description: expect.any(String),
-  //             collection: expect.any(String),
-  //             refer: expect.any(String),
-  //             ruleName: expect.toBeOneOf([expect.any(String), null]),
-  //             createdAt: expect.any(String),
-  //             updatedAt: expect.any(String),
-  //           });
-  //         }
-  //       });
-  //     });
-  //   });
-  // });
+          expect(response.status).toEqual(expectedStatus);
 
-  // describe('Permission delete (e2e)', () => {
-  //   const deleted: string[] = [];
-  //   describe.each<RolesEnum>(AvailableRoles)('delete by role', (role) => {
-  //     const firstUser = dataUsers[role][0];
-  //     const hasPermission = roleHasPermission(
-  //       role,
-  //       AvalilableCollections.PERMISSION,
-  //       CrudActions.DELETE
-  //     );
-
-  //     describe(`role ${role} and user ${firstUser.email}`, () => {
-  //       it(`should ${hasPermission ? 'delete' : 'not delete'} permission`, async () => {
-  //         const permission = testServer.context
-  //           .getResultSeed<Permission[]>(TestPermissionSeeder.name)
-  //           .find((result) => !deleted.includes(result.name));
-
-  //         const response = await agentsByRole[role][firstUser.email].delete(
-  //           `/rbac/permissions/${permission.name}`
-  //         );
-
-  //         const expectedStatus = hasPermission ? 202 : 403;
-
-  //         expect(response.status).toEqual(expectedStatus);
-
-  //         if (isStatusSuccess(expectedStatus)) {
-  //           deleted.push(permission.name);
-  //         }
-  //       });
-  //     });
-  //   });
-  // });
+          if (isStatusSuccess(expectedStatus)) {
+            deleted.push(permission.name);
+          }
+        });
+      });
+    });
+  });
 });

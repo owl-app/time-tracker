@@ -5,7 +5,7 @@ import { Role } from '@owl-app/lib-contracts';
 
 import { RoleEntitySchema } from '@owl-app/lib-api-module-rbac/database/entity-schema/role.entity-schema';
 
-import { uniqueRoleName } from '../unique';
+import { uniqueRoleDescription, uniqueRoleName } from '../unique';
 
 export default class TestRoleSeeder implements Seeder {
   public async run(
@@ -21,6 +21,7 @@ export default class TestRoleSeeder implements Seeder {
     roles.push(
       ...(await userFactory.saveMany(1, {
         name: uniqueRoleName,
+        description: uniqueRoleDescription,
       }))
     );
 

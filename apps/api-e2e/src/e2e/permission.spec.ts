@@ -265,7 +265,7 @@ describe('Permission (e2e)', () => {
 
         it(`should ${
           hasPermission ? 'list' : 'not list'
-        } permission with filter search by name "${uniquePermissionName}"`, async () => {
+        } permissions with filter search by name "${uniquePermissionName}"`, async () => {
           const response = await agentsByRole[role][firstUser.email].get(
             `/rbac/permissions?filters[search][type]=contains&filters[search][value]=${uniquePermissionName}`
           );
@@ -285,7 +285,7 @@ describe('Permission (e2e)', () => {
 
         it(`should ${
           hasPermission ? 'list' : 'not list'
-        } permission with filter search by description "${searchDescription}"`, async () => {
+        } permissions with filter search by description "${searchDescription}"`, async () => {
           const response = await agentsByRole[role][firstUser.email].get(
             `/rbac/permissions?filters[search][type]=contains&filters[search][value]=${searchDescription}`
           );
