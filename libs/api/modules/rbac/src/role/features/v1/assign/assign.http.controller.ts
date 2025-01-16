@@ -44,9 +44,9 @@ export class AssignController {
     const errors: string[] = [];
 
     await Promise.all(
-      items.map(async (item: string): Promise<void> => {
+      items.map(async (item: string) => {
         try {
-          await this.rbacManager.addChild(name, item);
+          await this.rbacManager.assertFutureChild(name, item);
         } catch (error: unknown) {
           errors.push((error as Error)?.message);
         }
@@ -54,7 +54,13 @@ export class AssignController {
     );
 
     if (errors.length > 0) {
-      throw new UnprocessableEntityException(errors.join(', '));
+      throw new UnprocessableEntityException(errors);
     }
+
+    await Promise.all(
+      items.map(async (item: string): Promise<void> => {
+        await this.rbacManager.itemsStorage.addChild(name, item);
+      })
+    );
   }
 }

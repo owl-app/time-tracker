@@ -1,4 +1,4 @@
-import { Controller, HttpStatus, Inject, Injectable, Param, Get } from '@nestjs/common';
+import { Controller, HttpStatus, Inject, Injectable, Param, Get, NotFoundException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
 import { AvalilableCollections, RoleActions } from '@owl-app/lib-contracts';
@@ -27,6 +27,10 @@ export class AssignedPermissionsController {
   @Get('assigned-permissions/:name')
   @RoutePermissions(AvalilableCollections.ROLE, RoleActions.ASSIGNED_PERMISSIONS)
   async assignedPermissions(@Param('name') name: string): Promise<string[]> {
+    if (!await this.rbacManager.getRole(name)) {
+      throw new NotFoundException(`Role ${name} does not exist`);
+    }
+
     const permissions = await this.rbacManager.getPermissionsByRoleName(name);
 
     return Object.keys(permissions);

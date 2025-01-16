@@ -7,6 +7,7 @@ import {
   Put,
   HttpCode,
   Param,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -40,8 +41,24 @@ export class RevokeController {
   @Put('/revoke/:name')
   @RoutePermissions(AvalilableCollections.ROLE, RoleActions.REVOKE)
   async revoke(@Param('name') name: string, @Body() items: Array<string>) {
-    items.map(async (item: string): Promise<void> => {
-      this.rbacManager.removeChild(name, item);
-    });
+    const errors: string[] = [];
+
+    await Promise.all(
+      items.map(async (item: string) => {
+        if (!await this.rbacManager.hasChild(name, item)) {
+          errors.push(`Role ${name} does not have child ${item}`);
+        }
+      })
+    );
+
+    if (errors.length > 0) {
+      throw new UnprocessableEntityException(errors);
+    }
+
+    await Promise.all(
+      items.map(async (item: string): Promise<void> => {
+        this.rbacManager.removeChild(name, item);
+      })
+    );
   }
 }

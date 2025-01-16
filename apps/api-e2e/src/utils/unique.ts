@@ -6,11 +6,19 @@ export function isForbiddenWordIncluded(text: string, forbiddenWords: string[]):
   });
 }
 
-export function generateWithoutWords(runable: () => string, forbiddenWords: string[]): string {
+export function generateWithoutWords<Params>(
+  runable: (params?: Params) => string,
+  forbiddenWords: string[],
+  runnableParams: Params = null
+): string {
   let text: string;
 
   do {
-    text = runable();
+    if (runnableParams) {
+      text = runable(runnableParams);
+    } else {
+      text = runable();
+    }
   } while (isForbiddenWordIncluded(text, forbiddenWords));
 
   return text;
