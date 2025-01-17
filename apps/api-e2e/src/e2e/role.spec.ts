@@ -15,6 +15,7 @@ import {
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
 import { RoleSeeder } from '@owl-app/lib-api-core/seeds/role';
 import { roleHasPermission } from '@owl-app/lib-api-core/utils/check-permission';
+import { PermissionSeeder } from '@owl-app/lib-api-core/seeds/permission';
 
 import { createTest } from '../create-test';
 import { createAgent } from '../create-agent';
@@ -23,7 +24,6 @@ import { uniqueRoleName, uniqueRoleDescription } from './seeds/unique';
 import TestRoleSeeder from './seeds/role/role.seed';
 import roleSeederFactory from './seeds/role/role.factory';
 import { getPermissionsToRoles, hasPermissionToAllRoles } from '../utils/check-permission';
-import { PermissionSeeder } from '@owl-app/lib-api-core/seeds/permission';
 
 describe('Role (e2e)', () => {
   let testServer: TestServer;
@@ -62,9 +62,9 @@ describe('Role (e2e)', () => {
     );
   });
 
-  // afterAll(async () => {
-  //   await testServer.close();
-  // });
+  afterAll(async () => {
+    await testServer.close();
+  });
 
   describe('Role create (e2e)', () => {
     describe.each<RolesEnum>(AvailableRoles)('create by role', (role) => {
@@ -148,7 +148,7 @@ describe('Role (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'update' : 'not update'} role`, async () => {
-          const roleToUpdate = testServer.context
+          const roleToUpdate = testServer.seederRegistry
             .getResultSeed<Role[]>(TestRoleSeeder.name)
             .find((result) => uniqueRoleName !== result.name);
           const data = {
@@ -179,7 +179,7 @@ describe('Role (e2e)', () => {
 
         if (hasPermission) {
           it(`should validation error`, async () => {
-            const roleFromSeed = testServer.context
+            const roleFromSeed = testServer.seederRegistry
               .getResultSeed<Role[]>(TestRoleSeeder.name)
               .find((result) => uniqueRoleName !== result.name);
 
@@ -214,7 +214,7 @@ describe('Role (e2e)', () => {
     );
 
     beforeAll(async () => {
-      roleAllResultSeed = testServer.context.getResultSeed<Role[]>(RoleSeeder.name);
+      roleAllResultSeed = testServer.seederRegistry.getResultSeed<Role[]>(RoleSeeder.name);
     });
 
     describe.each<RolesEnum>(AvailableRoles)('list by role', (role) => {
@@ -231,7 +231,7 @@ describe('Role (e2e)', () => {
           expect(response.status).toEqual(hasPermission ? 200 : 403);
 
           if (isStatusSuccess(response.status)) {
-            const resultSeed = testServer.context.getResultSeed<Role[]>(TestRoleSeeder.name);
+            const resultSeed = testServer.seederRegistry.getResultSeed<Role[]>(TestRoleSeeder.name);
 
             let count;
 
@@ -262,7 +262,7 @@ describe('Role (e2e)', () => {
             let count;
 
             if (hasPermissionToAllRoles(role)) {
-              count = testServer.context
+              count = testServer.seederRegistry
                 .getResultSeed<Role[]>(TestRoleSeeder.name)
                 .filter((result) => uniqueRoleName === result.name).length;
             } else {
@@ -292,7 +292,7 @@ describe('Role (e2e)', () => {
             let count;
 
             if (hasPermissionToAllRoles(role)) {
-              count = testServer.context
+              count = testServer.seederRegistry
                 .getResultSeed<Role[]>(TestRoleSeeder.name)
                 .filter((result) => uniqueRoleName === result.name).length;
             } else {
@@ -319,7 +319,7 @@ describe('Role (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'find' : 'not find'} role`, async () => {
-          const roleTestSeeder = testServer.context.getResultSeed<Role[]>(TestRoleSeeder.name)[0];
+          const roleTestSeeder = testServer.seederRegistry.getResultSeed<Role[]>(TestRoleSeeder.name)[0];
 
           const response = await agentsByRole[role][firstUser.email].get(
             `/rbac/roles/${roleTestSeeder.name}`
@@ -359,7 +359,7 @@ describe('Role (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'delete' : 'not delete'} role`, async () => {
-          const roleTestSeeder = testServer.context
+          const roleTestSeeder = testServer.seederRegistry
             .getResultSeed<Role[]>(TestRoleSeeder.name)
             .find((result) => !deleted.includes(result.name));
 
@@ -389,7 +389,7 @@ describe('Role (e2e)', () => {
         it(`should ${
           hasPermission ? 'list assigned permissions' : 'not list assigned permissions'
         } role`, async () => {
-          const roleTestSeeder = testServer.context
+          const roleTestSeeder = testServer.seederRegistry
             .getResultSeed<Role[]>(TestRoleSeeder.name)
             .find((result) => !deleted.includes(result.name));
 
@@ -434,11 +434,11 @@ describe('Role (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'assign' : 'not assign'} role`, async () => {
-          const roleTestSeeder = testServer.context
+          const roleTestSeeder = testServer.seederRegistry
             .getResultSeed<Role[]>(TestRoleSeeder.name)
             .find((result) => !deleted.includes(result.name));
 
-          const permissions = testServer.context
+          const permissions = testServer.seederRegistry
             .getResultSeed<Permission[]>(PermissionSeeder.name)
             .filter((result) =>
               roleTestSeeder.permissions.every((permission) => permission.name !== result.name)
@@ -467,7 +467,7 @@ describe('Role (e2e)', () => {
 
         if (hasPermission) {
           it(`should validation error that role already has a child`, async () => {
-            const roleTestSeeder = testServer.context
+            const roleTestSeeder = testServer.seederRegistry
               .getResultSeed<Role[]>(TestRoleSeeder.name)
               .find((result) => !deleted.includes(result.name));
 
@@ -487,7 +487,7 @@ describe('Role (e2e)', () => {
           });
 
           it(`should validation error that child "${permissionNameNotExist}" does not exist`, async () => {
-            const roleTestSeeder = testServer.context
+            const roleTestSeeder = testServer.seederRegistry
               .getResultSeed<Role[]>(TestRoleSeeder.name)
               .find((result) => !deleted.includes(result.name));
 
@@ -517,7 +517,7 @@ describe('Role (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'revoke' : 'not revoke'} role`, async () => {
-          const roleTestSeeder = testServer.context
+          const roleTestSeeder = testServer.seederRegistry
             .getResultSeed<Role[]>(TestRoleSeeder.name)
             .find((result) => !deleted.includes(result.name));
 
@@ -545,7 +545,7 @@ describe('Role (e2e)', () => {
 
         if (hasPermission) {
           it(`should validation error that child "${permissionNameNotExist}" does not exist`, async () => {
-            const roleTestSeeder = testServer.context
+            const roleTestSeeder = testServer.seederRegistry
               .getResultSeed<Role[]>(TestRoleSeeder.name)
               .find((result) => !deleted.includes(result.name));
 

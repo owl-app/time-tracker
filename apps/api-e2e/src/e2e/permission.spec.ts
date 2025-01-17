@@ -161,7 +161,7 @@ describe('Permission (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'update' : 'not update'} permission`, async () => {
-          const permission = testServer.context
+          const permission = testServer.seederRegistry
             .getResultSeed<Permission[]>(TestPermissionSeeder.name)
             .find((result) => uniquePermissionName !== result.name);
           const data = {
@@ -193,7 +193,7 @@ describe('Permission (e2e)', () => {
 
         if (hasPermission) {
           it(`should validation error`, async () => {
-            const permission = testServer.context
+            const permission = testServer.seederRegistry
               .getResultSeed<Permission[]>(TestPermissionSeeder.name)
               .find((result) => uniquePermissionName !== result.name);
 
@@ -228,7 +228,7 @@ describe('Permission (e2e)', () => {
     );
 
     beforeAll(async () => {
-      permissionAllResultSeed = testServer.context.getResultSeed<Permission[]>(
+      permissionAllResultSeed = testServer.seederRegistry.getResultSeed<Permission[]>(
         PermissionSeeder.name
       );
     });
@@ -250,7 +250,7 @@ describe('Permission (e2e)', () => {
           expect(response.status).toEqual(hasPermission ? 200 : 403);
 
           if (isStatusSuccess(response.status)) {
-            const resultSeed = testServer.context.getResultSeed<Permission[]>(
+            const resultSeed = testServer.seederRegistry.getResultSeed<Permission[]>(
               TestPermissionSeeder.name
             );
 
@@ -273,7 +273,7 @@ describe('Permission (e2e)', () => {
           expect(response.status).toEqual(hasPermission ? 200 : 403);
 
           if (isStatusSuccess(response.status)) {
-            const resultSeed = testServer.context
+            const resultSeed = testServer.seederRegistry
               .getResultSeed<Permission[]>(TestPermissionSeeder.name)
               .filter((result) => uniquePermissionName === result.name);
 
@@ -293,7 +293,7 @@ describe('Permission (e2e)', () => {
           expect(response.status).toEqual(hasPermission ? 200 : 403);
 
           if (isStatusSuccess(response.status)) {
-            const resultSeed = testServer.context
+            const resultSeed = testServer.seederRegistry
               .getResultSeed<Permission[]>(TestPermissionSeeder.name)
               .filter((result) => uniquePermissionName === result.name);
 
@@ -313,7 +313,7 @@ describe('Permission (e2e)', () => {
           expect(response.status).toEqual(hasPermission ? 200 : 403);
 
           if (isStatusSuccess(response.status)) {
-            const resultSeed = testServer.context
+            const resultSeed = testServer.seederRegistry
               .getResultSeed<Permission[]>(TestPermissionSeeder.name)
               .filter((result) => result.refer === PermissionReferType.ROUTE);
             const countPermissionAllResultSeed = permissionAllResultSeed.filter(
@@ -338,7 +338,7 @@ describe('Permission (e2e)', () => {
           expect(response.status).toEqual(hasPermission ? 200 : 403);
 
           if (isStatusSuccess(response.status)) {
-            const resultSeed = testServer.context
+            const resultSeed = testServer.seederRegistry
               .getResultSeed<Permission[]>(TestPermissionSeeder.name)
               .filter((result) => result.collection === uniqueCollectionName);
             const createdCount = testData?.created.collection === uniqueCollectionName ? 1 : 0;
@@ -364,7 +364,7 @@ describe('Permission (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'find' : 'not find'} permission`, async () => {
-          const permission = testServer.context.getResultSeed<Permission[]>(
+          const permission = testServer.seederRegistry.getResultSeed<Permission[]>(
             TestPermissionSeeder.name
           )[0];
 
@@ -411,7 +411,7 @@ describe('Permission (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'delete' : 'not delete'} permission`, async () => {
-          const permission = testServer.context
+          const permission = testServer.seederRegistry
             .getResultSeed<Permission[]>(TestPermissionSeeder.name)
             .find((result) => !deleted.includes(result.name));
 

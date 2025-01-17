@@ -132,7 +132,7 @@ describe('Tag (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'update' : 'not update'} tag`, async () => {
-          const tag = testServer.context
+          const tag = testServer.seederRegistry
             .getResultSeed<Tag[]>(TestTagSeeder.name)
             .find(
               (result) => result.tenant.id === firstUser.tenant.id && uniqueTagName !== result.name
@@ -165,7 +165,7 @@ describe('Tag (e2e)', () => {
           it(`should ${
             hasPermissionAnotherTenant(role) ? 'update' : 'not update'
           } tag another tenant`, async () => {
-            const tag = testServer.context
+            const tag = testServer.seederRegistry
               .getResultSeed<Tag[]>(TestTagSeeder.name)
               .find(
                 (result) =>
@@ -196,7 +196,7 @@ describe('Tag (e2e)', () => {
           });
 
           it(`should validation error`, async () => {
-            const tag = testServer.context
+            const tag = testServer.seederRegistry
               .getResultSeed<Tag[]>(TestTagSeeder.name)
               .find((result) => result.tenant.id === firstUser.tenant.id);
 
@@ -240,7 +240,7 @@ describe('Tag (e2e)', () => {
 
           if (isStatusSuccess(response.status)) {
             if (hasPermissionAnotherTenant(role)) {
-              const resultSeed = testServer.context.getResultSeed<Tag[]>(TestTagSeeder.name);
+              const resultSeed = testServer.seederRegistry.getResultSeed<Tag[]>(TestTagSeeder.name);
               const count = resultSeed.length + testData.createdAll.length;
 
               expect(response.body).toHaveProperty('metadata.total', count);
@@ -248,7 +248,7 @@ describe('Tag (e2e)', () => {
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
               const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
-              const resultSeed = testServer.context
+              const resultSeed = testServer.seederRegistry
                 .getResultSeed<Tag[]>(TestTagSeeder.name)
                 .filter(
                   (result) =>
@@ -275,7 +275,7 @@ describe('Tag (e2e)', () => {
 
           if (isStatusSuccess(response.status)) {
             if (hasPermissionAnotherTenant(role)) {
-              const resultSeed = testServer.context.getResultSeed<Tag[]>(TestTagSeeder.name);
+              const resultSeed = testServer.seederRegistry.getResultSeed<Tag[]>(TestTagSeeder.name);
               const count = resultSeed.length + testData.createdAll.length;
 
               expect(response.body).toHaveProperty('metadata.total', count);
@@ -284,7 +284,7 @@ describe('Tag (e2e)', () => {
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
               const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
-              const resultSeed = testServer.context
+              const resultSeed = testServer.seederRegistry
                 .getResultSeed<Tag[]>(TestTagSeeder.name)
                 .filter(
                   (result) =>
@@ -316,7 +316,7 @@ describe('Tag (e2e)', () => {
 
           if (isStatusSuccess(response.status)) {
             if (hasPermissionAnotherTenant(role)) {
-              const resultSeed = testServer.context
+              const resultSeed = testServer.seederRegistry
                 .getResultSeed<Tag[]>(TestTagSeeder.name)
                 .filter((result) => !result.archived);
               const count =
@@ -327,7 +327,7 @@ describe('Tag (e2e)', () => {
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
-              const resultSeed = testServer.context
+              const resultSeed = testServer.seederRegistry
                 .getResultSeed<Tag[]>(TestTagSeeder.name)
                 .filter((result) => result.tenant.id === firstUser.tenant.id && !result.archived);
               const count =
@@ -354,7 +354,7 @@ describe('Tag (e2e)', () => {
 
           if (isStatusSuccess(response.status)) {
             if (hasPermissionAnotherTenant(role)) {
-              const resultSeed = testServer.context
+              const resultSeed = testServer.seederRegistry
                 .getResultSeed<Tag[]>(TestTagSeeder.name)
                 .filter((result) => uniqueTagName === result.name);
 
@@ -363,7 +363,7 @@ describe('Tag (e2e)', () => {
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
               const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
-              const resultSeed = testServer.context
+              const resultSeed = testServer.seederRegistry
                 .getResultSeed<Tag[]>(TestTagSeeder.name)
                 .filter(
                   (result) =>
@@ -389,7 +389,7 @@ describe('Tag (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'find' : 'not find'} tag`, async () => {
-          const tag = testServer.context
+          const tag = testServer.seederRegistry
             .getResultSeed<Tag[]>(TestTagSeeder.name)
             .find((result) => result.tenant.id === firstUser.tenant.id);
 
@@ -419,7 +419,7 @@ describe('Tag (e2e)', () => {
           it(`should ${
             hasPermissionAnotherTenant(role) ? 'find' : 'not find'
           } tag another tenant`, async () => {
-            const tag = testServer.context
+            const tag = testServer.seederRegistry
               .getResultSeed<Tag[]>(TestTagSeeder.name)
               .find(
                 (result) =>
@@ -463,7 +463,7 @@ describe('Tag (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'archive' : 'not archive'} tag`, async () => {
-          const tag = testServer.context
+          const tag = testServer.seederRegistry
             .getResultSeed<Tag[]>(TestTagSeeder.name)
             .find(
               (result) =>
@@ -486,7 +486,7 @@ describe('Tag (e2e)', () => {
           it(`should ${
             hasPermissionAnotherTenant(role) ? 'archive' : 'not archive'
           } tag another tenant`, async () => {
-            const tag = testServer.context
+            const tag = testServer.seederRegistry
               .getResultSeed<Tag[]>(TestTagSeeder.name)
               .find(
                 (result) =>
@@ -520,7 +520,7 @@ describe('Tag (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'restore' : 'not restore'} tag`, async () => {
-          const tag = testServer.context
+          const tag = testServer.seederRegistry
             .getResultSeed<Tag[]>(TestTagSeeder.name)
             .find(
               (result) =>
@@ -543,7 +543,7 @@ describe('Tag (e2e)', () => {
           it(`should ${
             hasPermissionAnotherTenant(role) ? 'restore' : 'not restore'
           } tag another tenant`, async () => {
-            const tag = testServer.context
+            const tag = testServer.seederRegistry
               .getResultSeed<Tag[]>(TestTagSeeder.name)
               .find(
                 (result) =>
@@ -577,7 +577,7 @@ describe('Tag (e2e)', () => {
         (archived) => {
           describe(archived ? 'archived' : 'active', () => {
             it(`should ${hasPermission && archived ? 'delete' : 'not delete'} tag`, async () => {
-              const tag = testServer.context
+              const tag = testServer.seederRegistry
                 .getResultSeed<Tag[]>(TestTagSeeder.name)
                 .find(
                   (result) =>
@@ -611,7 +611,7 @@ describe('Tag (e2e)', () => {
                   ? 'delete'
                   : 'not delete'
               } tag another tenant`, async () => {
-                const tag = testServer.context
+                const tag = testServer.seederRegistry
                   .getResultSeed<Tag[]>(TestTagSeeder.name)
                   .find(
                     (result) =>

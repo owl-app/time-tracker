@@ -26,8 +26,10 @@
   },
   "devDependencies": {
     "tsconfig": "^0.0.1",
-    "@types/joi": "^17.2.3",
-    "eslint-config-custom": "^0.0.1"
+    "eslint-config-custom": "^0.0.1",
+    "@nestjs/testing": "^10.0.2",
+    "@faker-js/faker": "^8.4.1",
+    "@types/joi": "^17.2.3"
   },
   "engines": {
     "node": ">=18.0.0 <=22.x.x",

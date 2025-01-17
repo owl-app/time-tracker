@@ -144,7 +144,7 @@ describe('Client (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'update' : 'not update'} client`, async () => {
-          const client = testServer.context
+          const client = testServer.seederRegistry
             .getResultSeed<Client[]>(TestClientSeeder.name)
             .find(
               (result) =>
@@ -182,7 +182,7 @@ describe('Client (e2e)', () => {
           it(`should ${
             hasPermissionAnotherTenant(role) ? 'update' : 'not update'
           } client another tenant`, async () => {
-            const client = testServer.context
+            const client = testServer.seederRegistry
               .getResultSeed<Client[]>(TestClientSeeder.name)
               .find(
                 (result) =>
@@ -217,7 +217,7 @@ describe('Client (e2e)', () => {
           });
 
           it(`should validation error`, async () => {
-            const client = testServer.context
+            const client = testServer.seederRegistry
               .getResultSeed<Client[]>(TestClientSeeder.name)
               .find((result) => result.tenant.id === firstUser.tenant.id);
 
@@ -261,7 +261,7 @@ describe('Client (e2e)', () => {
 
           if (isStatusSuccess(response.status)) {
             if (hasPermissionAnotherTenant(role)) {
-              const resultSeed = testServer.context.getResultSeed<Client[]>(TestClientSeeder.name);
+              const resultSeed = testServer.seederRegistry.getResultSeed<Client[]>(TestClientSeeder.name);
               const count = resultSeed.length + testData.createdAll.length;
 
               expect(response.body).toHaveProperty('metadata.total', count);
@@ -269,7 +269,7 @@ describe('Client (e2e)', () => {
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
               const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
-              const resultSeed = testServer.context
+              const resultSeed = testServer.seederRegistry
                 .getResultSeed<Client[]>(TestClientSeeder.name)
                 .filter(
                   (result) =>
@@ -298,7 +298,7 @@ describe('Client (e2e)', () => {
 
           if (isStatusSuccess(response.status)) {
             if (hasPermissionAnotherTenant(role)) {
-              const resultSeed = testServer.context.getResultSeed<Client[]>(TestClientSeeder.name);
+              const resultSeed = testServer.seederRegistry.getResultSeed<Client[]>(TestClientSeeder.name);
               const count = resultSeed.length + testData.createdAll.length;
 
               expect(response.body).toHaveProperty('metadata.total', count);
@@ -307,7 +307,7 @@ describe('Client (e2e)', () => {
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
               const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
-              const resultSeed = testServer.context
+              const resultSeed = testServer.seederRegistry
                 .getResultSeed<Client[]>(TestClientSeeder.name)
                 .filter(
                   (result) =>
@@ -339,7 +339,7 @@ describe('Client (e2e)', () => {
 
           if (isStatusSuccess(response.status)) {
             if (hasPermissionAnotherTenant(role)) {
-              const resultSeed = testServer.context
+              const resultSeed = testServer.seederRegistry
                 .getResultSeed<Client[]>(TestClientSeeder.name)
                 .filter((result) => !result.archived);
               const count =
@@ -350,7 +350,7 @@ describe('Client (e2e)', () => {
               expect(response.body).toHaveProperty('items');
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
-              const resultSeed = testServer.context
+              const resultSeed = testServer.seederRegistry
                 .getResultSeed<Client[]>(TestClientSeeder.name)
                 .filter((result) => result.tenant.id === firstUser.tenant.id && !result.archived);
               const count =
@@ -377,7 +377,7 @@ describe('Client (e2e)', () => {
 
           if (isStatusSuccess(response.status)) {
             if (hasPermissionAnotherTenant(role)) {
-              const resultSeed = testServer.context
+              const resultSeed = testServer.seederRegistry
                 .getResultSeed<Client[]>(TestClientSeeder.name)
                 .filter((result) => uniqueClientName === result.name);
 
@@ -386,7 +386,7 @@ describe('Client (e2e)', () => {
               expect(response.body).toMatchObject(exceptedBodyFormats);
             } else {
               const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
-              const resultSeed = testServer.context
+              const resultSeed = testServer.seederRegistry
                 .getResultSeed<Client[]>(TestClientSeeder.name)
                 .filter(
                   (result) =>
@@ -412,7 +412,7 @@ describe('Client (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'find' : 'not find'} client`, async () => {
-          const client = testServer.context
+          const client = testServer.seederRegistry
             .getResultSeed<Client[]>(TestClientSeeder.name)
             .find((result) => result.tenant.id === firstUser.tenant.id);
 
@@ -444,7 +444,7 @@ describe('Client (e2e)', () => {
           it(`should ${
             hasPermissionAnotherTenant(role) ? 'find' : 'not find'
           } client another tenant`, async () => {
-            const client = testServer.context
+            const client = testServer.seederRegistry
               .getResultSeed<Client[]>(TestClientSeeder.name)
               .find(
                 (result) =>
@@ -493,7 +493,7 @@ describe('Client (e2e)', () => {
         (withProjects) => {
           describe(withProjects ? 'with projects' : 'without projects', () => {
             it(`should ${hasPermission ? 'archive' : 'not archive'} client`, async () => {
-              const project = testServer.context
+              const project = testServer.seederRegistry
                 .getResultSeed<Project[]>(TestProjectSeeder.name)
                 .find(
                   (result) =>
@@ -530,7 +530,7 @@ describe('Client (e2e)', () => {
 
                 testData.changedArchived.push(project.client.id);
 
-                resultSeed = testServer.context.getResultSeed<Project[]>(TestProjectSeeder.name);
+                resultSeed = testServer.seederRegistry.getResultSeed<Project[]>(TestProjectSeeder.name);
 
                 if (withProjects) {
                   resultSeedCountProjectsActive = 0;
@@ -557,7 +557,7 @@ describe('Client (e2e)', () => {
               it(`should ${
                 hasPermissionAnotherTenant(role) ? 'archive' : 'not archive'
               } client another tenant`, async () => {
-                const project = testServer.context
+                const project = testServer.seederRegistry
                   .getResultSeed<Project[]>(TestProjectSeeder.name)
                   .find(
                     (result) =>
@@ -594,7 +594,7 @@ describe('Client (e2e)', () => {
 
                   testData.changedArchived.push(project.client.id);
 
-                  resultSeed = testServer.context.getResultSeed<Project[]>(TestProjectSeeder.name);
+                  resultSeed = testServer.seederRegistry.getResultSeed<Project[]>(TestProjectSeeder.name);
 
                   if (withProjects) {
                     resultSeedCountProjectsActive = 0;
@@ -635,7 +635,7 @@ describe('Client (e2e)', () => {
         (withProjects) => {
           describe(withProjects ? 'with projects' : 'without projects', () => {
             it(`should ${hasPermission ? 'restore' : 'not restore'} client`, async () => {
-              const project = testServer.context
+              const project = testServer.seederRegistry
                 .getResultSeed<Project[]>(TestProjectSeeder.name)
                 .find(
                   (result) =>
@@ -672,7 +672,7 @@ describe('Client (e2e)', () => {
 
                 testData.changedArchived.push(project.client.id);
 
-                resultSeed = testServer.context.getResultSeed<Project[]>(TestProjectSeeder.name);
+                resultSeed = testServer.seederRegistry.getResultSeed<Project[]>(TestProjectSeeder.name);
 
                 if (withProjects) {
                   resultSeedCountProjectsActive = resultSeed.filter(
@@ -699,7 +699,7 @@ describe('Client (e2e)', () => {
               it(`should ${
                 hasPermissionAnotherTenant(role) ? 'restore' : 'not restore'
               } client another tenant`, async () => {
-                const project = testServer.context
+                const project = testServer.seederRegistry
                   .getResultSeed<Project[]>(TestProjectSeeder.name)
                   .find(
                     (result) =>
@@ -736,7 +736,7 @@ describe('Client (e2e)', () => {
 
                   testData.changedArchived.push(project.client.id);
 
-                  resultSeed = testServer.context.getResultSeed<Project[]>(TestProjectSeeder.name);
+                  resultSeed = testServer.seederRegistry.getResultSeed<Project[]>(TestProjectSeeder.name);
 
                   if (withProjects) {
                     resultSeedCountProjectsActive = resultSeed.filter(
@@ -778,7 +778,7 @@ describe('Client (e2e)', () => {
         (archived) => {
           describe(archived ? 'archived' : 'active', () => {
             it(`should ${hasPermission && archived ? 'delete' : 'not delete'} client`, async () => {
-              const client = testServer.context
+              const client = testServer.seederRegistry
                 .getResultSeed<Client[]>(TestClientSeeder.name)
                 .find(
                   (result) =>
@@ -814,7 +814,7 @@ describe('Client (e2e)', () => {
                   ? 'delete'
                   : 'not delete'
               } client another tenant`, async () => {
-                const client = testServer.context
+                const client = testServer.seederRegistry
                   .getResultSeed<Client[]>(TestClientSeeder.name)
                   .find(
                     (result) =>

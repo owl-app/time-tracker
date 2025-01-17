@@ -1,5 +1,7 @@
 import { registerAs } from '@nestjs/config';
 
+export const DB_CONFIG_NAME = 'db';
+
 export default registerAs('db', () => ({
   type: process.env.DB_TYPE || 'mysql',
   host: process.env.DB_HOST || 'localhost',

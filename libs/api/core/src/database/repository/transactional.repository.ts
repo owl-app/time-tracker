@@ -9,7 +9,7 @@ export class TransactionalRepository<Entity> extends Repository<Entity> {
    */
   public async transaction<T>(handler: () => Promise<T>): Promise<T> {
     const resultTransaction = await this.getManager().transaction(async (connection) => {
-      if (!RequestContextService.getTransactionConnection()) {
+      if (RequestContextService.getTransactionConnection() !== undefined) {
         RequestContextService.setTransactionConnection(connection);
       }
 
@@ -31,6 +31,6 @@ export class TransactionalRepository<Entity> extends Repository<Entity> {
    * returns a transaction manager.
    */
   protected getManager(): EntityManager {
-    return RequestContextService.getContext().transactionManager ?? this.manager;
+    return RequestContextService.getContext()?.transactionManager ?? this.manager;
   }
 }

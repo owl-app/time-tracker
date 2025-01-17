@@ -63,10 +63,10 @@ describe('User (e2e)', () => {
       })
     );
 
-    testServer.context.getResultSeed<User[]>(TestUserSeeder.name).forEach((user) => {
+    testServer.seederRegistry.getResultSeed<User[]>(TestUserSeeder.name).forEach((user) => {
       users[user.id] = user;
     });
-    testServer.context.getResultSeed<User[]>(USER_SEEDER).forEach((user) => {
+    testServer.seederRegistry.getResultSeed<User[]>(USER_SEEDER).forEach((user) => {
       users[user.id] = user;
     });
   });
@@ -88,7 +88,7 @@ describe('User (e2e)', () => {
               ? 'create'
               : 'not create'
           } user with role ${roleCreate}`, async () => {
-            const roleToCreate = testServer.context
+            const roleToCreate = testServer.seederRegistry
               .getResultSeed<Role[]>(RoleSeeder.name)
               .find((result) => result.name === roleCreate);
 
@@ -180,7 +180,7 @@ describe('User (e2e)', () => {
               ? 'update'
               : 'not update'
           } user with role ${roleCreate}`, async () => {
-            const roleToUpdate = testServer.context
+            const roleToUpdate = testServer.seederRegistry
               .getResultSeed<Role[]>(RoleSeeder.name)
               .find((result) => result.name === roleCreate);
             const userToUpdate = Object.values(users).find(
@@ -249,7 +249,7 @@ describe('User (e2e)', () => {
               it(`should ${
                 hasPermissionAnotherTenant(role) ? 'update' : 'not update'
               } user another tenant with role ${roleCreate}`, async () => {
-                const roleToUpdate = testServer.context
+                const roleToUpdate = testServer.seederRegistry
                   .getResultSeed<Role[]>(RoleSeeder.name)
                   .find((result) => result.name === roleCreate);
                 const userToUpdate = Object.values(users).find(
@@ -319,7 +319,7 @@ describe('User (e2e)', () => {
             !hasPermissionToUsersByRole(firstUser.roles[0].name as RolesEnum, roleCreate)
           ) {
             it(`should not update user which has role ${roleCreate}`, async () => {
-              const roleToUpdate = testServer.context
+              const roleToUpdate = testServer.seederRegistry
                 .getResultSeed<Role[]>(RoleSeeder.name)
                 .find((result) => result.name === RolesEnum.ROLE_USER);
               const userToUpdate = Object.values(users).find(

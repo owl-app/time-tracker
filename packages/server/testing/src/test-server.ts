@@ -2,16 +2,16 @@ import { DataSource } from 'typeorm';
 import { dropDatabase } from 'typeorm-extension';
 import { INestApplication } from '@nestjs/common';
 
-import { Context } from './context';
+import { SeederRegistry } from './db/seeder.registry';
 import { bootstrap, BootstrapOptions } from './bootstrap';
 
 export class TestServer {
-  constructor(readonly app: INestApplication, readonly context: Context) {}
+  constructor(readonly app: INestApplication, readonly seederRegistry: SeederRegistry) {}
 
   static async start(options: BootstrapOptions): Promise<TestServer> {
-    const [app, context] = await bootstrap(options);
+    const [app, seederRegistry] = await bootstrap(options);
 
-    return new TestServer(app, context);
+    return new TestServer(app, seederRegistry);
   }
 
   async close() {

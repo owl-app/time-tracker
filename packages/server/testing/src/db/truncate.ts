@@ -1,24 +1,29 @@
-import { DatabaseDropContext, DriverError, OptionsError } from 'typeorm-extension';
+import { DataSourceOptions } from 'typeorm';
+import { DriverError, OptionsError } from 'typeorm-extension';
 
 import { truncateMySQLDatabase } from './driver/mysql';
 import { truncatePostgresDatabase } from './driver/postgres';
+import { truncateSQLiteDatabase } from './driver/sqlite';
 
-export async function truncateDatabase(context?: DatabaseDropContext) {
-  if (!context.options) {
+export async function truncateDatabase(options: DataSourceOptions) {
+  if (!options) {
     throw OptionsError.undeterminable();
   }
 
-  if (!context.options.type) {
+  if (!options.type) {
     throw DriverError.undeterminable();
   }
 
-  switch (context.options.type) {
+  switch (options.type) {
     case 'mysql':
     case 'mariadb':
-      return truncateMySQLDatabase(context);
+      return truncateMySQLDatabase(options);
     case 'postgres':
-      return truncatePostgresDatabase(context);
+      return truncatePostgresDatabase(options);
+    case 'sqlite':
+    case 'better-sqlite3':
+      return truncateSQLiteDatabase(options);
     default:
-      throw DriverError.notSupported(context.options.type);
+      throw DriverError.notSupported(options.type);
   }
 }

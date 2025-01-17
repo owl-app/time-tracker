@@ -1,6 +1,6 @@
-import { SeederEntity } from 'typeorm-extension';
+import { SeederEntity } from "typeorm-extension";
 
-export interface Context {
+export interface SeederRegistry {
   readonly seederEntity: SeederEntity[];
 
   addSeederEntity(seederEntity: SeederEntity | SeederEntity[]): void;
@@ -10,8 +10,12 @@ export interface Context {
   getResultSeed<T>(name: string): T;
 }
 
-export class TestContext implements Context {
+export class TestSeederRegistry implements SeederRegistry {
   readonly seederEntity: SeederEntity[] = [];
+
+  constructor(seederEntity: SeederEntity | SeederEntity[] = []) {
+    this.addSeederEntity(seederEntity);
+  }
 
   addSeederEntity(seederEntity: SeederEntity | SeederEntity[]): void {
     this.seederEntity.push(...(Array.isArray(seederEntity) ? seederEntity : [seederEntity]));

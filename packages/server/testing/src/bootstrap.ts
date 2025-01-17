@@ -9,6 +9,7 @@ import {
   DynamicModule,
   ForwardReference,
   INestApplication,
+  Provider,
   Type,
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -19,7 +20,7 @@ import { Class } from '@owl-app/types';
 
 import { dbInitializer } from './db/initializer';
 import { dbSeeder } from './db/seeder';
-import { Context, TestContext } from './context';
+import { SeederRegistry } from './db/seeder.registry';
 
 export interface SeedOptions {
   seeds: (configService: ConfigService) => SeederConstructor[];
@@ -32,15 +33,15 @@ export interface BootstrapOptions {
   seed: SeedOptions;
   guards?: Class<CanActivate>[];
   prefix?: string;
+  providers?: Provider[];
 }
 
-export async function bootstrap(options: BootstrapOptions): Promise<[INestApplication, Context]> {
+export async function bootstrap(options: BootstrapOptions): Promise<[INestApplication, SeederRegistry]> {
   await dbInitializer(options.db);
-
-  const context = new TestContext();
 
   const moduleRef = await Test.createTestingModule({
     imports: options.modules,
+    providers: options.providers ?? [],
   }).compile();
 
   const app = moduleRef.createNestApplication({
@@ -48,9 +49,8 @@ export async function bootstrap(options: BootstrapOptions): Promise<[INestApplic
   });
   const configService = app.get(ConfigService);
 
-  await dbSeeder(
+  const seederRegistry = await dbSeeder(
     app.get(DataSource),
-    context,
     options?.seed?.seeds(configService) ?? [],
     options?.seed?.factories(configService) ?? []
   );
@@ -91,9 +91,9 @@ export async function bootstrap(options: BootstrapOptions): Promise<[INestApplic
 
   const reflector = app.get(Reflector);
 
-  options.guards.forEach((Guard) => app.useGlobalGuards(new Guard(reflector)));
+  options?.guards?.forEach((Guard) => app.useGlobalGuards(new Guard(reflector)));
 
   await app.init();
 
-  return [app, context];
+  return [app, seederRegistry];
 }
