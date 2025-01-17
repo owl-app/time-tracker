@@ -88,7 +88,7 @@ export class FilterQueryBuilder<Entity> {
     ),
     readonly aggregateBuilder: AggregateBuilder<Entity> = new AggregateBuilder<Entity>(repo)
   ) {
-    this.virtualColumns = repo?.metadata?.columns
+    this.virtualColumns = (repo?.metadata?.columns ?? [])
       .filter(({ isVirtualProperty }) => isVirtualProperty)
       .map(({ propertyName }) => propertyName);
   }
