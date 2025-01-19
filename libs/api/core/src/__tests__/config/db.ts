@@ -1,5 +1,6 @@
 import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionOptions';
-import { TestEntity } from '../fixtures/test.entity';
+import { TestSimpleEntity } from '../__fixtures__/test-simple.entity';
+import { TestDomainEntity } from '../__fixtures__/test-domain.entity';
 
 export function getDbConfig(): SqliteConnectionOptions {
   return {
@@ -7,7 +8,8 @@ export function getDbConfig(): SqliteConnectionOptions {
     database: ':memory:',
     dropSchema: true,
     entities: [
-      TestEntity,
+      TestSimpleEntity,
+      TestDomainEntity,
     ],
     synchronize: true,
     logging: false,

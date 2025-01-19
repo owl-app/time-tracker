@@ -7,7 +7,7 @@ import {
 import BaseEntity from '../../database/entity/base.entity';
 
 @Entity()
-export class TestEntity extends BaseEntity {
+export class TestDomainEntity extends BaseEntity {
   @PrimaryColumn({ name: 'test_entity_pk' })
   testEntityPk!: string;
 

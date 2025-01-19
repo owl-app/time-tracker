@@ -30,7 +30,7 @@ export interface AppTypeOrmQueryServiceOpts<Entity> extends TypeOrmQueryServiceO
   useTransaction?: boolean;
 }
 
-export class AppTypeOrmQueryService<Entity extends DomainEventableEntity>
+export class AppTypeOrmQueryService<Entity>
   extends TypeOrmQueryService<Entity>
   implements AppQueryService<Entity>
 {
@@ -95,7 +95,7 @@ export class AppTypeOrmQueryService<Entity extends DomainEventableEntity>
     const entity = (await this.ensureIsEntityAndDoesNotExist(record)) as Entity;
 
     if (record instanceof DomainEventableEntity) {
-      this.createEvent(this.events.EVENT_CREATED, entity);
+      this.createEvent(this.events.EVENT_CREATED, entity as DomainEventableEntity);
     }
 
     if (this.useTransaction) {
@@ -115,7 +115,10 @@ export class AppTypeOrmQueryService<Entity extends DomainEventableEntity>
     update: DeepPartial<Entity>,
     opts?: UpdateOneOptions<Entity>
   ): Promise<Entity> {
+    console.log('updateOne', id);
     this.ensureIdIsNotPresent(update);
+
+    console.log('lecimyyyyy')
 
     this.injectSetters(update);
 
@@ -125,7 +128,7 @@ export class AppTypeOrmQueryService<Entity extends DomainEventableEntity>
     this.repo.merge(entity, update);
 
     if (update instanceof DomainEventableEntity) {
-      this.createEvent(this.events.EVENT_UPDATED, entity);
+      this.createEvent(this.events.EVENT_UPDATED, entity as DomainEventableEntity);
     }
 
     if (this.useTransaction) {
@@ -158,7 +161,7 @@ export class AppTypeOrmQueryService<Entity extends DomainEventableEntity>
     }
 
     if (record instanceof DomainEventableEntity) {
-      this.createEvent(this.events.EVENT_CREATED, entity);
+      this.createEvent(this.events.EVENT_CREATED, entity as DomainEventableEntity);
     }
 
     if (this.useTransaction) {
@@ -199,7 +202,7 @@ export class AppTypeOrmQueryService<Entity extends DomainEventableEntity>
     this.copyRegularColumn(entity, update);
 
     if (update instanceof DomainEventableEntity) {
-      this.createEvent(this.events.EVENT_UPDATED, entity);
+      this.createEvent(this.events.EVENT_UPDATED, entity as DomainEventableEntity);
     }
 
     if (this.useTransaction) {
@@ -330,7 +333,7 @@ export class AppTypeOrmQueryService<Entity extends DomainEventableEntity>
     }
   }
 
-  private createEvent(name: string, entity: Entity): DomainEvent {
+  private createEvent(name: string, entity: DomainEventableEntity): DomainEvent {
     const eventName = `${convertToSnakeCase(this.EntityClassName)}_${name}`;
     const event = new DomainEvent({ eventName });
 

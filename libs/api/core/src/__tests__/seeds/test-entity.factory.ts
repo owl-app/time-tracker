@@ -1,11 +1,11 @@
 import { setSeederFactory } from 'typeorm-extension';
 
-import { TestEntity } from '../fixtures/test.entity';
+import { TestSimpleEntity } from '../__fixtures__/test-simple.entity';
 
 export default setSeederFactory(
-  TestEntity,
+  TestSimpleEntity,
   async (faker) => {
-    const test = new TestEntity();
+    const test = new TestSimpleEntity();
 
     test.testEntityPk = faker.string.uuid();
     test.stringType = faker.lorem.words(3);
