@@ -19,6 +19,9 @@
     "data:sync": "npx nx build:sync api && npx nx data:sync api",
     "e2e": "cross-env NODE_ENV=development env-cmd -f .env.development npx nx run-many --target=e2e"
   },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "dependencies": {
     "@fast-csv/format": "^5.0.2",
     "@nestjs/common": "^10.3.1",
