@@ -1,14 +1,14 @@
 import {
   Column,
   Entity,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import BaseEntity from '../../database/entity/base.entity';
 
 @Entity()
-export class TestDomainEntity extends BaseEntity {
-  @PrimaryColumn({ name: 'test_entity_pk' })
+export class TestBaseEntity extends BaseEntity {
+  @PrimaryGeneratedColumn('uuid', { name: 'test_entity_pk' })
   testEntityPk!: string;
 
   @Column({ name: 'string_type' })

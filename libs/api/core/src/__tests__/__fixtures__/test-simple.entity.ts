@@ -1,12 +1,12 @@
 import {
   Column,
   Entity,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity()
 export class TestSimpleEntity {
-  @PrimaryColumn({ name: 'test_entity_pk' })
+  @PrimaryGeneratedColumn('uuid', { name: 'test_entity_pk' })
   testEntityPk!: string;
 
   @Column({ name: 'string_type' })

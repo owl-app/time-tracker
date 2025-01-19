@@ -100,14 +100,14 @@ export class AppTypeOrmQueryService<Entity>
 
     if (this.useTransaction) {
       if (this.repo instanceof TransactionalRepository) {
-        const result = await this.repo.transaction(async () => this.repo.save({...entity}));
+        const result = await this.repo.transaction(async () => this.repo.save(entity));
         return result;
       }
 
       throw new Error('Repository should extend by TransactionalRepository');
     }
 
-    return this.repo.save({...entity});
+    return this.repo.save(entity);
   }
 
   public async updateOne(
@@ -130,7 +130,7 @@ export class AppTypeOrmQueryService<Entity>
 
     if (this.useTransaction) {
       if (this.repo instanceof TransactionalRepository) {
-        const result = await this.repo.transaction(async () => this.repo.save({...entity}));
+        const result = await this.repo.transaction(async () => this.repo.save(entity));
 
         return result;
       }
@@ -138,7 +138,7 @@ export class AppTypeOrmQueryService<Entity>
       throw new Error('Repository should extend by TransactionalRepository');
     }
 
-    return this.repo.save({...entity});
+    return this.repo.save(entity);
   }
 
   public async createWithRelations(
@@ -170,7 +170,7 @@ export class AppTypeOrmQueryService<Entity>
             )
           ).then(() => entity);
 
-          return this.repo.save({...entity});
+          return this.repo.save(entity);
         });
 
         return result;
@@ -179,7 +179,7 @@ export class AppTypeOrmQueryService<Entity>
       throw new Error('Repository should extend by TransactionalRepository');
     }
 
-    return this.repo.save({...entity});
+    return this.repo.save(entity);
   }
 
   public async updateWithRelations(
@@ -211,7 +211,7 @@ export class AppTypeOrmQueryService<Entity>
             )
           ).then(() => entity);
 
-          return this.repo.save({...entity});
+          return this.repo.save(entity);
         });
 
         return result;
@@ -220,7 +220,7 @@ export class AppTypeOrmQueryService<Entity>
       throw new Error('Repository should extend by TransactionalRepository');
     }
 
-    return this.repo.save({...entity});
+    return this.repo.save(entity);
   }
 
   async assingRelations<Relation>(
