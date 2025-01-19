@@ -180,8 +180,6 @@ export class TypeOrmQueryService<Entity>
   public async getById(id: string | number, opts?: GetByIdOptions<Entity>): Promise<Entity> {
     const entity = await this.findById(id, opts);
 
-    console.log('entity', entity);
-
     if (!entity) {
       throw new NotFoundException(`Unable to find ${this.EntityClassName} with id: ${id}`);
     }

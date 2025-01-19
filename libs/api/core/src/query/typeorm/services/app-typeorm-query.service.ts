@@ -115,10 +115,7 @@ export class AppTypeOrmQueryService<Entity>
     update: DeepPartial<Entity>,
     opts?: UpdateOneOptions<Entity>
   ): Promise<Entity> {
-    console.log('updateOne', id);
     this.ensureIdIsNotPresent(update);
-
-    console.log('lecimyyyyy')
 
     this.injectSetters(update);
 

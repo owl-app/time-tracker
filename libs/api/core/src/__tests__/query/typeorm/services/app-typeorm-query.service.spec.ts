@@ -120,116 +120,147 @@ describe('AppTypeOrmQueryService', () => {
     return [moduleRef, TestEntityService];
   };
 
-  describe.each<{ name: keyof AppTypeOrmQueryService<TestSimpleEntity>; isUpdated: boolean }>([
-    {
-      name: 'createOne',
-      isUpdated: false,
-    },
-    {
-      name: 'updateOne',
-      isUpdated: true,
-    },
-    {
-      name: 'createWithRelations',
-      isUpdated: false,
-    },
-    {
-      name: 'updateWithRelations',
-      isUpdated: true,
-    },
+  describe('Transaction support', () => {
+    describe.each<boolean>([true, false])('', (repositoryHasTransaction) => {
+      describe(`repository supports transaction: ${repositoryHasTransaction}`, () => {
+        describe.each<boolean>([true, false])('', (serviceUseTransactional) => {
+          describe(`service useTransactional: ${serviceUseTransactional}`, () => {
+            let moduleRef: TestingModule;
+            let seederRegistry: SeederRegistry;
+            let repository: Repository<TestSimpleEntity>;
+            let testingService: Class<any>;
+            let queryService: AppTypeOrmQueryService<TestSimpleEntity>;
+            let singleResultSeed: TestSimpleEntity;
+            let saveSpy: jest.SpyInstance<Promise<DeepPartial<TestSimpleEntity> & TestSimpleEntity>>;
+            let transactionSpy: jest.SpyInstance<Promise<unknown>, [handler: () => Promise<unknown>], any>;
+            const messageReject = 'Repository should extend by TransactionalRepository';
 
-  ])('', (action) => {
-    let record: DeepPartial<TestSimpleEntity>;
 
-    describe(`#${action.name}`, () => {
-      describe.each<boolean>([true, false])('', (repositoryHasTransaction) => {
-        describe(`repository supports transaction: ${repositoryHasTransaction}`, () => {
-          describe.each<boolean>([true, false])('', (serviceUseTransactional) => {
-            describe(`service useTransactional: ${serviceUseTransactional}`, () => {
-              let moduleRef: TestingModule;
-              let seederRegistry: SeederRegistry;
-              let repository: Repository<TestSimpleEntity>;
-              let testingService: Class<any>;
+            beforeAll(async () => {
+              await dbInitializer(getDbConfig());
+            });
 
-              beforeAll(async () => {
-                await dbInitializer(getDbConfig());
+            beforeEach(async () => {
+              const [testingModule, testService] = await createTest(
+                TestSimpleEntity,
+                repositoryHasTransaction ? BaseRepository : Repository,
+                serviceUseTransactional,
+                true,
+                true,
+                true
+              );
+
+              moduleRef = await testingModule.compile();
+              testingService = testService;
+
+              repository = moduleRef.get(getQueryServiceRepositoryToken(TestSimpleEntity));
+
+              seederRegistry = await dbRefresh({
+                dataSource: moduleRef.get(getDataSourceToken()),
+                seeds: [TestEntitySeeder],
+                factories: [testSeederFactory],
               });
 
-              beforeEach(async () => {
-                const [testingModule, testService] = await createTest(
-                  TestSimpleEntity,
-                  repositoryHasTransaction ? BaseRepository : Repository,
-                  serviceUseTransactional,
-                  true,
-                  true,
-                  true
-                );
+              queryService = moduleRef.get(testingService);
+              [singleResultSeed] = seederRegistry.getResultSeed<TestSimpleEntity[]>(
+                TestEntitySeeder.name
+              );
+              saveSpy = jest.spyOn(repository, 'save');
 
-                moduleRef = await testingModule.compile();
-                testingService = testService;
-
-                repository = moduleRef.get(getQueryServiceRepositoryToken(TestSimpleEntity));
-
-                seederRegistry = await dbRefresh({
-                  dataSource: moduleRef.get(getDataSourceToken()),
-                  seeds: [TestEntitySeeder],
-                  factories: [testSeederFactory],
-                });
-
-                record = action.isUpdated
-                  ? seederRegistry.getResultSeed<TestSimpleEntity[]>(TestEntitySeeder.name)[0]
-                  : TEST_ENTITIES[0];
-              });
-
-              afterEach(() => {
-                const dataSource = moduleRef.get(getDataSourceToken());
-                return dataSource.destroy();
-              });
-
-              if (
-                (repositoryHasTransaction &&
-                  (serviceUseTransactional || !serviceUseTransactional)) ||
-                (!repositoryHasTransaction && !serviceUseTransactional)
-              ) {
-                it(`should save entity`, async () => {
-                  const queryService: AppTypeOrmQueryService<TestSimpleEntity> = moduleRef.get(testingService);
-
-                  const saveSpy = jest.spyOn(repository, 'save');
-
-                  if (action.isUpdated) {
-                    await (queryService[action.name] as Function)(record.testEntityPk, {
-                      stringType: 'updated',
-                    });
-                  } else {
-                    await (queryService[action.name] as Function)(record);
-                  }
-
-                  expect(saveSpy).toHaveBeenCalledTimes(1);
-                });
-              }
-
-              if (!repositoryHasTransaction && serviceUseTransactional) {
-                it(`should reject with error`, async () => {
-                  expect.assertions(1);
-                  let result;
-
-                  const queryService: AppTypeOrmQueryService<TestSimpleEntity> = moduleRef.get(testingService);
-
-                  if (action.isUpdated) {
-                    result = (queryService[action.name] as Function)(record.testEntityPk, { stringType: 'updated' });
-                  } else {
-                    result = (queryService[action.name] as Function)(record);
-                  }
-
-                  expect(result).rejects.toThrow('Repository should extend by TransactionalRepository');
-                });
+              if (repository instanceof BaseRepository) {
+                transactionSpy = jest.spyOn(repository, 'transaction');
               }
             });
+
+            afterEach(() => {
+              const dataSource = moduleRef.get(getDataSourceToken());
+              return dataSource.destroy();
+            });
+
+            if (
+              (repositoryHasTransaction && (serviceUseTransactional || !serviceUseTransactional)) ||
+              (!repositoryHasTransaction && !serviceUseTransactional)
+            ) {
+              describe(`should save entity`, () => {
+                it('#createOne', async () => {
+                  await queryService.createOne(TEST_ENTITIES[0]);
+
+                  expect(saveSpy).toHaveBeenCalledTimes(1);
+
+                  if (repositoryHasTransaction && serviceUseTransactional) {
+                    expect(transactionSpy).toHaveBeenCalledTimes(1);
+                  }
+                });
+
+                it('#updateOne', async () => {
+                  await queryService.updateOne(singleResultSeed.testEntityPk, {
+                    stringType: 'updated',
+                  });
+
+                  expect(saveSpy).toHaveBeenCalledTimes(1);
+
+                  if (repositoryHasTransaction && serviceUseTransactional) {
+                    expect(transactionSpy).toHaveBeenCalledTimes(1);
+                  }
+                });
+
+                it('#createWithRelations', async () => {
+                  await queryService.createWithRelations(TEST_ENTITIES[0]);
+
+                  expect(saveSpy).toHaveBeenCalledTimes(1);
+
+                  if (repositoryHasTransaction && serviceUseTransactional) {
+                    expect(transactionSpy).toHaveBeenCalledTimes(1);
+                  }
+                });
+
+                it('#updateWithRelations', async () => {
+                  await queryService.updateWithRelations(singleResultSeed.testEntityPk, {
+                    stringType: 'updated',
+                  });
+
+                  expect(saveSpy).toHaveBeenCalledTimes(1);
+
+                  if (repositoryHasTransaction && serviceUseTransactional) {
+                    expect(transactionSpy).toHaveBeenCalledTimes(1);
+                  }
+                });
+              });
+            }
+
+            if (!repositoryHasTransaction && serviceUseTransactional) {
+              describe(`should reject with error`, () => {
+                it('#createOne', async () => {
+                  expect(queryService.createOne(TEST_ENTITIES[0])).rejects.toThrow(messageReject);
+                });
+
+                it('#updateOne', async () => {
+                  expect(
+                    queryService.updateOne(singleResultSeed.testEntityPk, { stringType: 'updated' })
+                  ).rejects.toThrow(messageReject);
+                });
+
+                it('#createWithRelations', async () => {
+                  expect(queryService.createWithRelations(TEST_ENTITIES[0])).rejects.toThrow(
+                    messageReject
+                  );
+                });
+
+                it('#updateWithRelations', async () => {
+                  expect(
+                    queryService.updateWithRelations(singleResultSeed.testEntityPk, {
+                      stringType: 'updated',
+                    })
+                  ).rejects.toThrow(messageReject);
+                });
+              });
+            }
           });
         });
       });
     });
   });
+
 
   // describe('repository has transaction: ', () => {
   //   describe('#createOne', () => {
