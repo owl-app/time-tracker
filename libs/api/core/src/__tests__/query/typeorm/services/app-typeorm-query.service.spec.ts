@@ -4,7 +4,7 @@ import { plainToClass } from 'class-transformer';
 import { Inject } from '@nestjs/common';
 import { EntityClassOrSchema } from '@nestjs/typeorm/dist/interfaces/entity-class-or-schema.type';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
-import { Test, TestingModule, TestingModuleBuilder } from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import { ConfigModule, registerAs } from '@nestjs/config';
 
@@ -15,8 +15,8 @@ import { Class } from '@owl-app/types';
 import { dbInitializer, dbRefresh } from '@owl-app/testing';
 import { RegistryServiceModule } from '@owl-app/registry-nestjs';
 import { RequestContextModule } from '@owl-app/request-context-nestjs';
-import { RequestContextService } from '@owl-app/lib-api-core/context/app-request-context';
 
+import { RequestContextService } from '../../../../context/app-request-context';
 import { DB_CONFIG_NAME } from '../../../../config/db';
 import { AppTypeOrmQueryService } from '../../../../query/typeorm/services/app-typeorm-query.service';
 import { InjectQueryServiceRepository } from '../../../../query/common/repository.decorator';
@@ -32,7 +32,6 @@ import { DatabaseModule } from '../../../../database/database.module';
 import {
   TEST_BASE_ENTITIES_CREATED,
   TEST_SIMPLE_ENTITIES_NEW,
-  TEST_SIMPLE_ENTITIES_CREATED,
 } from '../../../seeds/data/test-entity.data';
 import { FILTER_REGISTRY_TENANT, SETTER_REGISTRY_TENANT } from '../../../../registry/constants';
 import { FilterQuery } from '../../../../registry/interfaces/filter-query';
@@ -40,7 +39,6 @@ import { TenantRelationFilter } from '../../../../typeorm/filters/tenant-relatio
 import { TenantRelationSetter } from '../../../../typeorm/setters/tenant-relation.setter';
 import { EntitySetter } from '../../../../registry/interfaces/entity-setter';
 import { authUserData } from '../../../__fixtures__/auth-user.data';
-import { TEST_TENANT_CREATED } from '@owl-app/lib-api-core/__tests__/seeds/data/tenant.data';
 
 async function runMethodInstanceObject<
   T,
