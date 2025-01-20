@@ -2,9 +2,11 @@ import {
   Column,
   Entity,
   PrimaryGeneratedColumn,
+  ManyToOne
 } from 'typeorm';
 
 import BaseEntity from '../../database/entity/base.entity';
+import { TenantEntity } from './tenant.entity';
 
 @Entity()
 export class TestBaseEntity extends BaseEntity {
@@ -22,4 +24,7 @@ export class TestBaseEntity extends BaseEntity {
 
   @Column({ name: 'date_type' })
   dateType!: Date;
+
+  @ManyToOne('TenantEntity', 'testBaseEntities')
+  tenant?: TenantEntity;
 }

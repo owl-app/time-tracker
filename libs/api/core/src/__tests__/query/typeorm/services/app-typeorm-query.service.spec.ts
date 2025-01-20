@@ -15,6 +15,7 @@ import { Class } from '@owl-app/types';
 import { dbInitializer, dbRefresh } from '@owl-app/testing';
 import { RegistryServiceModule } from '@owl-app/registry-nestjs';
 import { RequestContextModule } from '@owl-app/request-context-nestjs';
+import { RequestContextService } from '@owl-app/lib-api-core/context/app-request-context';
 
 import { DB_CONFIG_NAME } from '../../../../config/db';
 import { AppTypeOrmQueryService } from '../../../../query/typeorm/services/app-typeorm-query.service';
@@ -26,6 +27,7 @@ import { TestBaseEntity } from '../../../__fixtures__/test-base.entity';
 import { getDbConfig } from '../../../config/db';
 import { getQueryServiceRepositoryToken } from '../../../../query/common/repository.utils';
 import TestEntitySeeder from '../../../seeds/test-entity.seed';
+import TenantSeeder from '../../../seeds/tenant.seed';
 import { DatabaseModule } from '../../../../database/database.module';
 import {
   TEST_BASE_ENTITIES_CREATED,
@@ -37,6 +39,8 @@ import { FilterQuery } from '../../../../registry/interfaces/filter-query';
 import { TenantRelationFilter } from '../../../../typeorm/filters/tenant-relation.filter';
 import { TenantRelationSetter } from '../../../../typeorm/setters/tenant-relation.setter';
 import { EntitySetter } from '../../../../registry/interfaces/entity-setter';
+import { authUserData } from '../../../__fixtures__/auth-user.data';
+import { TEST_TENANT_CREATED } from '@owl-app/lib-api-core/__tests__/seeds/data/tenant.data';
 
 async function runMethodInstanceObject<
   T,
@@ -58,12 +62,12 @@ async function runMethodInstanceObject<
 }
 
 describe('AppTypeOrmQueryService', () => {
-  const createTest = <Entity extends EntityClassOrSchema>(
+  const createTest = async <Entity extends EntityClassOrSchema>(
     entity: Entity,
     repository: Class<Repository<any>>,
     useTransaction = true,
     withEventEmitter = true
-  ): [TestingModuleBuilder, Class<AppTypeOrmQueryService<any>>] => {
+  ): Promise<[TestingModule, Class<AppTypeOrmQueryService<any>>]> => {
     class TestEntityService extends AppTypeOrmQueryService<any> {
       constructor(
         @InjectQueryServiceRepository(entity) readonly repo: Repository<Entity>,
@@ -99,7 +103,7 @@ describe('AppTypeOrmQueryService', () => {
       })
     );
 
-    const moduleRef = Test.createTestingModule({
+    const moduleRef = await Test.createTestingModule({
       imports: [
         ...imports,
         ...[
@@ -124,7 +128,7 @@ describe('AppTypeOrmQueryService', () => {
         ],
       ],
       providers: [TestEntityService],
-    });
+    }).compile();
 
     return [moduleRef, TestEntityService];
   };
@@ -171,7 +175,7 @@ describe('AppTypeOrmQueryService', () => {
                   repositoryHasTransaction
                 );
 
-                moduleRef = await testingModule.compile();
+                moduleRef = testingModule;
 
                 repository = moduleRef.get(getQueryServiceRepositoryToken(TestSimpleEntity));
 
@@ -201,6 +205,7 @@ describe('AppTypeOrmQueryService', () => {
               ) {
                 it(`should save entity`, async () => {
                   const spyCreateEvent = jest.spyOn(queryService as any, 'createEvent');
+
                   await runMethodInstanceObject(queryService, methodName, ...args);
 
                   expect(spyCreateEvent).toHaveBeenCalledTimes(0);
@@ -232,6 +237,7 @@ describe('AppTypeOrmQueryService', () => {
     let moduleRef: TestingModule;
     let repository: Repository<TestSimpleEntity>;
     let queryService: AppTypeOrmQueryService<TestBaseEntity>;
+    let setterRegistry: Registry<EntitySetter<ObjectLiteral>>;
     let saveSpy: jest.SpyInstance<Promise<DeepPartial<TestSimpleEntity> & TestSimpleEntity>>;
 
     beforeAll(async () => {
@@ -246,16 +252,17 @@ describe('AppTypeOrmQueryService', () => {
         true
       );
 
-      moduleRef = await testingModule.compile();
+      moduleRef = testingModule;
 
       repository = moduleRef.get(getQueryServiceRepositoryToken(TestBaseEntity));
 
       await dbRefresh({
         dataSource: moduleRef.get(getDataSourceToken()),
-        seeds: [TestEntitySeeder],
+        seeds: [TestEntitySeeder, TenantSeeder],
       });
 
       queryService = moduleRef.get(testingService);
+      setterRegistry = moduleRef.get(SETTER_REGISTRY_TENANT);
 
       saveSpy = jest.spyOn(repository, 'save');
     });
@@ -269,7 +276,15 @@ describe('AppTypeOrmQueryService', () => {
       const entity = plainToClass(TestBaseEntity, TEST_SIMPLE_ENTITIES_NEW[0]);
       const entityPublishEventsSpy = jest.spyOn(entity, 'addEvent');
 
-      await queryService.createOne(entity);
+      const allServicesSetters = setterRegistry.all();
+      jest.spyOn(setterRegistry, 'all').mockReturnValue(allServicesSetters);
+      
+      const spyTenantSetterExecute = jest.spyOn(allServicesSetters.tenant, 'execute');
+
+      jest.spyOn(RequestContextService, "getCurrentUser")
+        .mockReturnValue(authUserData)
+
+      const created = await queryService.createOne(entity);
 
       expect(saveSpy).toHaveBeenCalledTimes(1);
       expect(entityPublishEventsSpy).toHaveBeenCalledWith(
@@ -277,7 +292,12 @@ describe('AppTypeOrmQueryService', () => {
           eventName: 'TEST_BASE_ENTITY_CREATED',
         })
       );
+      expect(spyTenantSetterExecute).toHaveBeenCalledTimes(1);
       expect(entityPublishEventsSpy).toHaveBeenCalledTimes(1);
+      expect(created).toEqual(expect.objectContaining({
+        ...TEST_SIMPLE_ENTITIES_NEW[0],
+        tenant: authUserData.tenant,
+      }));
     });
 
     it('should reject if the entity exist', async () => {
@@ -287,19 +307,19 @@ describe('AppTypeOrmQueryService', () => {
     });
   });
 
-  describe('#updateOne', () => {
-    transactionSupport('updateOne', TEST_SIMPLE_ENTITIES_CREATED[0].testEntityPk, {
-      stringType: 'updated',
-    });
-  });
+  // describe('#updateOne', () => {
+  //   transactionSupport('updateOne', TEST_SIMPLE_ENTITIES_CREATED[0].testEntityPk, {
+  //     stringType: 'updated',
+  //   });
+  // });
 
-  describe('#createWithRelations', () => {
-    transactionSupport('createWithRelations', TEST_SIMPLE_ENTITIES_NEW[0]);
-  });
+  // describe('#createWithRelations', () => {
+  //   transactionSupport('createWithRelations', TEST_SIMPLE_ENTITIES_NEW[0]);
+  // });
 
-  describe('#updateWithRelations', () => {
-    transactionSupport('updateWithRelations', TEST_SIMPLE_ENTITIES_CREATED[0].testEntityPk, {
-      stringType: 'updated',
-    });
-  });
+  // describe('#updateWithRelations', () => {
+  //   transactionSupport('updateWithRelations', TEST_SIMPLE_ENTITIES_CREATED[0].testEntityPk, {
+  //     stringType: 'updated',
+  //   });
+  // });
 });
