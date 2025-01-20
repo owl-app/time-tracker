@@ -1,5 +1,6 @@
 import { ObjectLiteral, Repository } from 'typeorm';
 import { plainToClass } from 'class-transformer';
+import { omit } from 'lodash';
 
 import { Inject } from '@nestjs/common';
 import { EntityClassOrSchema } from '@nestjs/typeorm/dist/interfaces/entity-class-or-schema.type';
@@ -31,6 +32,8 @@ import TenantSeeder from '../../../seeds/tenant.seed';
 import { DatabaseModule } from '../../../../database/database.module';
 import {
   TEST_BASE_ENTITIES_CREATED,
+  TEST_BASE_ENTITIES_NEW,
+  TEST_SIMPLE_ENTITIES_CREATED,
   TEST_SIMPLE_ENTITIES_NEW,
 } from '../../../seeds/data/test-entity.data';
 import { FILTER_REGISTRY_TENANT, SETTER_REGISTRY_TENANT } from '../../../../registry/constants';
@@ -179,7 +182,7 @@ describe('AppTypeOrmQueryService', () => {
 
                 await dbRefresh({
                   dataSource: moduleRef.get(getDataSourceToken()),
-                  seeds: [TestEntitySeeder],
+                  seeds: [TenantSeeder, TestEntitySeeder],
                 });
 
                 queryService = moduleRef.get(testingService);
@@ -204,8 +207,14 @@ describe('AppTypeOrmQueryService', () => {
                 it(`should save entity`, async () => {
                   const spyCreateEvent = jest.spyOn(queryService as any, 'createEvent');
 
+                  const setterRegistry = moduleRef.get(SETTER_REGISTRY_TENANT);
+                  const allServicesSetters = setterRegistry.all();
+                  jest.spyOn(setterRegistry, 'all').mockReturnValue(allServicesSetters);
+                  const spyTenantSetterExecute = jest.spyOn(allServicesSetters.tenant, 'execute');
+
                   await runMethodInstanceObject(queryService, methodName, ...args);
 
+                  expect(spyTenantSetterExecute).toHaveBeenCalledTimes(0);
                   expect(spyCreateEvent).toHaveBeenCalledTimes(0);
                   expect(saveSpy).toHaveBeenCalledTimes(1);
 
@@ -235,6 +244,80 @@ describe('AppTypeOrmQueryService', () => {
     let moduleRef: TestingModule;
     let repository: Repository<TestSimpleEntity>;
     let queryService: AppTypeOrmQueryService<TestBaseEntity>;
+
+    beforeAll(async () => {
+      await dbInitializer(getDbConfig());
+    });
+
+    beforeEach(async () => {
+      const [testingModule, testingService] = await createTest(
+        TestBaseEntity,
+        BaseRepository,
+        true,
+        true
+      );
+
+      moduleRef = testingModule;
+
+      repository = moduleRef.get(getQueryServiceRepositoryToken(TestBaseEntity));
+
+      await dbRefresh({
+        dataSource: moduleRef.get(getDataSourceToken()),
+        seeds: [TenantSeeder, TestEntitySeeder],
+      });
+
+      queryService = moduleRef.get(testingService);
+    });
+
+    afterEach(() => {
+      const dataSource = moduleRef.get(getDataSourceToken());
+      return dataSource.destroy();
+    });
+
+    it(`should save entity with domain event "TEST_BASE_ENTITY_CREATED" and registry setters`, async () => {
+      const entity = TEST_BASE_ENTITIES_NEW[0];
+      const spyEmitAsync = jest.spyOn(moduleRef.get(EventEmitter2), 'emitAsync');
+
+      const setterRegistry = moduleRef.get(SETTER_REGISTRY_TENANT);
+      const allServicesSetters = setterRegistry.all();
+      jest.spyOn(setterRegistry, 'all').mockReturnValue(allServicesSetters);
+      const spyTenantSetterExecute = jest.spyOn(allServicesSetters.tenant, 'execute');
+
+      const saveSpy = jest.spyOn(repository, 'save');
+
+      jest.spyOn(RequestContextService, 'getCurrentUser').mockReturnValue(authUserData);
+
+      const created = await queryService.createOne(entity);
+
+      expect(spyTenantSetterExecute).toHaveBeenCalledTimes(1);
+      expect(spyEmitAsync).toHaveBeenCalledWith(
+        'TEST_BASE_ENTITY_CREATED',
+        expect.objectContaining(entity)
+      );
+      expect(saveSpy).toHaveBeenCalledTimes(1);
+      expect(created).toEqual(
+        expect.objectContaining({
+          ...entity,
+          tenant: authUserData.tenant,
+        })
+      );
+    });
+
+    it('should reject if the entity exist', async () => {
+      const entity = plainToClass(TestBaseEntity, TEST_BASE_ENTITIES_CREATED[0]);
+
+      return expect(queryService.createOne(entity)).rejects.toThrow('Entity already exists');
+    });
+  });
+
+  describe('#updateOne', () => {
+    transactionSupport('updateOne', TEST_SIMPLE_ENTITIES_CREATED[0].testEntityPk, {
+      stringType: 'updated',
+    });
+
+    let moduleRef: TestingModule;
+    let repository: Repository<TestSimpleEntity>;
+    let queryService: AppTypeOrmQueryService<TestBaseEntity>;
     let setterRegistry: Registry<EntitySetter<ObjectLiteral>>;
     let saveSpy: jest.SpyInstance<Promise<DeepPartial<TestSimpleEntity> & TestSimpleEntity>>;
 
@@ -256,7 +339,7 @@ describe('AppTypeOrmQueryService', () => {
 
       await dbRefresh({
         dataSource: moduleRef.get(getDataSourceToken()),
-        seeds: [TestEntitySeeder, TenantSeeder],
+        seeds: [TenantSeeder, TestEntitySeeder],
       });
 
       queryService = moduleRef.get(testingService);
@@ -270,54 +353,78 @@ describe('AppTypeOrmQueryService', () => {
       return dataSource.destroy();
     });
 
-    it(`should save entity with domain event "TEST_BASE_ENTITY_CREATED"`, async () => {
-      const entity = plainToClass(TestBaseEntity, TEST_SIMPLE_ENTITIES_NEW[0]);
-      const entityPublishEventsSpy = jest.spyOn(entity, 'addEvent');
+    it(`should update entity with domain event "TEST_BASE_ENTITY_UPDATED" and registry setters`, async () => {
+      const entity = TEST_BASE_ENTITIES_CREATED[0];
+      const toSave = plainToClass(TestBaseEntity, { stringType: 'updated' });
+      const spyEmitAsync = jest.spyOn(moduleRef.get(EventEmitter2), 'emitAsync');
+      const userData = authUserData;
+      userData.tenant = entity.tenant;
 
       const allServicesSetters = setterRegistry.all();
       jest.spyOn(setterRegistry, 'all').mockReturnValue(allServicesSetters);
-      
+
       const spyTenantSetterExecute = jest.spyOn(allServicesSetters.tenant, 'execute');
 
-      jest.spyOn(RequestContextService, "getCurrentUser")
-        .mockReturnValue(authUserData)
+      jest.spyOn(RequestContextService, 'getCurrentUser').mockReturnValue(authUserData);
 
-      const created = await queryService.createOne(entity);
+      const updated = await queryService.updateOne(entity.testEntityPk, toSave);
 
       expect(saveSpy).toHaveBeenCalledTimes(1);
-      expect(entityPublishEventsSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          eventName: 'TEST_BASE_ENTITY_CREATED',
-        })
+      expect(spyEmitAsync).toHaveBeenCalledWith(
+        'TEST_BASE_ENTITY_UPDATED',
+        expect.objectContaining({ ...entity, ...toSave })
       );
       expect(spyTenantSetterExecute).toHaveBeenCalledTimes(1);
-      expect(entityPublishEventsSpy).toHaveBeenCalledTimes(1);
-      expect(created).toEqual(expect.objectContaining({
-        ...TEST_SIMPLE_ENTITIES_NEW[0],
-        tenant: authUserData.tenant,
-      }));
+      expect(updated).toEqual(
+        expect.objectContaining({
+          ...TEST_BASE_ENTITIES_CREATED[0],
+          stringType: 'updated',
+          tenant: authUserData.tenant,
+        })
+      );
     });
 
-    it('should reject if the entity exist', async () => {
-      const entity = plainToClass(TestBaseEntity, TEST_BASE_ENTITIES_CREATED[0]);
+    it('should reject if id is specified in the sent data', async () => {
+      const entity = TEST_BASE_ENTITIES_CREATED[0];
 
-      return expect(queryService.createOne(entity)).rejects.toThrow('Entity already exists');
+      return expect(queryService.updateOne(entity.id, entity)).rejects.toThrow(
+        'Id cannot be specified when updating'
+      );
+    });
+
+    it('should reject if the entity does not exist', async () => {
+      const entity = omit(TEST_BASE_ENTITIES_NEW[0], ['testEntityPk']);
+      const id = 'test-id';
+
+      return expect(queryService.updateOne('test-id', entity)).rejects.toThrow(
+        `Unable to find TestBaseEntity with id: ${id}`
+      );
+    });
+
+    it('should reject if the entity does not exist with another tenant', async () => {
+      const userData = authUserData;
+      const entity = TEST_BASE_ENTITIES_CREATED[0];
+
+      userData.tenant = {
+        id: 'another-tenant-id',
+        name: 'another-tenant',
+      };
+
+      jest.spyOn(RequestContextService, 'getCurrentUser').mockReturnValue(authUserData);
+
+      return expect(queryService.updateOne(entity.testEntityPk, omit(TEST_BASE_ENTITIES_CREATED[0], ['testEntityPk']))).rejects.toThrow(
+        `Unable to find TestBaseEntity with id: ${entity.testEntityPk}`
+      );
     });
   });
 
-  // describe('#updateOne', () => {
-  //   transactionSupport('updateOne', TEST_SIMPLE_ENTITIES_CREATED[0].testEntityPk, {
-  //     stringType: 'updated',
-  //   });
-  // });
+  describe('#createWithRelations', () => {
+    transactionSupport('createWithRelations', TEST_SIMPLE_ENTITIES_NEW[0]);
+  });
 
-  // describe('#createWithRelations', () => {
-  //   transactionSupport('createWithRelations', TEST_SIMPLE_ENTITIES_NEW[0]);
-  // });
-
-  // describe('#updateWithRelations', () => {
-  //   transactionSupport('updateWithRelations', TEST_SIMPLE_ENTITIES_CREATED[0].testEntityPk, {
-  //     stringType: 'updated',
-  //   });
-  // });
+  describe('#updateWithRelations', () => {
+    transactionSupport('updateWithRelations', TEST_SIMPLE_ENTITIES_CREATED[0].testEntityPk, {
+      stringType: 'updated',
+    });
+  });
 });

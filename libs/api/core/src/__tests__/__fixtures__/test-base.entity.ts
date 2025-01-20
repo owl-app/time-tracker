@@ -1,7 +1,7 @@
 import {
   Column,
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   ManyToOne
 } from 'typeorm';
 
@@ -10,7 +10,7 @@ import { TenantEntity } from './tenant.entity';
 
 @Entity()
 export class TestBaseEntity extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid', { name: 'test_entity_pk' })
+  @PrimaryColumn('uuid', { name: 'test_entity_pk' })
   testEntityPk!: string;
 
   @Column({ name: 'string_type' })
