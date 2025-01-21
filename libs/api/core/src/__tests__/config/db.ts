@@ -2,6 +2,7 @@ import { SqliteConnectionOptions } from 'typeorm/driver/sqlite/SqliteConnectionO
 import { TestSimpleEntity } from '../__fixtures__/test-simple.entity';
 import { TestBaseEntity } from '../__fixtures__/test-base.entity';
 import { TenantEntity } from '../__fixtures__/tenant.entity';
+import { TestBaseRelation } from '../__fixtures__/test-base-relation.entity';
 
 export function getDbConfig(): SqliteConnectionOptions {
   return {
@@ -11,6 +12,7 @@ export function getDbConfig(): SqliteConnectionOptions {
     entities: [
       TestSimpleEntity,
       TestBaseEntity,
+      TestBaseRelation,
       TenantEntity,
     ],
     synchronize: true,

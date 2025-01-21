@@ -19,7 +19,7 @@ export async function truncateSQLiteDatabase(options?: DataSourceOptions) {
   const connection = await createSimpleSQLiteConnection(driver, driverOptions);
 
   connection.all(
-    `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';`,
+    `SELECT name FROM sqlite_master WHERE type='table'`,
     [],
     (error: any, tables: any[]) => {
       if (error) {

@@ -1,5 +1,6 @@
 import { AuthUserData, RolesEnum } from "@owl-app/lib-contracts";
 import { TEST_TENANT_CREATED } from "../seeds/data/tenant.data";
+import { TenantEntity } from "./tenant.entity";
 
 export const authUserData: AuthUserData = {
     id: 'test-id',
@@ -12,3 +13,8 @@ export const authUserData: AuthUserData = {
       'fields': ['test-field'],
     },
 }
+
+export const createAuthUserData = (tenant: TenantEntity): AuthUserData => ({
+  ...authUserData,
+  tenant,
+});
