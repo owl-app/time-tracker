@@ -499,6 +499,11 @@ describe('AppTypeOrmQueryService', () => {
       return expect(queryService.createOne(entity)).rejects.toThrow('Entity already exists');
     });
   });
+  describe('#updateWithRelations', () => {
+    transactionSupport('updateWithRelations', TEST_SIMPLE_ENTITIES_CREATED[0].testEntityPk, {
+      stringType: 'updated',
+    });
+  });
 
   // describe('#updateWithRelations', () => {
   //   transactionSupport('updateWithRelations', TEST_SIMPLE_ENTITIES_CREATED[0].testEntityPk, {
