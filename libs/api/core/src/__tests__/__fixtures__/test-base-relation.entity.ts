@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 
 import { TestBaseEntity } from './test-base.entity';
+import { TenantEntity } from './tenant.entity';
 
 @Entity()
 export class TestBaseRelation {
@@ -16,30 +17,35 @@ export class TestBaseRelation {
   testBaseRelationPk!: string;
 
   @Column({ name: 'relation_name' })
-  relationName!: string;
+  relationName?: string;
 
-  // @Column({ name: 'test_base_entity_id', nullable: true })
-  // testBaseEntityId?: string;
+  @Column({ name: 'test_base_entity_id', nullable: true })
+  testBaseEntityId?: string;
 
-  // @Column({ name: 'uni_directional_test_base_entity_id', nullable: true })
-  // uniDirectionalTestBaseEntityId?: string;
+  @ManyToOne('TenantEntity')
+  @JoinColumn({ name: 'tenant_id' })
+  tenant?: TenantEntity;
 
-  // @ManyToOne(() => TestBaseEntity, (te) => te.testBaseRelations, {
-  //   onDelete: 'CASCADE',
-  // })
-  // @JoinColumn({ name: 'test_base_entity_id' })
-  // testBaseEntity?: TestBaseEntity;
+  // relations
+  @Column({ name: 'uni_directional_test_base_entity_id', nullable: true })
+  uniDirectionalTestBaseEntityId?: string;
 
-  // @ManyToOne(() => TestBaseEntity, { onDelete: 'CASCADE' })
-  // @JoinColumn({ name: 'uni_directional_test_base_entity_id' })
-  // testBaseEntityUniDirectional?: TestBaseEntity;
+  @ManyToOne(() => TestBaseEntity, (te) => te.testBaseRelations, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'test_base_entity_id' })
+  testBaseEntity?: TestBaseEntity;
 
-  // @ManyToMany(() => TestBaseEntity, (te) => te.manyTestBaseRelations, {
-  //   onDelete: 'CASCADE',
-  //   nullable: false,
-  // })
-  // manyTestBaseEntities?: TestBaseEntity[];
+  @ManyToOne(() => TestBaseEntity, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'uni_directional_test_base_entity_id' })
+  testBaseEntityUniDirectional?: TestBaseEntity;
 
-  // @OneToOne(() => TestBaseEntity, (entity) => entity.oneTestBaseRelation)
-  // oneTestBaseEntity?: TestBaseEntity;
+  @ManyToMany(() => TestBaseEntity, (te) => te.manyTestBaseRelations, {
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
+  manyTestBaseEntities?: TestBaseEntity[];
+
+  @OneToOne(() => TestBaseEntity, (entity) => entity.oneTestBaseRelation)
+  oneTestBaseEntity?: TestBaseEntity;
 }

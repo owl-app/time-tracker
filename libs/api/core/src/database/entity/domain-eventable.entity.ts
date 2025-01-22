@@ -5,7 +5,7 @@ import { DomainEvent } from '../../event/domain-event.base';
 
 export default class DomainEventableEntity {
   @Exclude()
-  private availableDomainEvents: DomainEvent[] = [];
+  public availableDomainEvents: DomainEvent[] = [];
 
   get domainEvents(): DomainEvent[] {
     return this.availableDomainEvents;

@@ -94,8 +94,8 @@ export class AppTypeOrmQueryService<Entity>
 
     const entity = (await this.ensureIsEntityAndDoesNotExist(record)) as Entity;
 
-    if (record instanceof DomainEventableEntity) {
-      this.createEvent(this.events.EVENT_CREATED, entity as DomainEventableEntity);
+    if (entity instanceof DomainEventableEntity) {
+      this.createEvent(this.events.EVENT_CREATED, entity, entity);
     }
 
     if (this.useTransaction) {
@@ -124,8 +124,8 @@ export class AppTypeOrmQueryService<Entity>
     // @ts-ignore
     this.repo.merge(entity, update);
 
-    if (update instanceof DomainEventableEntity) {
-      this.createEvent(this.events.EVENT_UPDATED, entity as DomainEventableEntity);
+    if (entity instanceof DomainEventableEntity) {
+      this.createEvent(this.events.EVENT_UPDATED, entity, entity);
     }
 
     if (this.useTransaction) {
@@ -146,10 +146,11 @@ export class AppTypeOrmQueryService<Entity>
     filters?: Filter<Entity>,
     opts?: QueryOptions
   ): Promise<Entity> {
+    this.injectSetters(record as DeepPartial<Entity>);
+
     const entity = this.repo.create({} as Entity);
 
     this.copyRegularColumn(entity, record);
-    this.injectSetters(entity as DeepPartial<Entity>);
 
     if (filters) {
       await this.ensureEntityDoesNotExistByFilter(filters, opts);
@@ -157,8 +158,11 @@ export class AppTypeOrmQueryService<Entity>
       await this.ensureEntityDoesNotExist(entity);
     }
 
-    if (record instanceof DomainEventableEntity) {
-      this.createEvent(this.events.EVENT_CREATED, entity as DomainEventableEntity);
+    if (entity instanceof DomainEventableEntity) {
+      this.createEvent(this.events.EVENT_CREATED, entity, {
+        ...entity,
+        ...record,
+      });
     }
 
     if (this.useTransaction) {
@@ -188,6 +192,9 @@ export class AppTypeOrmQueryService<Entity>
     opts?: QueryOptions
   ): Promise<Entity> {
     this.ensureIdIsNotPresent(update);
+
+    this.injectSetters(update);
+
     let entity: Entity = null;
 
     if (typeof id === 'object') {
@@ -198,8 +205,11 @@ export class AppTypeOrmQueryService<Entity>
 
     this.copyRegularColumn(entity, update);
 
-    if (update instanceof DomainEventableEntity) {
-      this.createEvent(this.events.EVENT_UPDATED, entity as DomainEventableEntity);
+    if (entity instanceof DomainEventableEntity) {
+      this.createEvent(this.events.EVENT_UPDATED, entity, {
+        ...entity,
+        ...update,
+      });
     }
 
     if (this.useTransaction) {
@@ -228,7 +238,6 @@ export class AppTypeOrmQueryService<Entity>
     update: DeepPartial<Entity>,
     relation: RelationMetadata
   ): Promise<void> {
-    const entityRelatedValue = relation.getEntityValue(entity);
     const objectRelatedValue = relation.getEntityValue(update);
 
     if (objectRelatedValue === undefined) return;
@@ -237,9 +246,11 @@ export class AppTypeOrmQueryService<Entity>
       ? objectRelatedValue
       : [objectRelatedValue];
 
-    const existingRelations: Relation[] =
-      entityRelatedValue ??
-      (await this.createTypeormRelationQueryBuilder(entity, relation.propertyName).loadMany());
+    const existingRelations: Relation[] = await this.createTypeormRelationQueryBuilder(
+      entity,
+      relation.propertyName
+    ).loadMany();
+
     const relationQueryBuilder = this.getRelationQueryBuilder(
       relation.propertyName
     ).filterQueryBuilder;
@@ -330,11 +341,15 @@ export class AppTypeOrmQueryService<Entity>
     }
   }
 
-  private createEvent(name: string, entity: DomainEventableEntity): DomainEvent {
+  private createEvent(
+    name: string,
+    entity: DomainEventableEntity,
+    data: DomainEventableEntity
+  ): DomainEvent {
     const eventName = `${convertToSnakeCase(this.EntityClassName)}_${name}`;
     const event = new DomainEvent({ eventName });
 
-    Object.assign(event, cloneDeep(omit(entity, ['_domainEvents'])));
+    Object.assign(event, cloneDeep(omit(data, ['_domainEvents'])));
     entity.addEvent(event);
 
     return event;

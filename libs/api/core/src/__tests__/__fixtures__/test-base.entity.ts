@@ -31,32 +31,32 @@ export class TestBaseEntity extends BaseEntity {
   @Column({ name: 'date_type' })
   dateType!: Date;
 
-  @ManyToOne('TenantEntity', 'testBaseEntities')
+  @ManyToOne('TenantEntity')
   @JoinColumn({ name: 'tenant_id' })
   tenant?: TenantEntity;
 
-  // // relations
-  // @OneToMany('TestBaseRelation', 'testBaseEntity')
-  // testBaseRelations?: TestBaseRelation[];
+  // relations
+  @OneToMany('TestBaseRelation', 'testBaseEntity')
+  testBaseRelations?: TestBaseRelation[];
 
-  // @ManyToOne(() => TestBaseRelation, {
-  //   nullable: true,
-  // })
-  // @JoinColumn({ name: 'many_to_one_base_relation_id' })
-  // manyToOneBaseRelation?: TestBaseRelation;
+  @ManyToOne(() => TestBaseRelation, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'many_to_one_base_relation_id' })
+  manyToOneBaseRelation?: TestBaseRelation;
 
-  // @ManyToMany(() => TestBaseRelation, (tr) => tr.manyTestBaseEntities, {
-  //   onDelete: 'CASCADE',
-  //   nullable: false,
-  // })
-  // @JoinTable()
-  // manyTestBaseRelations?: TestBaseRelation[];
+  @ManyToMany(() => TestBaseRelation, (tr) => tr.manyTestBaseEntities, {
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
+  @JoinTable()
+  manyTestBaseRelations?: TestBaseRelation[];
 
-  // @ManyToMany(() => TestBaseRelation, { onDelete: 'CASCADE', nullable: false })
-  // @JoinTable()
-  // manyToManyUniDirectional?: TestBaseRelation[];
+  @ManyToMany(() => TestBaseRelation, { onDelete: 'CASCADE', nullable: false })
+  @JoinTable()
+  manyToManyUniDirectional?: TestBaseRelation[];
 
-  // @OneToOne(() => TestBaseRelation, (relation) => relation.oneTestBaseEntity)
-  // @JoinColumn()
-  // oneTestBaseRelation?: TestBaseRelation;
+  @OneToOne(() => TestBaseRelation, (relation) => relation.oneTestBaseEntity)
+  @JoinColumn()
+  oneTestBaseRelation?: TestBaseRelation;
 }
