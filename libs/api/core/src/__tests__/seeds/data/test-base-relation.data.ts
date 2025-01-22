@@ -14,3 +14,11 @@ export const TEST_BASE_RELATION_CREATED: TestBaseRelation[] = [1, 2, 3, 4, 5, 6,
     tenant: TEST_TENANT_CREATED[i-1],
   }
 )));
+
+export const TEST_BASE_RELATION_ASSIGNED: TestBaseRelation[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+  plainToClass(TestBaseRelation, {
+    testBaseRelationPk: faker.string.uuid(),
+    relationName: `test-relation-assigned-${i}`,
+    tenant: TEST_TENANT_CREATED[i-1],
+  }
+)));

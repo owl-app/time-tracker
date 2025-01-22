@@ -17,7 +17,6 @@ export class UserListFilter<Entity extends User> implements FilterQuery<Entity> 
     return (
       metadata.name === USER_ENTITY &&
       RequestContextService.getCurrentUser() &&
-      RequestContextService.getCurrentUser() &&
       (RequestContextService.getCurrentUser().roles.includes(RolesEnum.ROLE_ADMIN_COMPANY) ||
         RequestContextService.getCurrentUser().roles.includes(RolesEnum.ROLE_USER))
     );

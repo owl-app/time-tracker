@@ -1,4 +1,4 @@
-import { AuthUserData, RolesEnum } from "@owl-app/lib-contracts";
+import { AuthUserData, Role, RolesEnum } from "@owl-app/lib-contracts";
 import { TEST_TENANT_CREATED } from "../seeds/data/tenant.data";
 import { TenantEntity } from "./tenant.entity";
 
@@ -14,7 +14,15 @@ export const authUserData: AuthUserData = {
     },
 }
 
-export const createAuthUserData = (tenant: TenantEntity): AuthUserData => ({
-  ...authUserData,
-  tenant,
-});
+export const createAuthUserData = (tenant: TenantEntity, roles?: Role['name'][]): AuthUserData => {
+  const userData = {
+    ...authUserData,
+    tenant,
+  }
+
+  if (roles) {
+    userData.roles = roles;
+  }
+
+  return userData;
+};

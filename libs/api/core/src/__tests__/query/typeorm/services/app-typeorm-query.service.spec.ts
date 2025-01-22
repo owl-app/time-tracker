@@ -93,19 +93,6 @@ describe('AppTypeOrmQueryService', () => {
       inject.push(EventEmitter2);
     }
 
-    imports.push(
-      TypeOrmModule.forFeature({
-        entities: [
-          {
-            entity,
-            repository,
-            repositoryToken: getQueryServiceRepositoryToken(entity) as string,
-            inject,
-          },
-        ],
-      })
-    );
-
     const moduleRef = await Test.createTestingModule({
       imports: [
         ...imports,
@@ -116,6 +103,16 @@ describe('AppTypeOrmQueryService', () => {
             load: [registerAs(DB_CONFIG_NAME, () => Object.assign(getDbConfig()))],
           }),
           DatabaseModule,
+          TypeOrmModule.forFeature({
+            entities: [
+              {
+                entity,
+                repository,
+                repositoryToken: getQueryServiceRepositoryToken(entity) as string,
+                inject,
+              },
+            ],
+          }),
           RegistryServiceModule.forFeature<FilterQuery<ObjectLiteral>>({
             name: FILTER_REGISTRY_TENANT,
             services: {
@@ -240,6 +237,10 @@ describe('AppTypeOrmQueryService', () => {
     });
   }
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('#createOne', () => {
     transactionSupport('createOne', TEST_SIMPLE_ENTITIES_NEW[0]);
   });
@@ -360,7 +361,7 @@ describe('AppTypeOrmQueryService', () => {
     });
 
     it(`should update entity with domain event "TEST_BASE_ENTITY_UPDATED" and registry setters`, async () => {
-      const entity = TEST_BASE_ENTITIES_CREATED[0];
+      const entity = omit(TEST_BASE_ENTITIES_CREATED[0], 'testBaseRelations');
       const toSave = plainToClass(TestBaseEntity, { stringType: 'updated' });
       const spyEmitAsync = jest.spyOn(moduleRef.get(EventEmitter2), 'emitAsync');
       const userData = authUserData;
@@ -383,7 +384,7 @@ describe('AppTypeOrmQueryService', () => {
       expect(spyTenantSetterExecute).toHaveBeenCalledTimes(1);
       expect(updated).toEqual(
         expect.objectContaining({
-          ...TEST_BASE_ENTITIES_CREATED[0],
+          ...entity,
           stringType: 'updated',
           tenant: authUserData.tenant,
         })
@@ -480,7 +481,9 @@ describe('AppTypeOrmQueryService', () => {
 
       jest.spyOn(RequestContextService, 'getCurrentUser').mockReturnValue(userData);
 
-      const created = await queryService.createWithRelations(entity);
+      const created = await queryService.createWithRelations(entity, {
+        stringType: { eq: 'unique-name' },
+      });
 
       expect(spyTenantSetterExecute).toHaveBeenCalledTimes(1);
       expect(spyEmitAsync).toHaveBeenCalledWith(
@@ -497,7 +500,8 @@ describe('AppTypeOrmQueryService', () => {
     });
 
     describe('with relations', () => {
-      const createErrorMessage = (relation: string) => `Unable to find all ${relation} to add to TestBaseEntity`;
+      const createErrorMessage = (relation: string) =>
+        `Unable to find all ${relation} to add to TestBaseEntity`;
       const userData = createAuthUserData(TEST_TENANT_CREATED[0]);
 
       jest.spyOn(RequestContextService, 'getCurrentUser').mockReturnValue(userData);
@@ -552,7 +556,7 @@ describe('AppTypeOrmQueryService', () => {
 
         it(`should NOT save with another tenant`, async () => {
           const entity = plainToClass(TestBaseEntity, TEST_BASE_ENTITIES_NEW[0]);
-          entity.testBaseRelations = [TEST_BASE_RELATION_CREATED[2]];
+          entity.testBaseRelations = [TEST_BASE_RELATION_CREATED[0], TEST_BASE_RELATION_CREATED[2]];
 
           return expect(queryService.createWithRelations(entity)).rejects.toThrow(
             createErrorMessage('testBaseRelations')
@@ -609,7 +613,10 @@ describe('AppTypeOrmQueryService', () => {
 
         it(`should NOT save with another tenant`, async () => {
           const entity = plainToClass(TestBaseEntity, TEST_BASE_ENTITIES_NEW[0]);
-          entity.manyTestBaseRelations = [TEST_BASE_RELATION_CREATED[2]];
+          entity.manyTestBaseRelations = [
+            TEST_BASE_RELATION_CREATED[0],
+            TEST_BASE_RELATION_CREATED[2],
+          ];
 
           return expect(queryService.createWithRelations(entity)).rejects.toThrow(
             createErrorMessage('manyTestBaseRelations')
@@ -639,7 +646,10 @@ describe('AppTypeOrmQueryService', () => {
 
         it(`should NOT save with another tenant`, async () => {
           const entity = plainToClass(TestBaseEntity, TEST_BASE_ENTITIES_NEW[0]);
-          entity.manyToManyUniDirectional = [TEST_BASE_RELATION_CREATED[2]];
+          entity.manyToManyUniDirectional = [
+            TEST_BASE_RELATION_CREATED[0],
+            TEST_BASE_RELATION_CREATED[2],
+          ];
 
           return expect(queryService.createWithRelations(entity)).rejects.toThrow(
             createErrorMessage('manyToManyUniDirectional')
@@ -651,13 +661,329 @@ describe('AppTypeOrmQueryService', () => {
     it('should reject if the entity exist', async () => {
       const entity = plainToClass(TestBaseEntity, TEST_BASE_ENTITIES_CREATED[0]);
 
-      return expect(queryService.createOne(entity)).rejects.toThrow('Entity already exists');
+      return expect(queryService.createWithRelations(entity)).rejects.toThrow(
+        'Entity already exists'
+      );
+    });
+
+    it('should reject if the entity exist by filter', async () => {
+      const entity = plainToClass(TestBaseEntity, TEST_BASE_ENTITIES_CREATED[0]);
+
+      return expect(
+        queryService.createWithRelations(entity, {
+          testEntityPk: { eq: TEST_BASE_ENTITIES_CREATED[0].testEntityPk },
+        })
+      ).rejects.toThrow('Entity already exists');
     });
   });
 
   describe('#updateWithRelations', () => {
-    transactionSupport('updateWithRelations', TEST_SIMPLE_ENTITIES_CREATED[0].testEntityPk, {
+    transactionSupport('updateWithRelations',  TEST_SIMPLE_ENTITIES_CREATED[0].testEntityPk, {
       stringType: 'updated',
+    });
+  });
+
+  describe('#updateWithRelations', () => {
+    let moduleRef: TestingModule;
+    let repository: Repository<TestSimpleEntity>;
+    let queryService: AppTypeOrmQueryService<TestBaseEntity>;
+
+    beforeAll(async () => {
+      await dbInitializer(getDbConfig());
+    });
+
+    beforeEach(async () => {
+      const [testingModule, testingService] = await createTest(
+        TestBaseEntity,
+        BaseRepository,
+        true,
+        true
+      );
+
+      moduleRef = testingModule;
+
+      repository = moduleRef.get(getQueryServiceRepositoryToken(TestBaseEntity));
+
+      await dbRefresh({
+        dataSource: moduleRef.get(getDataSourceToken()),
+        seeds: [TenantSeeder, TestEntitySeeder],
+      });
+
+      queryService = moduleRef.get(testingService);
+    });
+
+    afterEach(async () => {
+      const dataSource = moduleRef.get(getDataSourceToken());
+      await dataSource.destroy();
+      await moduleRef.close();
+    });
+
+    it(`should update entity without relations with domain event "TEST_BASE_ENTITY_CREATED" and registry setters`, async () => {
+      const entity = omit(TEST_BASE_ENTITIES_CREATED[0], 'testBaseRelations');
+      const toSave = plainToClass(TestBaseEntity, { stringType: 'updated' });
+      const spyEmitAsync = jest.spyOn(moduleRef.get(EventEmitter2), 'emitAsync');
+      const userData = createAuthUserData(entity.tenant);
+
+      const setterRegistry = moduleRef.get(SETTER_REGISTRY_TENANT);
+      const allServicesSetters = setterRegistry.all();
+      jest.spyOn(setterRegistry, 'all').mockReturnValue(allServicesSetters);
+      const spyTenantSetterExecute = jest.spyOn(allServicesSetters.tenant, 'execute');
+
+      const saveSpy = jest.spyOn(repository, 'save');
+
+      jest.spyOn(RequestContextService, 'getCurrentUser').mockReturnValue(userData);
+
+      const updated = await queryService.updateWithRelations(
+        { testEntityPk: { eq: entity.testEntityPk } },
+        toSave
+      );
+
+      expect(spyTenantSetterExecute).toHaveBeenCalledTimes(1);
+      expect(saveSpy).toHaveBeenCalledTimes(1);
+      expect(spyEmitAsync).toHaveBeenCalledWith(
+        'TEST_BASE_ENTITY_UPDATED',
+        expect.objectContaining({ ...entity, ...toSave })
+      );
+      expect(spyTenantSetterExecute).toHaveBeenCalledTimes(1);
+      expect(updated).toEqual(
+        expect.objectContaining({
+          ...entity,
+          stringType: 'updated',
+          tenant: userData.tenant,
+        })
+      );
+    });
+
+    it('should reject if id is specified in the sent data', async () => {
+      const entity = TEST_BASE_ENTITIES_CREATED[0];
+
+      return expect(queryService.updateWithRelations(entity.id, entity)).rejects.toThrow(
+        'Id cannot be specified when updating'
+      );
+    });
+
+    it('should reject if the entity does not exist', async () => {
+      const entity = omit(TEST_BASE_ENTITIES_NEW[0], ['testEntityPk']);
+      const id = 'test-id';
+
+      return expect(queryService.updateWithRelations('test-id', entity)).rejects.toThrow(
+        `Unable to find TestBaseEntity with id: ${id}`
+      );
+    });
+
+    it('should reject if the entity does not exist by filter', async () => {
+      const entity = omit(TEST_BASE_ENTITIES_NEW[0], ['testEntityPk']);
+      const filter = { testEntityPk: { eq: 'test-id' } };
+
+      return expect(queryService.updateWithRelations(filter, entity)).rejects.toThrow(
+        `Entity not found`
+      );
+    });
+
+    it('should reject if multiple entities find by filter', async () => {
+      const userData = createAuthUserData({ id: 'another-tenant-id', name: 'another-tenant' }, [
+        'ROLE_ADMIN_SYSTEM',
+      ]);
+      const entity = omit(TEST_BASE_ENTITIES_NEW[0], ['testEntityPk']);
+      const filter = { stringType: { like: 'test%' } };
+
+      jest.spyOn(RequestContextService, 'getCurrentUser').mockReturnValue(userData);
+
+      return expect(queryService.updateWithRelations(filter, entity)).rejects.toThrow(
+        `Multiple entities found`
+      );
+    });
+
+    it('should reject if the entity does not exist with another tenant', async () => {
+      const userData = createAuthUserData({ id: 'another-tenant-id', name: 'another-tenant' });
+      const entity = TEST_BASE_ENTITIES_CREATED[0];
+
+      jest.spyOn(RequestContextService, 'getCurrentUser').mockReturnValue(userData);
+
+      return expect(
+        queryService.updateWithRelations(
+          entity.testEntityPk,
+          omit(TEST_BASE_ENTITIES_CREATED[0], ['testEntityPk'])
+        )
+      ).rejects.toThrow(`Unable to find TestBaseEntity with id: ${entity.testEntityPk}`);
+    });
+
+    describe('with relations', () => {
+      const createErrorMessage = (relation: string) =>
+        `Unable to find all ${relation} to add to TestBaseEntity`;
+      const userData = createAuthUserData(TEST_TENANT_CREATED[0]);
+      const entity = TEST_BASE_ENTITIES_CREATED[0];
+
+      beforeEach(() => {
+        jest.spyOn(RequestContextService, 'getCurrentUser').mockReturnValue(userData);
+      });
+
+      describe('#OneToOne', () => {
+        it(`should save with the same tenant`, async () => {
+          const toSave = plainToClass(TestBaseEntity, {
+            stringType: 'updated',
+            oneTestBaseRelation: TEST_BASE_RELATION_CREATED[0],
+          });
+
+          const updated = await queryService.updateWithRelations(entity.testEntityPk, toSave);
+
+          expect(updated).toEqual(
+            expect.objectContaining({
+              stringType: 'updated',
+              tenant: userData.tenant,
+              oneTestBaseRelation: expect.objectContaining({
+                testBaseRelationPk: toSave.oneTestBaseRelation.testBaseRelationPk,
+              }),
+            })
+          );
+        });
+
+        it(`should NOT save with another tenant`, async () => {
+          const toSave = plainToClass(TestBaseEntity, {
+            oneTestBaseRelation: TEST_BASE_RELATION_CREATED[2],
+          });
+
+          return expect(
+            queryService.updateWithRelations(entity.testEntityPk, toSave)
+          ).rejects.toThrow(createErrorMessage('oneTestBaseRelation'));
+        });
+      });
+
+      describe('#OneToMany', () => {
+        it(`should save with the same tenant`, async () => {
+          const toSave = plainToClass(TestBaseEntity, {
+            stringType: 'updated',
+            testBaseRelations: [TEST_BASE_RELATION_CREATED[0], entity.testBaseRelations[0]],
+          });
+
+          const updated = await queryService.updateWithRelations(entity.testEntityPk, toSave);
+
+          expect(updated).toEqual(
+            expect.objectContaining({
+              stringType: 'updated',
+              tenant: userData.tenant,
+              testBaseRelations: expect.arrayContaining([
+                expect.objectContaining({
+                  testBaseRelationPk: toSave.testBaseRelations[0].testBaseRelationPk,
+                }),
+                expect.objectContaining({
+                  testBaseRelationPk: toSave.testBaseRelations[1].testBaseRelationPk,
+                }),
+              ]),
+            })
+          );
+        });
+
+        it(`should NOT save with another tenant`, async () => {
+          const toSave = plainToClass(TestBaseEntity, {
+            testBaseRelations: [TEST_BASE_RELATION_CREATED[0], TEST_BASE_RELATION_CREATED[2]],
+          });
+
+          return expect(
+            queryService.updateWithRelations(entity.testEntityPk, toSave)
+          ).rejects.toThrow(createErrorMessage('testBaseRelations'));
+        });
+      });
+
+      describe('#ManyToOne', () => {
+        it(`should save with the same tenant`, async () => {
+          const toSave = plainToClass(TestBaseEntity, {
+            stringType: 'updated',
+            manyToOneBaseRelation: TEST_BASE_RELATION_CREATED[0],
+          });
+
+          const updated = await queryService.updateWithRelations(entity.testEntityPk, toSave);
+
+          expect(updated).toEqual(
+            expect.objectContaining({
+              stringType: 'updated',
+              tenant: userData.tenant,
+              manyToOneBaseRelation: expect.objectContaining({
+                testBaseRelationPk: toSave.manyToOneBaseRelation.testBaseRelationPk,
+              }),
+            })
+          );
+        });
+
+        it(`should NOT save with another tenant`, async () => {
+          const toSave = plainToClass(TestBaseEntity, {
+            manyToOneBaseRelation: TEST_BASE_RELATION_CREATED[2],
+          });
+
+          return expect(
+            queryService.updateWithRelations(entity.testEntityPk, toSave)
+          ).rejects.toThrow(createErrorMessage('manyToOneBaseRelation'));
+        });
+      });
+
+      describe('#ManyToMany', () => {
+        it(`should save with the same tenant`, async () => {
+          const toSave = plainToClass(TestBaseEntity, {
+            stringType: 'updated',
+            manyTestBaseRelations: [TEST_BASE_RELATION_CREATED[0]],
+          });
+
+          const updated = await queryService.updateWithRelations(entity.testEntityPk, toSave);
+
+          expect(updated).toEqual(
+            expect.objectContaining({
+              stringType: 'updated',
+              tenant: userData.tenant,
+              manyTestBaseRelations: expect.arrayContaining([
+                expect.objectContaining({
+                  testBaseRelationPk: toSave.manyTestBaseRelations[0].testBaseRelationPk,
+                }),
+              ]),
+            })
+          );
+        });
+
+        it(`should NOT save with another tenant`, async () => {
+          const toSave = plainToClass(TestBaseEntity, {
+            manyTestBaseRelations: [TEST_BASE_RELATION_CREATED[0], TEST_BASE_RELATION_CREATED[2]],
+          });
+
+          return expect(
+            queryService.updateWithRelations(entity.testEntityPk, toSave)
+          ).rejects.toThrow(createErrorMessage('manyTestBaseRelations'));
+        });
+      });
+
+      describe('#ManyToMany UniDirectional', () => {
+        it(`should save with the same tenant`, async () => {
+          const toSave = plainToClass(TestBaseEntity, {
+            stringType: 'updated',
+            manyToManyUniDirectional: [TEST_BASE_RELATION_CREATED[0]],
+          });
+
+          const updated = await queryService.updateWithRelations(entity.testEntityPk, toSave);
+
+          expect(updated).toEqual(
+            expect.objectContaining({
+              stringType: 'updated',
+              tenant: userData.tenant,
+              manyToManyUniDirectional: expect.arrayContaining([
+                expect.objectContaining({
+                  testBaseRelationPk: toSave.manyToManyUniDirectional[0].testBaseRelationPk,
+                }),
+              ]),
+            })
+          );
+        });
+
+        it(`should NOT save with another tenant`, async () => {
+          const toSave = plainToClass(TestBaseEntity, {
+            manyToManyUniDirectional: [
+              TEST_BASE_RELATION_CREATED[0],
+              TEST_BASE_RELATION_CREATED[2],
+            ],
+          });
+
+          return expect(
+            queryService.updateWithRelations(entity.testEntityPk, toSave)
+          ).rejects.toThrow(createErrorMessage('manyToManyUniDirectional'));
+        });
+      });
     });
   });
 });

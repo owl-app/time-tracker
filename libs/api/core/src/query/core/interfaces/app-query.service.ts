@@ -10,6 +10,8 @@ export interface AppQueryService<DTO, C = DeepPartial<DTO>, U = DeepPartial<DTO>
   extends QueryService<DTO, C, U> {
   query(query: Query<DTO>, opts?: QueryOptions): Promise<DTO[]>;
 
+  queryOne(query: Query<DTO>, opts?: QueryOptions): Promise<DTO>;
+
   createWithRelations(item: C, filter?: Filter<DTO>, opts?: QueryOptions): Promise<DTO>;
 
   updateWithRelations(

@@ -73,20 +73,18 @@ export class AppTypeOrmQueryService<Entity>
     return qb.getMany();
   }
 
-  async findByFilter(filter: Filter<Entity>, opts?: WithDeleted): Promise<Entity> {
-    const qb = this.filterQueryBuilder.select({ filter });
+  public async queryOne(query: Query<Entity>, opts?: QueryOptions): Promise<Entity> {
+    const result = await this.query(query, opts);
 
-    if (opts?.withDeleted) {
-      qb.withDeleted();
-    }
-
-    const entity = await qb.getOne();
-
-    if (!entity) {
+    if (result.length === 0) {
       throw new NotFoundException('Entity not found');
     }
 
-    return entity;
+    if (result.length > 1) {
+      throw new Error('Multiple entities found');
+    }
+
+    return result[0];
   }
 
   public async createOne(record: DeepPartial<Entity>): Promise<Entity> {
@@ -198,7 +196,7 @@ export class AppTypeOrmQueryService<Entity>
     let entity: Entity = null;
 
     if (typeof id === 'object') {
-      entity = (await this.query({ filter: id }, opts))?.[0];
+      entity = (await this.queryOne({ filter: id }, opts));
     } else {
       entity = await this.getById(id, opts);
     }
