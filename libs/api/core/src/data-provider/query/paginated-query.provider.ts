@@ -34,7 +34,7 @@ export class PaginatedDataProvider<Entity, FiltersData>
 
     if (paginationQuery) {
       query.paging = {
-        limit: this.paginationConfig.perPage ?? 10,
+        limit: this.paginationConfig?.perPage ?? 10,
         offset: 0,
       };
 
@@ -44,7 +44,7 @@ export class PaginatedDataProvider<Entity, FiltersData>
 
       if (
         paginationQuery.limit &&
-        this.paginationConfig.availablePerPage.indexOf(paginationQuery.limit)
+        this.paginationConfig.availablePerPage.indexOf(paginationQuery.limit) !== -1
       ) {
         query.paging.limit = paginationQuery.limit;
       }

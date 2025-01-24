@@ -31,6 +31,9 @@ export class TestBaseEntity extends BaseEntity {
   @Column({ name: 'date_type' })
   dateType!: Date;
 
+  @Column({ name: 'archived' })
+  archived!: boolean;
+
   @ManyToOne('TenantEntity')
   @JoinColumn({ name: 'tenant_id' })
   tenant?: TenantEntity;
