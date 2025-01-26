@@ -64,7 +64,7 @@ export class StringFilter<Entity> implements Filter<FilterQueryService<Entity>> 
 
     if (
       isEmpty(data?.type) ||
-      (![StringFilter.TYPE_NOT_EMPTY, StringFilter.TYPE_EMPTY].indexOf(data.type) &&
+      ([StringFilter.TYPE_NOT_EMPTY, StringFilter.TYPE_EMPTY].indexOf(data.type) === -1 &&
         isEmpty(data.value))
     )
       return {};

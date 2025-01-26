@@ -49,57 +49,65 @@ import { ListFilterBuilder } from '../../../__fixtures__/list-filter.builder';
 import { getPaginatedQueryServiceToken } from '../../../../data-provider/query/decorators/helpers';
 import { FilterBaseEntityDto } from '../../../__fixtures__/dto/filter-base-entity.dto';
 import { Paginated } from '../../../../pagination/pagination';
-import { DataProvider } from '../../../../data-provider/data.provider';
+import { DataProvider, SortDirection } from '../../../../data-provider/data.provider';
 import { AppAssemblerQueryService } from '../../../../query/core/services/app-assembler-query.service';
 import { TestBaseAssembler } from '../../../__fixtures__/assembler/test-base.assembler';
 import config, { PAGINATION_CONFIG_NAME } from '../../../../config';
+import { StringFilter } from '../../../../data-provider/query/filters/string';
 
 describe('PaginatedQueryProvider', () => {
   let moduleRef: TestingModule;
-  let paginatedQueryService: DataProvider<Paginated<TestBaseEntity>, FilterBaseEntityDto, TestBaseEntity>;
+  let paginatedQueryService: DataProvider<
+    Paginated<TestBaseEntity>,
+    FilterBaseEntityDto,
+    TestBaseEntity
+  >;
   const exceptedBaseEntity = {
     testEntityPk: expect.any(String),
     stringType: expect.any(String),
     boolType: expect.any(Boolean),
     numberType: expect.any(Number),
-    dateType: expect.any(Date)
+    dateType: expect.any(Date),
+    tenant: expect.objectContaining({
+      id: expect.any(String),
+      name: expect.any(String),
+    }),
   };
 
   beforeEach(async () => {
     moduleRef = await Test.createTestingModule({
       imports: [
-          RequestContextModule,
-          ConfigModule.forRoot({
-            isGlobal: true,
-            load: [
-                registerAs(PAGINATION_CONFIG_NAME, () => ({
-                    perPage: 10,
-                    availablePerPage: [5, 20, 50, 100],
-                  })
-                ),
-                registerAs(DB_CONFIG_NAME, () => Object.assign(getDbConfig())),
-              ],
-          }),
-          DatabaseModule,
-          EventEmitterModule.forRoot({
-            ignoreErrors: true,
-          }),
-          AppNestjsQueryTypeOrmModule.forFeature({
-            entities: [
-              {
-                entity: TestBaseEntity,
-                repository: BaseRepository,
-                inject: [EventEmitter2],
-                dataProvider: {
-                  filterBuilder: ListFilterBuilder,
-                },
-                assembler: {
-                  classService: AppAssemblerQueryService,
-                  classAssembler: TestBaseAssembler,
-                },
+        RequestContextModule,
+        ConfigModule.forRoot({
+          isGlobal: true,
+          load: [
+            registerAs(PAGINATION_CONFIG_NAME, () => ({
+              perPage: 10,
+              availablePerPage: [5, 20, 50, 100],
+            })),
+            registerAs(DB_CONFIG_NAME, () => Object.assign(getDbConfig())),
+          ],
+        }),
+        DatabaseModule,
+        EventEmitterModule.forRoot({
+          ignoreErrors: true,
+        }),
+        AppNestjsQueryTypeOrmModule.forFeature({
+          entities: [
+            {
+              entity: TestBaseEntity,
+              repository: BaseRepository,
+              inject: [EventEmitter2],
+              dataProvider: {
+                filterBuilder: ListFilterBuilder,
               },
-            ],
-          }),
+              assembler: {
+                classService: AppAssemblerQueryService,
+                classAssembler: TestBaseAssembler,
+              },
+            },
+          ],
+        }),
       ],
     }).compile();
 
@@ -118,58 +126,115 @@ describe('PaginatedQueryProvider', () => {
   });
 
   it('should return all entites without paging and filters', async () => {
-    const { items, metadata} = await paginatedQueryService.getData(
-      {},
-      null
-    );
+    const { items, metadata } = await paginatedQueryService.getData({}, null);
 
-    expect(metadata.total).toEqual(TEST_BASE_ENTITIES_CREATED.length)
-    expect(items).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          testEntityPk: expect.any(String),
-          stringType: expect.any(String),
-          boolType: expect.any(Boolean),
-          numberType: expect.any(Number),
-          dateType: expect.any(Date)
-        }),
-      ])
-    );
+    expect(metadata.total).toEqual(TEST_BASE_ENTITIES_CREATED.length);
+    expect(items).toEqual(expect.arrayContaining([expect.objectContaining(exceptedBaseEntity)]));
   });
 
   it('should apply a paging ', async () => {
-    const { items, metadata } = await paginatedQueryService.getData(
-      {},
-      { page: 1, limit: 5 }
-    );
+    const { items, metadata } = await paginatedQueryService.getData({}, { page: 1, limit: 5 });
 
-    expect(metadata.total).toEqual(TEST_BASE_ENTITIES_CREATED.length)
-    expect(items.length).toEqual(5)
-    expect(items).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining(exceptedBaseEntity),
-      ])
-    );
+    expect(metadata.total).toEqual(TEST_BASE_ENTITIES_CREATED.length);
+    expect(items.length).toEqual(5);
+    expect(items).toEqual(expect.arrayContaining([expect.objectContaining(exceptedBaseEntity)]));
   });
 
-  it('should apply string filter by "stringType"', async () => {
-    const { items, metadata } = await paginatedQueryService.getData(
-      {
-        search:  {
-          type: 'equal',
-          value: 'test-base-created-1'
-        }
-      },
-      { page: 1, limit: 5 }
+  describe.each([
+    {
+      filter: { type: StringFilter.TYPE_EQUAL, value: 'test-base-created-1' },
+      count: 1,
+      equalEntity: TEST_BASE_ENTITIES_CREATED[0],
+    },
+    {
+      filter: { type: StringFilter.TYPE_NOT_EQUAL, value: 'test-base-created-1' },
+      count: 9,
+    },
+    {
+      filter: { type: StringFilter.TYPE_EMPTY },
+      count: 0,
+    },
+    {
+      filter: { type: StringFilter.TYPE_NOT_EMPTY },
+      count: 10,
+    },
+    {
+      filter: { type: StringFilter.TYPE_CONTAINS, value: 'test' },
+      count: 10,
+    },
+    {
+      filter: { type: StringFilter.TYPE_NOT_CONTAINS, value: 'test-base-created-1' },
+      count: 8,
+    },
+    {
+      filter: { type: StringFilter.TYPE_STARTS_WITH, value: 'test-base-created-1' },
+      count: 2,
+    },
+    {
+      filter: { type: StringFilter.TYPE_ENDS_WITH, value: '10' },
+      count: 1,
+      equalEntity: TEST_BASE_ENTITIES_CREATED[9],
+    },
+    {
+      filter: { type: StringFilter.TYPE_IN, value: 'test-base-created-1,test-base-created-2' },
+      count: 2,
+    },
+    {
+      filter: { type: StringFilter.TYPE_NOT_IN, value: 'test-base-created-1,test-base-created-2' },
+      count: 8,
+    },
+  ])('filter with string filter by field "stringType"', (item) => {
+    it(`should apply string filter #${item.filter.type}`, async () => {
+      const { items, metadata } = await paginatedQueryService.getData({
+        search: item.filter,
+      });
+
+      expect(metadata.total).toEqual(item.count);
+
+      if (item.equalEntity) {
+        expect(items).toEqual([
+          {
+            testEntityPk: item.equalEntity.testEntityPk,
+            stringType: item.equalEntity.stringType,
+            boolType: item.equalEntity.boolType,
+            numberType: item.equalEntity.numberType,
+            dateType: item.equalEntity.dateType,
+            tenant: item.equalEntity.tenant,
+          },
+        ]);
+      }
+    });
+  });
+
+  it('should apply a sorting ', async () => {
+    const { items, metadata } = await paginatedQueryService.getData({}, null, {
+      field: 'numberType',
+      direction: SortDirection.DESC,
+    });
+
+    const highestNumberType = TEST_BASE_ENTITIES_CREATED.reduce(
+      (maxObj, item) => (item.numberType > maxObj.numberType ? item : maxObj),
+    { numberType: -Infinity }
     );
 
-    expect(metadata.total).toEqual(1)
-    expect(items).toEqual([{
-      testEntityPk: TEST_BASE_ENTITIES_CREATED[0].testEntityPk,
-      stringType: TEST_BASE_ENTITIES_CREATED[0].stringType,
-      boolType: TEST_BASE_ENTITIES_CREATED[0].boolType,
-      numberType: TEST_BASE_ENTITIES_CREATED[0].numberType,
-      dateType: TEST_BASE_ENTITIES_CREATED[0].dateType
-    }]);
+    expect(metadata.total).toEqual(TEST_BASE_ENTITIES_CREATED.length);
+    expect(items[0]).toEqual({
+      testEntityPk: highestNumberType.testEntityPk,
+      stringType: highestNumberType.stringType,
+      boolType: highestNumberType.boolType,
+      numberType: highestNumberType.numberType,
+      dateType: highestNumberType.dateType,
+      tenant: highestNumberType.tenant,
+    });
+  });
+
+  it('should reject if string filter not supported', async () => {
+    const filter = { type: 'not_supported', value: 'test' };
+
+    expect(
+      paginatedQueryService.getData({
+        search: filter,
+      })
+    ).rejects.toThrow(`Filter ${filter.type} not supported`);
   });
 });

@@ -1,6 +1,6 @@
 import { SelectQueryBuilder } from 'typeorm';
 
-import { Filter } from '@owl-app/nestjs-query-core';
+import { Filter, SelectRelation } from '@owl-app/nestjs-query-core';
 
 import { QueryFilterBuilder } from '../../data-provider/query/query-filter.builder';
 
@@ -20,5 +20,9 @@ export class ListFilterBuilder extends QueryFilterBuilder<TestBaseEntity, Filter
 
   buildCustom(filters: FilterBaseEntityDto, qb: SelectQueryBuilder<TestBaseEntity>): void {
     this.filterCustomRegistry.get('archived').apply(filters, qb);
+  }
+
+  buildRelations(): SelectRelation<TestBaseEntity>[] {
+    return [{ name: 'tenant', query: {} }];
   }
 }
