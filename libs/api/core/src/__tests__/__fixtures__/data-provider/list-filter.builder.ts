@@ -2,10 +2,10 @@ import { SelectQueryBuilder } from 'typeorm';
 
 import { Filter, SelectRelation } from '@owl-app/nestjs-query-core';
 
-import { QueryFilterBuilder } from '../../data-provider/query/query-filter.builder';
+import { QueryFilterBuilder } from '../../../data-provider/query/query-filter.builder';
 
-import { FilterBaseEntityDto } from './dto/filter-base-entity.dto';
-import { TestBaseEntity } from './test-base.entity';
+import { FilterBaseEntityDto } from '../dto/filter-base-entity.dto';
+import { TestBaseEntity } from '../test-base.entity';
 
 export class ListFilterBuilder extends QueryFilterBuilder<TestBaseEntity, FilterBaseEntityDto> {
   build(data: FilterBaseEntityDto): Filter<TestBaseEntity> {

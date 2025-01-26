@@ -19,7 +19,7 @@ import { Public } from '@owl-app/lib-api-core/metadata/route';
 import { ApiErrorValidationResponse } from '@owl-app/lib-api-core/api/api-error-validation.response';
 import { ApiErrorResponse } from '@owl-app/lib-api-core/api/api-error.response';
 import { Token } from '@owl-app/lib-api-core/passport/jwt-token.interface';
-import { type IJwtConfig, JWT_CONFIG_PROVIDER } from '@owl-app/lib-api-core/config';
+import { type JwtConfig, JWT_CONFIG_PROVIDER } from '@owl-app/lib-api-core/config';
 import { ValibotValidationPipe } from '@owl-app/lib-api-core/validation/valibot.pipe';
 
 import { InvalidAuthenticationError } from '../../../domain/auth.errors';
@@ -35,7 +35,7 @@ export class LoginController {
   constructor(
     private readonly commandBus: CommandBus,
     @Inject(JWT_CONFIG_PROVIDER)
-    private jwtConfig: IJwtConfig
+    private jwtConfig: JwtConfig
   ) {}
 
   @ApiOperation({ description: 'login' })

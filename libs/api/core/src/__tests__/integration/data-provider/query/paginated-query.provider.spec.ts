@@ -1,59 +1,35 @@
-import { ObjectLiteral, Repository } from 'typeorm';
-import { plainToClass } from 'class-transformer';
-import { omit } from 'lodash';
-
-import { Inject } from '@nestjs/common';
-import { EntityClassOrSchema } from '@nestjs/typeorm/dist/interfaces/entity-class-or-schema.type';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import { ConfigModule, registerAs } from '@nestjs/config';
 
-import { Registry } from '@owl-app/registry';
-import { DeepPartial } from '@owl-app/nestjs-query-core';
-import { TenantAware } from '@owl-app/lib-contracts';
-import { Class } from '@owl-app/types';
-import { dbInitializer, dbRefresh } from '@owl-app/testing';
-import { RegistryServiceModule } from '@owl-app/registry-nestjs';
+import { ArchiveOptions } from '@owl-app/lib-contracts';
+import { dbRefresh } from '@owl-app/testing';
 import { RequestContextModule } from '@owl-app/request-context-nestjs';
 
-import { RequestContextService } from '../../../../context/app-request-context';
 import { DB_CONFIG_NAME } from '../../../../config/db';
-import { AppTypeOrmQueryService } from '../../../../query/typeorm/services/app-typeorm-query.service';
-import { InjectQueryServiceRepository } from '../../../../query/common/repository.decorator';
-import { TypeOrmModule } from '../../../../typeorm/typeorm.module';
 import { BaseRepository } from '../../../../database/repository/base.repository';
-import { TestSimpleEntity } from '../../../__fixtures__/test-simple.entity';
 import { TestBaseEntity } from '../../../__fixtures__/test-base.entity';
 import { getDbConfig } from '../../../config/db';
-import { getQueryServiceRepositoryToken } from '../../../../query/common/repository.utils';
 import TestEntitySeeder from '../../../seeds/test-entity.seed';
 import TenantSeeder from '../../../seeds/tenant.seed';
 import { DatabaseModule } from '../../../../database/database.module';
 import {
   TEST_BASE_ENTITIES_CREATED,
-  TEST_BASE_ENTITIES_NEW,
-  TEST_SIMPLE_ENTITIES_CREATED,
-  TEST_SIMPLE_ENTITIES_NEW,
 } from '../../../seeds/data/tes-base-entity.data';
-import { FILTER_REGISTRY_TENANT, SETTER_REGISTRY_TENANT } from '../../../../registry/constants';
-import { FilterQuery } from '../../../../registry/interfaces/filter-query';
-import { TenantRelationFilter } from '../../../../typeorm/filters/tenant-relation.filter';
-import { TenantRelationSetter } from '../../../../typeorm/setters/tenant-relation.setter';
-import { EntitySetter } from '../../../../registry/interfaces/entity-setter';
-import { authUserData, createAuthUserData } from '../../../__fixtures__/auth-user.data';
-import { TEST_TENANT_CREATED } from '../../../seeds/data/tenant.data';
-import { TEST_BASE_RELATION_CREATED } from '../../../seeds/data/test-base-relation.data';
 import { AppNestjsQueryTypeOrmModule } from '../../../../query/module';
-import { ListFilterBuilder } from '../../../__fixtures__/list-filter.builder';
+import { ListFilterBuilder } from '../../../__fixtures__/data-provider/list-filter.builder';
 import { getPaginatedQueryServiceToken } from '../../../../data-provider/query/decorators/helpers';
 import { FilterBaseEntityDto } from '../../../__fixtures__/dto/filter-base-entity.dto';
 import { Paginated } from '../../../../pagination/pagination';
 import { DataProvider, SortDirection } from '../../../../data-provider/data.provider';
 import { AppAssemblerQueryService } from '../../../../query/core/services/app-assembler-query.service';
 import { TestBaseAssembler } from '../../../__fixtures__/assembler/test-base.assembler';
-import config, { PAGINATION_CONFIG_NAME } from '../../../../config';
-import { StringFilter } from '../../../../data-provider/query/filters/string';
+import { PAGINATION_CONFIG_NAME } from '../../../../config';
+import {
+  FilterStringQuery,
+  StringFilter,
+} from '../../../../data-provider/query/filters/string';
 
 describe('PaginatedQueryProvider', () => {
   let moduleRef: TestingModule;
@@ -140,7 +116,33 @@ describe('PaginatedQueryProvider', () => {
     expect(items).toEqual(expect.arrayContaining([expect.objectContaining(exceptedBaseEntity)]));
   });
 
-  describe.each([
+  it('should apply a sorting ', async () => {
+    const { items, metadata } = await paginatedQueryService.getData({}, null, {
+      field: 'numberType',
+      direction: SortDirection.DESC,
+    });
+
+    const highestNumberType = TEST_BASE_ENTITIES_CREATED.reduce(
+      (maxObj, item) => (item.numberType > maxObj.numberType ? item : maxObj),
+      { numberType: -Infinity }
+    );
+
+    expect(metadata.total).toEqual(TEST_BASE_ENTITIES_CREATED.length);
+    expect(items[0]).toEqual({
+      testEntityPk: highestNumberType.testEntityPk,
+      stringType: highestNumberType.stringType,
+      boolType: highestNumberType.boolType,
+      numberType: highestNumberType.numberType,
+      dateType: highestNumberType.dateType,
+      tenant: highestNumberType.tenant,
+    });
+  });
+
+  describe.each<{
+    filter: FilterStringQuery;
+    count: number;
+    equalEntity?: Partial<TestBaseEntity>;
+  }>([
     {
       filter: { type: StringFilter.TYPE_EQUAL, value: 'test-base-created-1' },
       count: 1,
@@ -206,27 +208,22 @@ describe('PaginatedQueryProvider', () => {
     });
   });
 
-  it('should apply a sorting ', async () => {
-    const { items, metadata } = await paginatedQueryService.getData({}, null, {
-      field: 'numberType',
-      direction: SortDirection.DESC,
-    });
+  describe.each<ArchiveOptions>([ArchiveOptions.ARCHIVED, ArchiveOptions.ACTIVE])(
+    'filter with archived filter by field "archived"',
+    (archivedFilter) => {
+      it(`should apply filter #${archivedFilter}`, async () => {
+        const { items } = await paginatedQueryService.getData({
+          archived: archivedFilter,
+        });
 
-    const highestNumberType = TEST_BASE_ENTITIES_CREATED.reduce(
-      (maxObj, item) => (item.numberType > maxObj.numberType ? item : maxObj),
-    { numberType: -Infinity }
-    );
+        const expectedCount = TEST_BASE_ENTITIES_CREATED.filter((item) =>
+          archivedFilter === ArchiveOptions.ARCHIVED ? item.archived : !item.archived
+        ).length;
 
-    expect(metadata.total).toEqual(TEST_BASE_ENTITIES_CREATED.length);
-    expect(items[0]).toEqual({
-      testEntityPk: highestNumberType.testEntityPk,
-      stringType: highestNumberType.stringType,
-      boolType: highestNumberType.boolType,
-      numberType: highestNumberType.numberType,
-      dateType: highestNumberType.dateType,
-      tenant: highestNumberType.tenant,
-    });
-  });
+        expect(items.length).toEqual(expectedCount);
+      });
+    }
+  );
 
   it('should reject if string filter not supported', async () => {
     const filter = { type: 'not_supported', value: 'test' };

@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { User } from '@owl-app/lib-contracts';
-import { type IJwtConfig } from '@owl-app/lib-api-core/config/jwt';
+import { type JwtConfig } from '@owl-app/lib-api-core/config/jwt';
 import {
   IJwtTokenService,
   IJwtTokenPayload,
@@ -16,7 +16,7 @@ import type { IUserRepository } from '../database/repository/user-repository.int
 @Injectable()
 export default class JwtTokenService implements IJwtTokenService<User> {
   constructor(
-    private readonly jwtConfig: IJwtConfig,
+    private readonly jwtConfig: JwtConfig,
     private readonly userRepository: IUserRepository,
     private readonly jwtService: JwtService
   ) {}

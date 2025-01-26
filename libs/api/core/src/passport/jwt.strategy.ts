@@ -5,7 +5,7 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthUserData, PermissionReferType, User } from '@owl-app/lib-contracts';
 import { RbacManager, Role } from '@owl-app/rbac-manager';
 
-import { JWT_CONFIG_PROVIDER, type IJwtConfig } from '../config/jwt';
+import { JWT_CONFIG_PROVIDER, type JwtConfig } from '../config/jwt';
 import { Permission } from '../rbac/types/permission';
 import { IJwtTokenPayload, IJwtTokenService } from './jwt-token.interface';
 import { extractJWT } from './extract-jwt';
@@ -14,7 +14,7 @@ import { extractJWT } from './extract-jwt';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     @Inject(JWT_CONFIG_PROVIDER)
-    private jwtConfig: IJwtConfig,
+    private jwtConfig: JwtConfig,
     @Inject(IJwtTokenService)
     private jwtTokenService: IJwtTokenService<User>,
     @Inject('RBAC_MANAGER')

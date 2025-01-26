@@ -7,7 +7,7 @@ import { TestServer } from '@owl-app/testing';
 import { AvailableRoles, RolesEnum } from '@owl-app/lib-contracts';
 
 import { getMilliseconds } from '@owl-app/lib-api-core/utils/get-milliseconds';
-import { IJwtConfig, JWT_CONFIG_NAME } from '@owl-app/lib-api-core/config';
+import { JwtConfig, JWT_CONFIG_NAME } from '@owl-app/lib-api-core/config';
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
 
 import { createTest } from '../create-test';
@@ -28,7 +28,7 @@ describe('Auth (e2e)', () => {
   describe.each<RolesEnum>(AvailableRoles)('Login by role', (role) => {
     it(`should login user ${role}`, async () => {
       const { refreshTokenExpirationTime, expirationTime } =
-        configService.get<IJwtConfig>(JWT_CONFIG_NAME);
+        configService.get<JwtConfig>(JWT_CONFIG_NAME);
       const firstUser = dataUsers[role][0];
 
       const response = await request(testServer.getHttpServer())

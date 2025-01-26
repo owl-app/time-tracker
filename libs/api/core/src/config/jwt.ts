@@ -6,7 +6,7 @@ export const JWT_CONFIG_NAME = 'jwt';
 
 export const JWT_CONFIG_PROVIDER = 'JwtConfig';
 
-export interface IJwtConfig {
+export interface JwtConfig {
   secret: string;
   expirationTime: string;
   cookie: {
@@ -22,11 +22,11 @@ export interface IJwtConfig {
 export const JwtConfigProvider = {
   inject: [ConfigService],
   provide: JWT_CONFIG_PROVIDER,
-  useFactory: (config: ConfigService): IJwtConfig => config.get<IJwtConfig>(JWT_CONFIG_NAME),
+  useFactory: (config: ConfigService): JwtConfig => config.get<JwtConfig>(JWT_CONFIG_NAME),
 };
 
-export default registerAs(JWT_CONFIG_NAME, (): IJwtConfig => {
-  const configs: JoiConfig<IJwtConfig> = {
+export default registerAs(JWT_CONFIG_NAME, (): JwtConfig => {
+  const configs: JoiConfig<JwtConfig> = {
     secret: {
       value: process.env.JWT_SECRET,
       joi: Joi.string()

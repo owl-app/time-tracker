@@ -6,13 +6,13 @@ type PaginationConfigQuery = {
   default_limit: number;
 };
 
-export interface IConfigQuery {
+export interface ConfigQuery {
   pagination: PaginationConfigQuery;
 }
 
 export default registerAs(
   QUERY_CONFIG_NAME,
-  (): IConfigQuery => ({
+  (): ConfigQuery => ({
     pagination: {
       default_limit: 10,
     },

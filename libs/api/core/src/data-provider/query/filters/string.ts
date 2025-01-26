@@ -28,11 +28,6 @@ export class FilterStringApiProperty implements FilterStringQuery {
   value?: string;
 }
 
-export type StringFilterData = {
-  type: string;
-  value: string;
-};
-
 export class StringFilter<Entity> implements Filter<FilterQueryService<Entity>> {
   static readonly NAME = 'string';
 

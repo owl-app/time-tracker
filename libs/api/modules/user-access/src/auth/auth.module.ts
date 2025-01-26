@@ -8,7 +8,7 @@ import { JwtStrategy } from '@owl-app/lib-api-core/passport/jwt.strategy';
 import { JwtRefreshStrategy } from '@owl-app/lib-api-core/passport/strategies/jwt-refresh.strategy';
 import { WinstonLoggerModule } from '@owl-app/winston-logger-nestjs';
 
-import { IJwtConfig, JWT_CONFIG_NAME, JwtConfigProvider } from '@owl-app/lib-api-core/config/jwt';
+import { JwtConfig, JWT_CONFIG_NAME, JwtConfigProvider } from '@owl-app/lib-api-core/config/jwt';
 import { IJwtTokenService } from '@owl-app/lib-api-core/passport/jwt-token.interface';
 import { AppTypeOrmModule } from '@owl-app/lib-api-core/typeorm/app-typeorm.module';
 import { getRepositoryToken } from '@owl-app/lib-api-core/typeorm/common/typeorm.utils';
@@ -45,7 +45,7 @@ import { LogoutHandler } from './features/logout/logout.service';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        const config = configService.get<IJwtConfig>(JWT_CONFIG_NAME);
+        const config = configService.get<JwtConfig>(JWT_CONFIG_NAME);
 
         return {
           secret: config?.secret,
@@ -69,7 +69,7 @@ import { LogoutHandler } from './features/logout/logout.service';
         config: ConfigService,
         userRepository: IUserRepository,
         jwtService: JwtService
-      ) => new JwtTokenService(config.get<IJwtConfig>(JWT_CONFIG_NAME), userRepository, jwtService),
+      ) => new JwtTokenService(config.get<JwtConfig>(JWT_CONFIG_NAME), userRepository, jwtService),
     },
   ],
 })

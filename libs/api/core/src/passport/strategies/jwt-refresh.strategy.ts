@@ -4,7 +4,7 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { AuthUserData, User } from '@owl-app/lib-contracts';
 
-import { JWT_CONFIG_PROVIDER, type IJwtConfig } from '../../config/jwt';
+import { JWT_CONFIG_PROVIDER, type JwtConfig } from '../../config/jwt';
 import { IJwtTokenPayload, IJwtTokenService } from '../jwt-token.interface';
 import { extractJWT } from '../extract-jwt';
 
@@ -12,9 +12,9 @@ import { extractJWT } from '../extract-jwt';
 export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
   constructor(
     @Inject(JWT_CONFIG_PROVIDER)
-    private jwtConfig: IJwtConfig,
+    jwtConfig: JwtConfig,
     @Inject(IJwtTokenService)
-    private jwtTokenService: IJwtTokenService<User>
+    jwtTokenService: IJwtTokenService<User>
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
