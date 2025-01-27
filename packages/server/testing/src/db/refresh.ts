@@ -16,7 +16,9 @@ export async function dbRefresh(options: DatabaseRefreshOptions): Promise<Seeder
     throw new Error('Options dataSource is required');
   }
 
-  await truncateDatabase(options.dataSource.options);
+  if (options.dataSource.options.database !== ':memory:') {
+    await truncateDatabase(options.dataSource.options);
+  }
 
   const seederRegistry = await dbSeeder(
     options.dataSource,

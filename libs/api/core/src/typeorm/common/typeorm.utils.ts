@@ -8,6 +8,7 @@ import {
 import { getCustomRepositoryToken, getDataSourcePrefix } from '@nestjs/typeorm';
 import { Type } from '@nestjs/common';
 import { EntityClassOrSchema } from '@nestjs/typeorm/dist/interfaces/entity-class-or-schema.type';
+import { CircularDependencyException } from '@nestjs/core/errors/exceptions/circular-dependency.exception';
 
 import { DEFAULT_DATA_SOURCE_NAME } from '../../contants';
 
@@ -21,9 +22,9 @@ export function getRepositoryToken(
   entity: EntityClassOrSchema,
   dataSource: DataSource | DataSourceOptions | string = DEFAULT_DATA_SOURCE_NAME
 ): string | Function | Type<DataSource> {
-  // if (entity === null || entity === undefined) {
-  //   throw new CircularDependencyException('@InjectRepository()');
-  // }
+  if (entity === null || entity === undefined) {
+    throw new CircularDependencyException ('@InjectRepository()');
+  }
   const dataSourcePrefix = getDataSourcePrefix(dataSource);
   if (
     entity instanceof Function &&

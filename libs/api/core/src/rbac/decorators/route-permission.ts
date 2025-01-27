@@ -1,4 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
+import { PermissionReferType } from '@owl-app/lib-contracts';
 
 export const ROUTE_PERMISSIONS_KEY = 'route_permissions';
 
@@ -7,6 +8,6 @@ export const RoutePermissions = (collection: string, action: string | string[]) 
 
   return SetMetadata(
     ROUTE_PERMISSIONS_KEY,
-    actions.map((actionName) => `ROUTE_${collection.toUpperCase()}_${actionName.toUpperCase()}`)
+    actions.map((actionName) => `${PermissionReferType.ROUTE}_${collection.toUpperCase()}_${actionName.toUpperCase()}`)
   );
 };

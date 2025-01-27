@@ -1,5 +1,5 @@
 import { ArgumentNotProvidedException } from '../exceptions/exceptions';
-import { Guard } from '../guard';
+import { Guard } from '../utils/guard';
 import { RequestContextService } from '../context/app-request-context';
 
 type DomainEventMetadata = {
