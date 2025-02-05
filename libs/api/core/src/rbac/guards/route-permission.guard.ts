@@ -19,7 +19,7 @@ export class RoutePermissionGuard implements CanActivate {
 
       const { user }: { user: AuthUserData } = context.switchToHttp().getRequest();
 
-      return permissions.some((permission) => user.permissions?.routes.includes(permission));
+      return permissions.some((permission) => user?.permissions?.routes.includes(permission));
     }
 
     return true;
