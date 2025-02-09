@@ -28,7 +28,8 @@ export class DefaultArchiveService<
   constructor(private readonly repository: InjectableRepository<Entity>) {}
 
   async execute(id: string, requestData: Request): Promise<void> {
-    const where = { id } as FindOptionsWhere<Entity>;
+    const primaryKey = await this.getPrimaryKey();
+    const where = { [primaryKey]: id } as FindOptionsWhere<Entity>;
     const entity = await this.repository.findOne({ where });
 
     if (!entity) {
@@ -46,4 +47,11 @@ export class DefaultArchiveService<
 
     await this.repository.save(entity);
   }
+
+  getPrimaryKey(): string {
+    const { metadata } = this.repository;
+    const primaryKeys = metadata.primaryColumns.map(col => col.propertyName);
+
+    return primaryKeys.shift();
+}
 }
