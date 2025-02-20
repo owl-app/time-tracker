@@ -22,3 +22,6 @@ export const uniqueUserLastName = 'Unique last name';
 // role
 export const uniqueRoleName = 'UNIQUE_ROLE_NAME';
 export const uniqueRoleDescription = 'Unique role description';
+
+// time tracker
+export const uniqueTimeTrackerDescription = 'Uniquer time tracker description';

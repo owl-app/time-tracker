@@ -10,6 +10,7 @@ import {
   Param,
   HttpCode,
   Injectable,
+  NotFoundException as NotFoundHttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -32,6 +33,7 @@ import { Paginated } from '@owl-app/lib-api-core/pagination/pagination';
 import { RoutePermissions } from '@owl-app/lib-api-core/rbac/decorators/route-permission';
 import { ValibotValidationPipe } from '@owl-app/lib-api-core/validation/valibot.pipe';
 import { AppAssemblerQueryService } from '@owl-app/lib-api-core/query/core/services/app-assembler-query.service';
+import { NotFoundException } from '@owl-app/lib-api-core/exceptions/exceptions';
 
 import { TimeEntity } from '../../../../domain/entity/time.entity';
 import { TimeResponse } from '../../../dto/time.response';
@@ -85,9 +87,17 @@ export class TimeCrudController {
     @Body(new ValibotValidationPipe(timeValidationSchema))
     createTimeRequest: CreateTimeRequest
   ) {
-    const createdTime = await this.service.createWithRelations(createTimeRequest);
+    let created;
 
-    return createdTime;
+    try {
+      created = await this.service.createWithRelations(createTimeRequest);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundHttpException(error.message);
+      }
+    }
+
+    return created;
   }
 
   @ApiOperation({ summary: 'Update time' })
@@ -111,9 +121,19 @@ export class TimeCrudController {
     @Body(new ValibotValidationPipe(timeValidationSchema))
     updateTimeRequest: UpdateTimeRequest
   ): Promise<TimeResponse> {
-    const updatedTime = await this.service.updateWithRelations(id, updateTimeRequest);
+    let updated;
 
-    return updatedTime;
+    try {
+      updated = await this.service.updateWithRelations(id, updateTimeRequest);
+    } catch (error: unknown) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundHttpException(error.message);
+      }
+
+      throw error;
+    }
+
+    return updated;
   }
 
   @ApiOperation({ summary: 'Delete time' })
