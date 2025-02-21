@@ -139,7 +139,7 @@ describe('Project (e2e)', () => {
         if (hasPermission) {
           it(`should ${
             hasPermissionAnotherTenant(role) ? 'create' : 'not create'
-          } project with project has diffrent tenant`, async () => {
+          } project with project has different tenant`, async () => {
             const client = testServer.seederRegistry
               .getResultSeed<Client[]>(TestClientSeeder.name)
               .find((result) => result.tenant.id !== firstUser.tenant.id);
@@ -322,7 +322,7 @@ describe('Project (e2e)', () => {
 
           it(`should ${
             hasPermissionAnotherTenant(role) ? 'update' : 'not update'
-          } project with project has diffrent tenant`, async () => {
+          } project with project has different tenant`, async () => {
             const client = testServer.seederRegistry
               .getResultSeed<Client[]>(TestClientSeeder.name)
               .find((result) => result.tenant.id !== firstUser.tenant.id);
@@ -608,7 +608,7 @@ describe('Project (e2e)', () => {
 
         it(`should ${
           hasPermission ? 'list' : 'not list'
-        } projects with filter client has diffrent tenant`, async () => {
+        } projects with filter client has different tenant`, async () => {
           const { client } = testServer.seederRegistry
             .getResultSeed<Project[]>(TestProjectSeeder.name)
             .find(
