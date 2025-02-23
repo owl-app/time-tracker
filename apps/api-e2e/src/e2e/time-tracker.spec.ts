@@ -26,7 +26,6 @@ import { hasPermissionAnotherTenant, hasPermissionAnotherUser } from '../utils/c
 import TestProjectSeeder from './seeds/project/project.seed';
 import TestTimeTrackerSeeder from './seeds/time-tracker/time-tracker.seed';
 import timeTrackerFactory from './seeds/time-tracker/time-tracker.factory';
-import { first } from 'lodash';
 
 describe('Time tracker (e2e)', () => {
   let testServer: TestServer;
