@@ -26,6 +26,7 @@ import { hasPermissionAnotherTenant, hasPermissionAnotherUser } from '../utils/c
 import TestProjectSeeder from './seeds/project/project.seed';
 import TestTimeTrackerSeeder from './seeds/time-tracker/time-tracker.seed';
 import timeTrackerFactory from './seeds/time-tracker/time-tracker.factory';
+import { first } from 'lodash';
 
 describe('Time tracker (e2e)', () => {
   let testServer: TestServer;
@@ -145,16 +146,11 @@ describe('Time tracker (e2e)', () => {
               ],
             });
 
-            // Using as an example for the rest of the tests
-            if (!hasPermissionAnotherTenant(role)) {
-              if (testData.createdByTenant[firstUser.tenant.id]) {
-                testData.createdByTenant[firstUser.tenant.id].push(response.body);
-              } else {
-                testData.createdByTenant[firstUser.tenant.id] = [response.body];
-              }
-            }
-
-            testData.createdAll.push(response.body);
+            testData.createdAll.push({
+              ...response.body,
+              user: firstUser,
+              tenant: !hasPermissionAnotherTenant(role) ? firstUser.tenant : null,
+            });
           }
         });
 
@@ -204,16 +200,11 @@ describe('Time tracker (e2e)', () => {
                 tags: expect.any(Array),
               });
 
-              // Using as an example for the rest of the tests
-              if (!hasPermissionAnotherTenant(role)) {
-                if (testData.createdByTenant[firstUser.tenant.id]) {
-                  testData.createdByTenant[firstUser.tenant.id].push(response.body);
-                } else {
-                  testData.createdByTenant[firstUser.tenant.id] = [response.body];
-                }
-              }
-
-              testData.createdAll.push(response.body);
+              testData.createdAll.push({
+                ...response.body,
+                user: firstUser,
+                tenant: !hasPermissionAnotherTenant(role) ? firstUser.tenant : null,
+              });
             }
           });
 
@@ -275,16 +266,11 @@ describe('Time tracker (e2e)', () => {
                 tags: expect.any(Array),
               });
 
-              // Using as an example for the rest of the tests
-              if (!hasPermissionAnotherTenant(role)) {
-                if (testData.createdByTenant[firstUser.tenant.id]) {
-                  testData.createdByTenant[firstUser.tenant.id].push(response.body);
-                } else {
-                  testData.createdByTenant[firstUser.tenant.id] = [response.body];
-                }
-              }
-
-              testData.createdAll.push(response.body);
+              testData.createdAll.push({
+                ...response.body,
+                user: firstUser,
+                tenant: !hasPermissionAnotherTenant(role) ? firstUser.tenant : null,
+              });
             }
           });
 
@@ -415,7 +401,9 @@ describe('Time tracker (e2e)', () => {
               project,
               tags: [] as Tag[],
             };
-            const response = await agentsByRole[role][firstUser.email].put(`/times/${time.id}`).send(data);
+            const response = await agentsByRole[role][firstUser.email]
+              .put(`/times/${time.id}`)
+              .send(data);
 
             expect(response.status).toEqual(hasPermissionAnotherTenant(role) ? 202 : 404);
 
@@ -446,16 +434,7 @@ describe('Time tracker (e2e)', () => {
                 tags: expect.any(Array),
               });
 
-              // Using as an example for the rest of the tests
-              if (!hasPermissionAnotherTenant(role)) {
-                if (testData.createdByTenant[firstUser.tenant.id]) {
-                  testData.createdByTenant[firstUser.tenant.id].push(response.body);
-                } else {
-                  testData.createdByTenant[firstUser.tenant.id] = [response.body];
-                }
-              }
-
-              testData.createdAll.push(response.body);
+              testData.updatedProject.push(project.id);
             }
           });
 
@@ -484,7 +463,9 @@ describe('Time tracker (e2e)', () => {
               project,
               tags: [tag],
             };
-            const response = await agentsByRole[role][firstUser.email].put(`/times/${time.id}`).send(data);
+            const response = await agentsByRole[role][firstUser.email]
+              .put(`/times/${time.id}`)
+              .send(data);
 
             expect(response.status).toEqual(hasPermissionAnotherTenant(role) ? 202 : 404);
 
@@ -534,16 +515,8 @@ describe('Time tracker (e2e)', () => {
                 ]),
               });
 
-              // Using as an example for the rest of the tests
-              if (!hasPermissionAnotherTenant(role)) {
-                if (testData.createdByTenant[firstUser.tenant.id]) {
-                  testData.createdByTenant[firstUser.tenant.id].push(response.body);
-                } else {
-                  testData.createdByTenant[firstUser.tenant.id] = [response.body];
-                }
-              }
-
-              testData.createdAll.push(response.body);
+              testData.updatedProject.push(project.id);
+              testData.updatedTag.push(tag.id);
             }
           });
 
@@ -738,6 +711,274 @@ describe('Time tracker (e2e)', () => {
             });
           });
         }
+      });
+    });
+  });
+
+  describe('Time list (e2e)', () => {
+    const exceptedBodyFormats = {
+      metadata: {
+        total: expect.any(Number),
+      },
+      items: expect.any(Array),
+    };
+
+    describe.each<RolesEnum>(AvailableRoles)('list by role', (role) => {
+      const firstUser = dataUsers[role][0];
+      const hasPermission = roleHasPermission(role, AvalilableCollections.TIME, CrudActions.LIST);
+
+      describe(`role ${role} and user ${firstUser.email}`, () => {
+        it(`should ${hasPermission ? 'list' : 'not list'} times without filters`, async () => {
+          const response = await agentsByRole[role][firstUser.email].get('/times');
+
+          expect(response.status).toEqual(hasPermission ? 200 : 403);
+
+          if (isStatusSuccess(response.status)) {
+            if (hasPermissionAnotherTenant(role)) {
+              const resultSeed = testServer.seederRegistry.getResultSeed<Time[]>(
+                TestTimeTrackerSeeder.name
+              );
+              const count = resultSeed.length + testData.createdAll.length;
+
+              expect(response.body).toHaveProperty('metadata.total', count);
+              expect(response.body).toHaveProperty('items');
+              expect(response.body).toMatchObject(exceptedBodyFormats);
+            } else if (hasPermissionAnotherUser(role)) {
+              const resultSeed = testServer.seederRegistry
+                .getResultSeed<Time[]>(TestTimeTrackerSeeder.name)
+                .filter((result) => result.tenant.id === firstUser.tenant.id);
+              const count =
+                resultSeed.length +
+                testData.createdAll.filter(
+                  (created) => created.tenant?.id === firstUser.tenant.id
+                ).length;
+
+              expect(response.body).toHaveProperty('metadata.total', count);
+              expect(response.body).toHaveProperty('items');
+              expect(response.body).toMatchObject(exceptedBodyFormats);
+            } else {
+              const resultSeed = testServer.seederRegistry
+                .getResultSeed<Time[]>(TestTimeTrackerSeeder.name)
+                .filter(
+                  (result) =>
+                    result.tenant.id === firstUser.tenant.id && result.user.id === firstUser.id
+                );
+              const count =
+                resultSeed.length +
+                (testData.createdAll.filter(
+                  (created) =>
+                    created.tenant?.id === firstUser.tenant.id && created.user.id === firstUser.id
+                ).length ?? 0);
+
+              expect(response.body).toHaveProperty('metadata.total', count);
+              expect(response.body).toHaveProperty('items');
+              expect(response.body).toMatchObject(exceptedBodyFormats);
+            }
+          }
+        });
+
+        // it(`should ${
+        //   hasPermission ? 'list' : 'not list'
+        // } all projects without filters`, async () => {
+        //   const response = await agentsByRole[role][firstUser.email].get('/projects?pageable=0');
+
+        //   expect(response.status).toEqual(hasPermission ? 200 : 403);
+
+        //   if (isStatusSuccess(response.status)) {
+        //     if (hasPermissionAnotherTenant(role)) {
+        //       const resultSeed = testServer.seederRegistry.getResultSeed<Client[]>(TestClientSeeder.name);
+        //       const count = resultSeed.length + testData.createdAll.length;
+
+        //       expect(response.body).toHaveProperty('metadata.total', count);
+        //       expect(response.body.items.length).toEqual(count);
+        //       expect(response.body).toHaveProperty('items');
+        //       expect(response.body).toMatchObject(exceptedBodyFormats);
+        //     } else {
+        //       const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
+        //       const resultSeed = testServer.seederRegistry
+        //         .getResultSeed<Project[]>(TestProjectSeeder.name)
+        //         .filter(
+        //           (result) =>
+        //             filterArchived.includes(result.archived) &&
+        //             result.tenant.id === firstUser.tenant.id
+        //         );
+        //       const count =
+        //         resultSeed.length +
+        //         (testData.createdByTenant[firstUser.tenant.id].filter((created) =>
+        //           filterArchived.includes(created.archived)
+        //         ).length ?? 0);
+
+        //       expect(response.body).toHaveProperty('metadata.total', count);
+        //       expect(response.body.items.length).toEqual(count);
+        //       expect(response.body).toHaveProperty('items');
+        //       expect(response.body).toMatchObject(exceptedBodyFormats);
+        //     }
+        //   }
+        // });
+
+        // it(`should ${
+        //   hasPermission ? 'list' : 'not list'
+        // } projects with filter archived on active`, async () => {
+        //   const response = await agentsByRole[role][firstUser.email].get(
+        //     '/projects?filters[archived]=active'
+        //   );
+
+        //   expect(response.status).toEqual(hasPermission ? 200 : 403);
+
+        //   if (isStatusSuccess(response.status)) {
+        //     if (hasPermissionAnotherTenant(role)) {
+        //       const resultSeed = testServer.seederRegistry
+        //         .getResultSeed<Project[]>(TestProjectSeeder.name)
+        //         .filter((result) => !result.archived);
+        //       const count =
+        //         resultSeed.length +
+        //         testData.createdAll.filter((created) => !created.archived).length;
+
+        //       expect(response.body).toHaveProperty('metadata.total', count);
+        //       expect(response.body).toHaveProperty('items');
+        //       expect(response.body).toMatchObject(exceptedBodyFormats);
+        //     } else {
+        //       const resultSeed = testServer.seederRegistry
+        //         .getResultSeed<Project[]>(TestProjectSeeder.name)
+        //         .filter((result) => result.tenant.id === firstUser.tenant.id && !result.archived);
+        //       const count =
+        //         resultSeed.length +
+        //         (testData.createdByTenant[firstUser.tenant.id].filter(
+        //           (created) => !created.archived
+        //         ).length ?? 0);
+
+        //       expect(response.body).toHaveProperty('metadata.total', count);
+        //       expect(response.body).toHaveProperty('items');
+        //       expect(response.body).toMatchObject(exceptedBodyFormats);
+        //     }
+        //   }
+        // });
+
+        // it(`should ${
+        //   hasPermission ? 'list' : 'not list'
+        // } projects with filter search`, async () => {
+        //   const search = uniqueProjectName.substring(0, uniqueProjectName.lastIndexOf(' '));
+
+        //   const response = await agentsByRole[role][firstUser.email].get(
+        //     `/projects?filters[search][type]=contains&filters[search][value]=${search}`
+        //   );
+
+        //   expect(response.status).toEqual(hasPermission ? 200 : 403);
+
+        //   if (isStatusSuccess(response.status)) {
+        //     if (hasPermissionAnotherTenant(role)) {
+        //       const resultSeed = testServer.seederRegistry
+        //         .getResultSeed<Project[]>(TestProjectSeeder.name)
+        //         .filter((result) => uniqueProjectName === result.name);
+
+        //       expect(response.body).toHaveProperty('metadata.total', resultSeed.length);
+        //       expect(response.body).toHaveProperty('items');
+        //       expect(response.body).toMatchObject(exceptedBodyFormats);
+        //     } else {
+        //       const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
+        //       const resultSeed = testServer.seederRegistry
+        //         .getResultSeed<Project[]>(TestProjectSeeder.name)
+        //         .filter(
+        //           (result) =>
+        //             filterArchived.includes(result.archived) &&
+        //             result.tenant.id === firstUser.tenant.id &&
+        //             uniqueProjectName === result.name
+        //         );
+
+        //       expect(response.body).toHaveProperty('metadata.total', resultSeed.length);
+        //       expect(response.body).toHaveProperty('items');
+        //       expect(response.body).toMatchObject(exceptedBodyFormats);
+        //     }
+        //   }
+        // });
+
+        // it(`should ${
+        //   hasPermission ? 'list' : 'not list'
+        // } projects with filter client has the same tenant`, async () => {
+        //   const { client } = testServer.seederRegistry
+        //     .getResultSeed<Project[]>(TestProjectSeeder.name)
+        //     .find(
+        //       (result) =>
+        //         result.tenant.id === firstUser.tenant.id &&
+        //         result.name !== uniqueProjectName &&
+        //         !testData.updatedClient.includes(result.client.id)
+        //     );
+        //   const response = await agentsByRole[role][firstUser.email].get(
+        //     `/projects?filters[clients]=${client.id}`
+        //   );
+
+        //   expect(response.status).toEqual(hasPermission ? 200 : 403);
+
+        //   if (isStatusSuccess(response.status)) {
+        //     if (hasPermissionAnotherTenant(role)) {
+        //       const resultSeed = testServer.seederRegistry
+        //         .getResultSeed<Project[]>(TestProjectSeeder.name)
+        //         .filter((result) => client.id === result.client.id);
+        //       const count =
+        //         resultSeed.length +
+        //         (testData.createdAll.filter((created) => created.client.id === client.id).length ??
+        //           0);
+
+        //       expect(response.body).toHaveProperty('metadata.total', count);
+        //       expect(response.body).toHaveProperty('items');
+        //       expect(response.body).toMatchObject(exceptedBodyFormats);
+        //     } else {
+        //       const filterArchived = hasPermissionToArchived(role) ? [false, true] : [false];
+        //       const resultSeed = testServer.seederRegistry
+        //         .getResultSeed<Project[]>(TestProjectSeeder.name)
+        //         .filter(
+        //           (result) =>
+        //             filterArchived.includes(result.archived) && client.id === result.client.id
+        //         );
+        //       const count =
+        //         resultSeed.length +
+        //         (testData.createdByTenant[firstUser.tenant.id].filter(
+        //           (created) => created.client.id === client.id
+        //         ).length ?? 0);
+
+        //       expect(response.body).toHaveProperty('metadata.total', count);
+        //       expect(response.body).toHaveProperty('items');
+        //       expect(response.body).toMatchObject(exceptedBodyFormats);
+        //     }
+        //   }
+        // });
+
+        // it(`should ${
+        //   hasPermission ? 'list' : 'not list'
+        // } projects with filter client has different tenant`, async () => {
+        //   const { client } = testServer.seederRegistry
+        //     .getResultSeed<Project[]>(TestProjectSeeder.name)
+        //     .find(
+        //       (result) =>
+        //         result.tenant.id !== firstUser.tenant.id &&
+        //         result.name !== uniqueProjectName &&
+        //         !testData.updatedClient.includes(result.client.id)
+        //     );
+        //   const response = await agentsByRole[role][firstUser.email].get(
+        //     `/projects?filters[clients]=${client.id}`
+        //   );
+
+        //   expect(response.status).toEqual(hasPermission ? 200 : 403);
+
+        //   if (isStatusSuccess(response.status)) {
+        //     if (hasPermissionAnotherTenant(role)) {
+        //       const resultSeed = testServer.seederRegistry
+        //         .getResultSeed<Project[]>(TestProjectSeeder.name)
+        //         .filter((result) => client.id === result.client.id);
+        //       const count =
+        //         resultSeed.length +
+        //         (testData.createdAll.filter((created) => created.client.id === client.id).length ??
+        //           0);
+
+        //       expect(response.body).toHaveProperty('metadata.total', count);
+        //       expect(response.body).toHaveProperty('items');
+        //       expect(response.body).toMatchObject(exceptedBodyFormats);
+        //     } else {
+        //       expect(response.body).toHaveProperty('metadata.total', 0);
+        //       expect(response.body).toHaveProperty('items');
+        //     }
+        //   }
+        // });
       });
     });
   });

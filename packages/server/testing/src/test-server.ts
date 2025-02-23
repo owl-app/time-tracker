@@ -17,7 +17,7 @@ export class TestServer {
   async close() {
     const dataSource = this.app.get(DataSource);
 
-    // await dropDatabase({ options: dataSource.options });
+    await dropDatabase({ options: dataSource.options });
 
     this.app.close();
   }
