@@ -8,6 +8,7 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 
+// eslint-disable-next-line import/no-cycle
 import { TestBaseEntity } from './test-base.entity';
 import { TenantEntity } from './tenant.entity';
 

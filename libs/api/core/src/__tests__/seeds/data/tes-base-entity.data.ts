@@ -5,6 +5,7 @@ import { TestSimpleEntity } from '../../__fixtures__/test-simple.entity';
 import { TestBaseEntity } from '../../__fixtures__/test-base.entity';
 
 import { TEST_TENANT_CREATED } from './tenant.data';
+// eslint-disable-next-line import/no-cycle
 import { TEST_BASE_RELATION_ASSIGNED } from './test-base-relation.data';
 
 export const TEST_SIMPLE_ENTITIES_NEW: Partial<TestSimpleEntity>[] = [

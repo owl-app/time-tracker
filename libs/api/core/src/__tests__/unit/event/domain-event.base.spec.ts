@@ -3,10 +3,8 @@ import { ArgumentNotProvidedException } from '../../../exceptions/exceptions';
 import { RequestContextService } from '../../../context/app-request-context';
 
 describe('DomainEvent', () => {
-  let getRequestIdSpy: jest.SpyInstance;
-
   beforeEach(() => {
-    getRequestIdSpy = jest
+    jest
       .spyOn(RequestContextService, 'getRequestId')
       .mockReturnValue('mock-request-id');
   });

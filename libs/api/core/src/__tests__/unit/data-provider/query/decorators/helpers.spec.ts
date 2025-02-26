@@ -46,8 +46,8 @@ describe('getPaginatedQueryServiceToken', () => {
 
   describe('edge cases', () => {
     it('should handle class with special characters in name', () => {
-      class Test_DTO {}
-      expect(getPaginatedQueryServiceToken(Test_DTO)).toBe('Test_DTOPaginatedQueryService');
+      class TestDTO {}
+      expect(getPaginatedQueryServiceToken(TestDTO)).toBe('TestDTOPaginatedQueryService');
     });
 
     it('should handle anonymous class', () => {

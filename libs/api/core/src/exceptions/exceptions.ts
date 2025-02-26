@@ -1,5 +1,5 @@
 // eslint-disable-next-line max-classes-per-file
-import { ARGUMENT_NOT_PROVIDED, INTERNAL_SERVER_ERROR, NOT_FOUND } from './exception.codes';
+import { ARGUMENT_NOT_PROVIDED, NOT_FOUND } from './exception.codes';
 import { ExceptionBase } from './exception.base';
 
 /**

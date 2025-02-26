@@ -25,7 +25,6 @@ import TenantSeeder from '../../seeds/tenant.seed';
 import TestEntitySeeder from '../../seeds/test-entity.seed';
 import { TestBaseEntity } from '../../__fixtures__/test-base.entity';
 import { TEST_BASE_ENTITIES_CREATED } from '../../seeds/data/tes-base-entity.data';
-import { en } from '@faker-js/faker';
 
 describe('DefaultArchiveService', () => {
   let moduleRef: TestingModule;

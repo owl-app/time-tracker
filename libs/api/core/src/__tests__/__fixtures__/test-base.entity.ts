@@ -11,7 +11,9 @@ import {
 } from 'typeorm';
 
 import BaseEntity from '../../database/entity/base.entity';
+// eslint-disable-next-line import/no-cycle
 import { TenantEntity } from './tenant.entity';
+// eslint-disable-next-line import/no-cycle
 import { TestBaseRelation } from './test-base-relation.entity';
 
 @Entity()

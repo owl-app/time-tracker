@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryColumn, OneToMany } from 'typeorm';
+// eslint-disable-next-line import/no-cycle
 import { TestBaseEntity } from './test-base.entity';
 
 @Entity()

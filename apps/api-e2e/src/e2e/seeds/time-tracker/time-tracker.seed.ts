@@ -1,15 +1,15 @@
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 
-import { Project, RolesEnum, Tag, Time, User } from '@owl-app/lib-contracts';
+import { Project, Tag, Time, User } from '@owl-app/lib-contracts';
 
 import { TimeEntitySchema } from '@owl-app/lib-api-module-time-tracker/database/entity-schema/time.entity-schema';
+import { TagEntitySchema } from '@owl-app/lib-api-module-tag/database/entity-schema/tag.entity-schema';
 import { PROJECTT_ENTITY } from '@owl-app/lib-api-core/entity-tokens';
 import { dataTenants } from '@owl-app/lib-api-core/seeds/data/tenant';
 
 import { dataUsers } from '@owl-app/lib-api-core/seeds/data/users';
 import { uniqueTimeTrackerDescription } from '../unique';
-import { TagEntitySchema } from '@owl-app/lib-api-module-tag/database/entity-schema/tag.entity-schema';
 
 export default class TestTimeTrackerSeeder implements Seeder {
   public async run(

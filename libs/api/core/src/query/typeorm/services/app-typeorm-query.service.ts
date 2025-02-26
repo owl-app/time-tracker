@@ -7,7 +7,6 @@ import {
   DeepPartial,
   UpdateOneOptions,
   Filter,
-  WithDeleted,
   FilterComparisons,
   Query,
 } from '@owl-app/nestjs-query-core';

@@ -3,6 +3,7 @@ import { plainToClass } from 'class-transformer';
 import { faker } from '@faker-js/faker';
 
 import { TestBaseRelation } from '../../__fixtures__/test-base-relation.entity';
+// eslint-disable-next-line import/no-cycle
 import { TEST_BASE_ENTITIES_CREATED } from './tes-base-entity.data';
 import { TEST_TENANT_CREATED } from './tenant.data';
 

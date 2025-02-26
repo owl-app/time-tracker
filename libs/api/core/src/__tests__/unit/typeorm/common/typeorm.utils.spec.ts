@@ -1,5 +1,5 @@
 import { AbstractRepository, EntitySchema, Repository } from 'typeorm';
-import { getCustomRepositoryToken, getDataSourcePrefix } from '@nestjs/typeorm';
+import { getDataSourcePrefix } from '@nestjs/typeorm';
 import { CircularDependencyException } from '@nestjs/core/errors/exceptions/circular-dependency.exception';
 
 import { getRepositoryToken } from '../../../../typeorm/common/typeorm.utils';
