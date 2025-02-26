@@ -1,0 +1,120 @@
+name: Build & Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [ 22.x ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install Yarn
+        run: npm install -g yarn
+      - name: Install dependencies
+        run: |
+          yarn install -W
+  # unit-tests:
+  #   name: unit tests
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       node: [ 22.x ]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Use Node.js ${{ matrix.node }}
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ matrix.node }}
+  #     - name: Install Yarn
+  #       run: npm install -g yarn
+  #     - name: Install dependencies
+  #       run: yarn install -W
+  #     - name: Unit tests
+  #       run: npm run test
+  e2e-tests:
+    name: '[E2e][Api] Tests'
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: bitnami/mysql:latest
+        env:
+          MYSQL_ROOT_USER: owl
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [ 22.x ]
+        db: [ mysql ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install Yarn
+        run: npm install -g yarn
+      - name: Install dependencies
+        run: yarn install -W
+      - name: e2e tests
+        env:
+          # App
+          APP_ENV: prod
+          APP_DEBUG: false
+          APP_NAME: OWL
+          APP_API_PREFIX: api
+          APP_API_VERSION: v1
+
+          # Api config
+          API_HOST: localhost
+          API_PORT: 3000
+
+          # DB_TYPE: sqlite | mysql
+          DB_TYPE: mysql
+
+          # DB Connection Parameters
+          DB_HOST: localhost
+          DB_PORT: 3307
+          DB_USER: owl
+          DB_PASS: password
+          DB_TIMEZONE: Z
+          DB_SYNCHRONIZE: true
+
+          # SMTP Mail Config
+          MAIL_FROM_ADDRESS:
+          MAIL_HOST:
+          MAIL_PORT:
+          MAIL_USERNAME:
+          MAIL_PASSWORD:
+
+          # Bcrypt
+          PASSWORD_BCRYPT_SALT_ROUNDS: 12
+
+          # JWT
+          JWT_SECRET: c1007baae899fcf3cda84f8f25119c8da0c28dfbbc5e680535eddccd60f5ff34
+          JWT_EXPIRATION_TIME: 10m
+          JWT_REFRESH_TOKEN_SECRET: bef1ab54daaa8b7ee44dffad306c2eae05e071f0d42d725da28d6fffc1e69384
+          JWT_REFRESH_TOKEN_EXPIRATION_TIME: 20m
+          JWT_COOKIE_TOKEN_DOMAIN: localhost
+          JWT_COOKIE_TOKEN_HTTP_ONLY: false
+          JWT_COOKIE_TOKEN_SECURE: false
+          JWT_TOKEN_CLOCK_TOLERANCE: 2
+        run: yarn nx run api-e2e:e2e --verbose

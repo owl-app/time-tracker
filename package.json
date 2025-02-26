@@ -17,7 +17,7 @@
     "format:check": "npx prettier . --check",
     "format:write": "npx prettier . --write",
     "data:sync": "npx nx build:sync api && npx nx data:sync api",
-    "e2e": "cross-env NODE_ENV=development env-cmd -f .env.development npx nx run-many --target=e2e"
+    "test:api": "cross-env NODE_ENV=development env-cmd -f .env.development npx nx run api-e2e:e2e"
   },
   "engines": {
     "node": ">=22.0.0"
