@@ -23,7 +23,7 @@ export function getRepositoryToken(
   dataSource: DataSource | DataSourceOptions | string = DEFAULT_DATA_SOURCE_NAME
 ): string | Function | Type<DataSource> {
   if (entity === null || entity === undefined) {
-    throw new CircularDependencyException ('@InjectRepository()');
+    throw new CircularDependencyException('@InjectRepository()');
   }
   const dataSourcePrefix = getDataSourcePrefix(dataSource);
   if (

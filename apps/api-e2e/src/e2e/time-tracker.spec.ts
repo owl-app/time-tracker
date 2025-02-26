@@ -748,9 +748,8 @@ describe('Time tracker (e2e)', () => {
                 .filter((result) => result.tenant.id === firstUser.tenant.id);
               const count =
                 resultSeed.length +
-                testData.createdAll.filter(
-                  (created) => created.tenant?.id === firstUser.tenant.id
-                ).length;
+                testData.createdAll.filter((created) => created.tenant?.id === firstUser.tenant.id)
+                  .length;
 
               expect(response.body).toHaveProperty('metadata.total', count);
               expect(response.body).toHaveProperty('items');

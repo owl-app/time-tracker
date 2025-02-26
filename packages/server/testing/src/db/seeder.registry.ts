@@ -1,4 +1,4 @@
-import { SeederEntity } from "typeorm-extension";
+import { SeederEntity } from 'typeorm-extension';
 
 export interface SeederRegistry {
   readonly seederEntity: SeederEntity[];

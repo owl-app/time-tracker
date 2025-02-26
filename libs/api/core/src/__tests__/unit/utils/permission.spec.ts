@@ -1,5 +1,10 @@
-import { AvalilableCollections, CrudActions, PermissionReferType } from "@owl-app/lib-contracts";
-import { getCrudPermissions, getRoutePermission, getPermissionsByCollection, getRouteName } from "../../../utils/permission";
+import { AvalilableCollections, CrudActions, PermissionReferType } from '@owl-app/lib-contracts';
+import {
+  getCrudPermissions,
+  getRoutePermission,
+  getPermissionsByCollection,
+  getRouteName,
+} from '../../../utils/permission';
 
 describe('#utils', () => {
   describe('Permission Utility Functions', () => {
@@ -78,7 +83,9 @@ describe('#utils', () => {
         const action = CrudActions.CREATE;
         const routeName = getRouteName(collection, action);
 
-        expect(routeName).toBe(`${PermissionReferType.ROUTE}_${collection}_${action}`.toUpperCase());
+        expect(routeName).toBe(
+          `${PermissionReferType.ROUTE}_${collection}_${action}`.toUpperCase()
+        );
       });
     });
   });

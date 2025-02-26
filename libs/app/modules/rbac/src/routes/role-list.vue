@@ -64,12 +64,12 @@ const columns = defineVaDataTableColumns([
       <template #filters="{ filters, changeFilter, removeFilter }">
         <div class="grid grid-cols-3 gap-4">
           <string-filter
-              single-filter="contains"
-              labelSearchInput="Search by name and description"
-              :data="filters?.search"
-              :change-filter="changeFilter"
-              :remove-filter="removeFilter"
-            />
+            single-filter="contains"
+            labelSearchInput="Search by name and description"
+            :data="filters?.search"
+            :change-filter="changeFilter"
+            :remove-filter="removeFilter"
+          />
         </div>
       </template>
 

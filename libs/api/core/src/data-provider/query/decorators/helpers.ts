@@ -10,8 +10,8 @@ export function getPaginatedQueryServiceToken(DTOClass: EntityClassOrSchema): st
     return `${DTOClass.options.name}PaginatedQueryService`;
   }
 
-  if (DTOClass.name === "") {
-    throw new Error("Anonymous class is not supported");
+  if (DTOClass.name === '') {
+    throw new Error('Anonymous class is not supported');
   }
 
   return `${DTOClass.name}PaginatedQueryService`;

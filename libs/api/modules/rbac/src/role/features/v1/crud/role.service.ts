@@ -62,17 +62,16 @@ export class RoleService extends AppTypeOrmQueryService<RoleEntity> {
     await queryRunner.startTransaction();
 
     try {
-      await this.rbacManager.updateRole(id as string, mapper.toPersistence({...update, name: id as string}));
+      await this.rbacManager.updateRole(
+        id as string,
+        mapper.toPersistence({ ...update, name: id as string })
+      );
 
       const roleSetting = new RoleSettingEntity();
       roleSetting.displayName = update.setting?.displayName;
       roleSetting.theme = update.setting?.theme;
 
-      await queryRunner.manager.update(
-        RoleSettingEntity,
-        { role: { name: id } },
-        roleSetting
-      );
+      await queryRunner.manager.update(RoleSettingEntity, { role: { name: id } }, roleSetting);
 
       await queryRunner.commitTransaction();
 

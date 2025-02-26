@@ -1,9 +1,4 @@
-import {
-  Column,
-  Entity,
-  PrimaryColumn,
-  OneToMany,
-} from 'typeorm';
+import { Column, Entity, PrimaryColumn, OneToMany } from 'typeorm';
 import { TestBaseEntity } from './test-base.entity';
 
 @Entity()
@@ -16,5 +11,4 @@ export class TenantEntity {
 
   @OneToMany('TestBaseEntity', 'tenant')
   testBaseEntities?: TestBaseEntity[];
-
 }

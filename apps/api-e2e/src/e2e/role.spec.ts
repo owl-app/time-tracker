@@ -319,7 +319,9 @@ describe('Role (e2e)', () => {
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${hasPermission ? 'find' : 'not find'} role`, async () => {
-          const roleTestSeeder = testServer.seederRegistry.getResultSeed<Role[]>(TestRoleSeeder.name)[0];
+          const roleTestSeeder = testServer.seederRegistry.getResultSeed<Role[]>(
+            TestRoleSeeder.name
+          )[0];
 
           const response = await agentsByRole[role][firstUser.email].get(
             `/rbac/roles/${roleTestSeeder.name}`
@@ -383,7 +385,7 @@ describe('Role (e2e)', () => {
     describe.each<RolesEnum>(AvailableRoles)('assigned permissions by role', (role) => {
       const firstUser = dataUsers[role][0];
       const hasPermission = roleHasPermission(role, AvalilableCollections.ROLE, RoleActions.ASSIGN);
-      const notFoundRoleName = 'NOT_FOUND_ROLE'
+      const notFoundRoleName = 'NOT_FOUND_ROLE';
 
       describe(`role ${role} and user ${firstUser.email}`, () => {
         it(`should ${
@@ -403,7 +405,9 @@ describe('Role (e2e)', () => {
 
           if (isStatusSuccess(expectedStatus)) {
             expect(response.body).toEqual(
-              expect.arrayContaining(roleTestSeeder.permissions.map((permission) => permission.name))
+              expect.arrayContaining(
+                roleTestSeeder.permissions.map((permission) => permission.name)
+              )
             );
           }
         });

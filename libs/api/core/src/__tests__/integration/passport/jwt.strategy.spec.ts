@@ -5,7 +5,6 @@ import { Strategy } from 'passport-jwt';
 import { RbacManager, Role } from '@owl-app/rbac-manager';
 import { PermissionReferType } from '@owl-app/lib-contracts';
 
-
 import { JwtStrategy } from '../../../passport/jwt.strategy';
 import { JWT_CONFIG_PROVIDER, JwtConfig } from '../../../config/jwt';
 import { IJwtTokenService } from '../../../passport/jwt-token.interface';
@@ -25,7 +24,7 @@ describe('JwtStrategy', () => {
       cookie: {
         domain: 'testDomain',
         http_only: true,
-        secure: true
+        secure: true,
       },
       refreshTokenSecret: 'testRefreshSecret',
       refreshTokenExpirationTime: '1d',

@@ -52,12 +52,15 @@ describe('getPaginatedQueryServiceToken', () => {
 
     it('should handle anonymous class', () => {
       const AnonymousClass = class {};
-      expect(getPaginatedQueryServiceToken(AnonymousClass)).toBe('AnonymousClassPaginatedQueryService');
+      expect(getPaginatedQueryServiceToken(AnonymousClass)).toBe(
+        'AnonymousClassPaginatedQueryService'
+      );
     });
 
-  it('should reject with error', async () =>
-    expect(() => getPaginatedQueryServiceToken(class {})).toThrow('Anonymous class is not supported')
-  );
+    it('should reject with error', async () =>
+      expect(() => getPaginatedQueryServiceToken(class {})).toThrow(
+        'Anonymous class is not supported'
+      ));
 
     it('should handle EntitySchema with empty name', () => {
       const schema = new EntitySchema({

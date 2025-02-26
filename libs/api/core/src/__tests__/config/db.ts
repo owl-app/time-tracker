@@ -9,13 +9,8 @@ export function getDbConfig(): SqliteConnectionOptions {
     type: 'sqlite',
     database: ':memory:',
     dropSchema: true,
-    entities: [
-      TestSimpleEntity,
-      TestBaseEntity,
-      TestBaseRelation,
-      TenantEntity,
-    ],
+    entities: [TestSimpleEntity, TestBaseEntity, TestBaseRelation, TenantEntity],
     synchronize: true,
     logging: false,
-  }
+  };
 }

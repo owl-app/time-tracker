@@ -39,7 +39,7 @@ describe('ErrorHandlersFilter', () => {
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore The 'logger' property is private but we want to avoid showing useless error logs
-    BaseExceptionFilter.logger.error = () => {}
+    BaseExceptionFilter.logger.error = () => {};
   });
 
   describe('catch', () => {

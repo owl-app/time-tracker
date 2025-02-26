@@ -1,8 +1,4 @@
-import {
-  AvalilableCollections,
-  CrudActions,
-  RolesEnum,
-} from '@owl-app/lib-contracts';
+import { AvalilableCollections, CrudActions, RolesEnum } from '@owl-app/lib-contracts';
 
 import { RequestContextService } from '../../../context/app-request-context';
 import { checkPermissionToRoute, roleHasPermission } from '../../../utils/check-permission';

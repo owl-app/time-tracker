@@ -25,13 +25,9 @@ export default class TestRoleSeeder implements Seeder {
       }))
     );
 
-    roles.push(
-      ...(await userFactory.saveMany(1))
-    );
+    roles.push(...(await userFactory.saveMany(1)));
 
-    roles.push(
-      ...(await userFactory.saveMany(1))
-    );
+    roles.push(...(await userFactory.saveMany(1)));
 
     return roles;
   }

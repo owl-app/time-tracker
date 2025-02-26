@@ -6,7 +6,7 @@ import { ValidationErrorException } from '../../../validation/validation-error.e
 
 describe('ValibotValidationPipe', () => {
   let pipe: ValibotValidationPipe;
-  const schema =  v.object({
+  const schema = v.object({
     name: v.optional(v.pipe(v.string(), v.nonEmpty('Field is required')), ''),
   });
 

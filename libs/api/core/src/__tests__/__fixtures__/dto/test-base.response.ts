@@ -1,7 +1,6 @@
-import { Exclude } from "class-transformer";
+import { Exclude } from 'class-transformer';
 
 export class TestBaseResponse {
-
   testEntityPk: string;
 
   stringType: string;
@@ -14,5 +13,4 @@ export class TestBaseResponse {
 
   @Exclude()
   archived: boolean;
-
 }

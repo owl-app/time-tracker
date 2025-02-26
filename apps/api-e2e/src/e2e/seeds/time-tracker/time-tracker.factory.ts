@@ -5,7 +5,6 @@ import { TimeEntity } from '@owl-app/lib-api-module-time-tracker/domain/entity/t
 
 import { generateWithoutWords } from '../../../utils/unique';
 
-
 export default setSeederFactory(TimeEntitySchema, (faker, meta: { unique: string }) => {
   const time = new TimeEntity();
 

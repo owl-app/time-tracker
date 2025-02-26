@@ -38,17 +38,19 @@ describe('RoutePermissionGuard', () => {
 
   it('should return true when user has required route permissions', () => {
     (isPublicRoute as jest.Mock).mockReturnValue(false);
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue([authUserData.permissions.routes[0]]);
+    jest
+      .spyOn(reflector, 'getAllAndOverride')
+      .mockReturnValue([authUserData.permissions.routes[0]]);
 
     (mockContext.switchToHttp().getRequest as jest.Mock).mockReturnValue({ user: authUserData });
 
     const result = guard.canActivate(mockContext);
 
     expect(result).toBe(true);
-    expect(reflector.getAllAndOverride).toHaveBeenCalledWith(
-      ROUTE_PERMISSIONS_KEY,
-      [mockContext.getHandler(), mockContext.getClass()],
-    );
+    expect(reflector.getAllAndOverride).toHaveBeenCalledWith(ROUTE_PERMISSIONS_KEY, [
+      mockContext.getHandler(),
+      mockContext.getClass(),
+    ]);
   });
 
   it('should return false when user does not have required route permissions', () => {

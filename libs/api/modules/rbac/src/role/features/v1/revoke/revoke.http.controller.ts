@@ -45,7 +45,7 @@ export class RevokeController {
 
     await Promise.all(
       items.map(async (item: string) => {
-        if (!await this.rbacManager.hasChild(name, item)) {
+        if (!(await this.rbacManager.hasChild(name, item))) {
           errors.push(`Role ${name} does not have child ${item}`);
         }
       })

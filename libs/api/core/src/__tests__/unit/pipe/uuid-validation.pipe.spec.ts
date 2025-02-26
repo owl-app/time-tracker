@@ -32,7 +32,9 @@ describe('UUIDValidationPipe', () => {
     (isUUID as jest.Mock).mockReturnValue(false);
 
     expect(() => pipe.transform('invalid-uuid')).toThrow(NotAcceptableException);
-    expect(() => pipe.transform('invalid-uuid')).toThrow('Validation failed (valid uuid is expected)');
+    expect(() => pipe.transform('invalid-uuid')).toThrow(
+      'Validation failed (valid uuid is expected)'
+    );
   });
 
   it('should return the value if it is a valid UUID', () => {

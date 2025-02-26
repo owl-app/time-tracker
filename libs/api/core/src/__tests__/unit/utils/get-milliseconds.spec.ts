@@ -32,4 +32,4 @@ describe('#utils', () => {
       expect(getMilliseconds('invalid', 'fallback')).toBe('fallback');
     });
   });
-})
+});

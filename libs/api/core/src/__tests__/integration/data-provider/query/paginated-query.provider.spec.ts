@@ -14,9 +14,7 @@ import { getDbConfig } from '../../../config/db';
 import TestEntitySeeder from '../../../seeds/test-entity.seed';
 import TenantSeeder from '../../../seeds/tenant.seed';
 import { DatabaseModule } from '../../../../database/database.module';
-import {
-  TEST_BASE_ENTITIES_CREATED,
-} from '../../../seeds/data/tes-base-entity.data';
+import { TEST_BASE_ENTITIES_CREATED } from '../../../seeds/data/tes-base-entity.data';
 import { AppNestjsQueryTypeOrmModule } from '../../../../query/module';
 import { ListFilterBuilder } from '../../../__fixtures__/data-provider/list-filter.builder';
 import { getPaginatedQueryServiceToken } from '../../../../data-provider/query/decorators/helpers';
@@ -26,10 +24,7 @@ import { DataProvider, SortDirection } from '../../../../data-provider/data.prov
 import { AppAssemblerQueryService } from '../../../../query/core/services/app-assembler-query.service';
 import { TestBaseAssembler } from '../../../__fixtures__/assembler/test-base.assembler';
 import { PAGINATION_CONFIG_NAME } from '../../../../config';
-import {
-  FilterStringQuery,
-  StringFilter,
-} from '../../../../data-provider/query/filters/string';
+import { FilterStringQuery, StringFilter } from '../../../../data-provider/query/filters/string';
 
 describe('PaginatedQueryProvider', () => {
   let moduleRef: TestingModule;

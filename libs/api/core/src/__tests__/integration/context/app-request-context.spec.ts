@@ -7,10 +7,10 @@ describe('RequestContextService', () => {
   let mockRequestContext: AppRequestContext;
 
   const getEntityManagerMock = async (): Promise<EntityManager> => {
-    const manager = new EntityManager(new DataSource(getDbConfig()))
+    const manager = new EntityManager(new DataSource(getDbConfig()));
 
-    return manager
-  }
+    return manager;
+  };
 
   beforeEach(() => {
     mockRequestContext = new AppRequestContext();
@@ -81,7 +81,8 @@ describe('RequestContextService', () => {
         permissions: {
           routes: ['string'],
           fields: ['string'],
-      }};
+        },
+      };
 
       jest.spyOn(RequestContextService, 'getContext').mockReturnValue(mockRequestContext);
 
@@ -110,7 +111,8 @@ describe('RequestContextService', () => {
         permissions: {
           routes: ['string'],
           fields: ['string'],
-      }};
+        },
+      };
 
       jest.spyOn(RequestContextService, 'getContext').mockReturnValue(mockRequestContext);
 

@@ -1,8 +1,4 @@
-import {
-  AbstractRepository,
-  EntitySchema,
-  Repository,
-} from 'typeorm';
+import { AbstractRepository, EntitySchema, Repository } from 'typeorm';
 import { getCustomRepositoryToken, getDataSourcePrefix } from '@nestjs/typeorm';
 import { CircularDependencyException } from '@nestjs/core/errors/exceptions/circular-dependency.exception';
 
@@ -45,7 +41,7 @@ describe('TypeOrm', () => {
     });
 
     it('should return the custom repository token when entity is an EntitySchema', () => {
-      const entitySchema = new EntitySchema<{ name: string; }>({
+      const entitySchema = new EntitySchema<{ name: string }>({
         name: 'TestEntity',
         columns: {
           name: {

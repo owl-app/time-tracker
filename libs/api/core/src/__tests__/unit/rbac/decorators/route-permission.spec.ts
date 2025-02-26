@@ -2,7 +2,10 @@ import { SetMetadata } from '@nestjs/common';
 
 import { PermissionReferType } from '@owl-app/lib-contracts';
 
-import { RoutePermissions, ROUTE_PERMISSIONS_KEY } from '../../../../rbac/decorators/route-permission';
+import {
+  RoutePermissions,
+  ROUTE_PERMISSIONS_KEY,
+} from '../../../../rbac/decorators/route-permission';
 
 jest.mock('@nestjs/common', () => ({
   ...jest.requireActual('@nestjs/common'),
@@ -21,10 +24,9 @@ describe('RoutePermissions', () => {
     const action = 'read';
     RoutePermissions(collection, action);
 
-    expect(mockSetMetadata).toHaveBeenCalledWith(
-      ROUTE_PERMISSIONS_KEY,
-      [`${PermissionReferType.ROUTE.toUpperCase()}_${collection.toUpperCase()}_${action.toUpperCase()}`],
-    );
+    expect(mockSetMetadata).toHaveBeenCalledWith(ROUTE_PERMISSIONS_KEY, [
+      `${PermissionReferType.ROUTE.toUpperCase()}_${collection.toUpperCase()}_${action.toUpperCase()}`,
+    ]);
   });
 
   it('should set metadata with multiple actions', () => {
@@ -35,7 +37,8 @@ describe('RoutePermissions', () => {
     expect(mockSetMetadata).toHaveBeenCalledWith(
       ROUTE_PERMISSIONS_KEY,
       actions.map(
-        (actionName) => `${PermissionReferType.ROUTE.toUpperCase()}_${collection.toUpperCase()}_${actionName.toUpperCase()}`
+        (actionName) =>
+          `${PermissionReferType.ROUTE.toUpperCase()}_${collection.toUpperCase()}_${actionName.toUpperCase()}`
       )
     );
   });

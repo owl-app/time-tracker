@@ -23,7 +23,10 @@ export function getCrudPermissions(collectionName: string = null): Permission[] 
   return permissions;
 }
 
-export function getPermissionsByCollection<T extends Record<string, string>>(collection: string, available: T): Permission[] {
+export function getPermissionsByCollection<T extends Record<string, string>>(
+  collection: string,
+  available: T
+): Permission[] {
   const permissions: Permission[] = [];
 
   Object.values(available).forEach((valueAction) => {

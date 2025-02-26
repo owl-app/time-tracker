@@ -5,7 +5,7 @@ import { AppAssemblerQueryService } from '../../../../../query/core/services/app
 
 import { TEST_BASE_ENTITIES_CREATED } from '../../../../seeds/data/tes-base-entity.data';
 import { TestBaseResponse } from '../../../../__fixtures__/dto/test-base.response';
-import { TestBaseAssembler } from '../../../../__fixtures__/assembler/test-base.assembler'
+import { TestBaseAssembler } from '../../../../__fixtures__/assembler/test-base.assembler';
 import { TestBaseEntity } from '../../../../__fixtures__/test-base.entity';
 
 describe('AppAssemblerQueryService', () => {
@@ -28,20 +28,20 @@ describe('AppAssemblerQueryService', () => {
       updateWithRelations: jest.fn(),
     };
     assembler = new TestBaseAssembler(TestBaseResponse, TestBaseEntity);
-    service = new AppAssemblerQueryService<any, any>(
-      assembler,
-      mockQueryService as any
+    service = new AppAssemblerQueryService<any, any>(assembler, mockQueryService as any);
+    entity = plainToClass(
+      TestBaseEntity,
+      omit(TEST_BASE_ENTITIES_CREATED[0], 'tenant', 'testBaseRelations')
     );
-    entity = plainToClass(TestBaseEntity, omit(TEST_BASE_ENTITIES_CREATED[0], 'tenant', 'testBaseRelations'));
-    dto =  plainToClass(TestBaseResponse, instanceToPlain(entity));
+    dto = plainToClass(TestBaseResponse, instanceToPlain(entity));
   });
 
   it('query', async () => {
-      mockQueryService.query.mockResolvedValue([entity]);
+    mockQueryService.query.mockResolvedValue([entity]);
 
-      const result = await service.query({});
+    const result = await service.query({});
 
-      expect(result).toStrictEqual([dto]);
+    expect(result).toStrictEqual([dto]);
   });
 
   it('queryOne', async () => {
@@ -53,20 +53,20 @@ describe('AppAssemblerQueryService', () => {
   });
 
   it('createWithRelations', async () => {
-      const inputDto = instanceToInstance(dto);
-      inputDto.archived = false;
+    const inputDto = instanceToInstance(dto);
+    inputDto.archived = false;
 
-      mockQueryService.createWithRelations.mockResolvedValue(entity);
+    mockQueryService.createWithRelations.mockResolvedValue(entity);
 
-      const result = await service.createWithRelations(inputDto);
+    const result = await service.createWithRelations(inputDto);
 
-      expect(mockQueryService.createWithRelations).toHaveBeenCalledWith(
-        omit(entity, 'archived'),
-        undefined,
-        undefined
-      );
+    expect(mockQueryService.createWithRelations).toHaveBeenCalledWith(
+      omit(entity, 'archived'),
+      undefined,
+      undefined
+    );
 
-      expect(result).toStrictEqual(dto);
+    expect(result).toStrictEqual(dto);
   });
 
   it('updateWithRelations', async () => {
@@ -85,4 +85,4 @@ describe('AppAssemblerQueryService', () => {
 
     expect(result).toStrictEqual(dto);
   });
-})
+});

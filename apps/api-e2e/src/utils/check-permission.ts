@@ -32,4 +32,4 @@ export const hasPermissionToAllRoles = (role: RolesEnum): boolean => {
   }
 
   return false;
-}
+};

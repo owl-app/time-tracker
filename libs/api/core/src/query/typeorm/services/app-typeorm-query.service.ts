@@ -196,7 +196,7 @@ export class AppTypeOrmQueryService<Entity>
     let entity: Entity = null;
 
     if (typeof id === 'object') {
-      entity = (await this.queryOne({ filter: id }, opts));
+      entity = await this.queryOne({ filter: id }, opts);
     } else {
       entity = await this.getById(id, opts);
     }

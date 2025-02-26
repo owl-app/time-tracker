@@ -33,7 +33,9 @@ export class AppAssemblerQueryService<
   }
 
   queryOne(query: Query<DTO>, opts?: QueryOptions): Promise<DTO> {
-    return this.assembler.convertAsyncToDTO(this.queryService.queryOne(this.assembler.convertQuery(query), opts));
+    return this.assembler.convertAsyncToDTO(
+      this.queryService.queryOne(this.assembler.convertQuery(query), opts)
+    );
   }
 
   async createWithRelations(item: C, filter?: Filter<DTO>, opts?: QueryOptions): Promise<DTO> {

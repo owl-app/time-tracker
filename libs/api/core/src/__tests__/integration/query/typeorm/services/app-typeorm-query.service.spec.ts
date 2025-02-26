@@ -678,7 +678,7 @@ describe('AppTypeOrmQueryService', () => {
   });
 
   describe('#updateWithRelations', () => {
-    transactionSupport('updateWithRelations',  TEST_SIMPLE_ENTITIES_CREATED[0].testEntityPk, {
+    transactionSupport('updateWithRelations', TEST_SIMPLE_ENTITIES_CREATED[0].testEntityPk, {
       stringType: 'updated',
     });
   });

@@ -1,7 +1,6 @@
-import { PUBLIC_ROUTE_KEY, Public } from "../../../metadata/route";
+import { PUBLIC_ROUTE_KEY, Public } from '../../../metadata/route';
 
 describe('Public Decorator', () => {
-
   @Public()
   class Test {}
 

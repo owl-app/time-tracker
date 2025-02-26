@@ -12,7 +12,7 @@ import { extractJWT } from '../extract-jwt';
 export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
   constructor(
     @Inject(JWT_CONFIG_PROVIDER)
-    jwtConfig: JwtConfig,
+    jwtConfig: JwtConfig
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([

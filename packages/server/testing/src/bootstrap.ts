@@ -36,7 +36,9 @@ export interface BootstrapOptions {
   providers?: Provider[];
 }
 
-export async function bootstrap(options: BootstrapOptions): Promise<[INestApplication, SeederRegistry]> {
+export async function bootstrap(
+  options: BootstrapOptions
+): Promise<[INestApplication, SeederRegistry]> {
   await dbInitializer(options.db);
 
   const moduleRef = await Test.createTestingModule({

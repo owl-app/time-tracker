@@ -261,7 +261,9 @@ describe('Client (e2e)', () => {
 
           if (isStatusSuccess(response.status)) {
             if (hasPermissionAnotherTenant(role)) {
-              const resultSeed = testServer.seederRegistry.getResultSeed<Client[]>(TestClientSeeder.name);
+              const resultSeed = testServer.seederRegistry.getResultSeed<Client[]>(
+                TestClientSeeder.name
+              );
               const count = resultSeed.length + testData.createdAll.length;
 
               expect(response.body).toHaveProperty('metadata.total', count);
@@ -298,7 +300,9 @@ describe('Client (e2e)', () => {
 
           if (isStatusSuccess(response.status)) {
             if (hasPermissionAnotherTenant(role)) {
-              const resultSeed = testServer.seederRegistry.getResultSeed<Client[]>(TestClientSeeder.name);
+              const resultSeed = testServer.seederRegistry.getResultSeed<Client[]>(
+                TestClientSeeder.name
+              );
               const count = resultSeed.length + testData.createdAll.length;
 
               expect(response.body).toHaveProperty('metadata.total', count);
@@ -530,7 +534,9 @@ describe('Client (e2e)', () => {
 
                 testData.changedArchived.push(project.client.id);
 
-                resultSeed = testServer.seederRegistry.getResultSeed<Project[]>(TestProjectSeeder.name);
+                resultSeed = testServer.seederRegistry.getResultSeed<Project[]>(
+                  TestProjectSeeder.name
+                );
 
                 if (withProjects) {
                   resultSeedCountProjectsActive = 0;
@@ -594,7 +600,9 @@ describe('Client (e2e)', () => {
 
                   testData.changedArchived.push(project.client.id);
 
-                  resultSeed = testServer.seederRegistry.getResultSeed<Project[]>(TestProjectSeeder.name);
+                  resultSeed = testServer.seederRegistry.getResultSeed<Project[]>(
+                    TestProjectSeeder.name
+                  );
 
                   if (withProjects) {
                     resultSeedCountProjectsActive = 0;
@@ -672,7 +680,9 @@ describe('Client (e2e)', () => {
 
                 testData.changedArchived.push(project.client.id);
 
-                resultSeed = testServer.seederRegistry.getResultSeed<Project[]>(TestProjectSeeder.name);
+                resultSeed = testServer.seederRegistry.getResultSeed<Project[]>(
+                  TestProjectSeeder.name
+                );
 
                 if (withProjects) {
                   resultSeedCountProjectsActive = resultSeed.filter(
@@ -736,7 +746,9 @@ describe('Client (e2e)', () => {
 
                   testData.changedArchived.push(project.client.id);
 
-                  resultSeed = testServer.seederRegistry.getResultSeed<Project[]>(TestProjectSeeder.name);
+                  resultSeed = testServer.seederRegistry.getResultSeed<Project[]>(
+                    TestProjectSeeder.name
+                  );
 
                   if (withProjects) {
                     resultSeedCountProjectsActive = resultSeed.filter(

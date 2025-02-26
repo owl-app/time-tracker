@@ -50,8 +50,8 @@ export class DefaultArchiveService<
 
   getPrimaryKey(): string {
     const { metadata } = this.repository;
-    const primaryKeys = metadata.primaryColumns.map(col => col.propertyName);
+    const primaryKeys = metadata.primaryColumns.map((col) => col.propertyName);
 
     return primaryKeys.shift();
-}
+  }
 }
