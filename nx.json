@@ -46,9 +46,12 @@
       }
     },
     {
-      "plugin": "@nx/jest/plugin",
+      "plugin": "./tools/nx-plugins/skip-jest-plugin.ts",
       "options": {
-        "targetName": "test"
+        "targetName": "test",
+        "skipProjects": [
+          "api-e2e"
+        ]
       }
     },
     {

@@ -4,9 +4,6 @@
   "implicitDependencies": ["api"],
   "projectType": "application",
   "targets": {
-    "test": {
-      "executor": "nx:noop"
-    },
     "e2e": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
