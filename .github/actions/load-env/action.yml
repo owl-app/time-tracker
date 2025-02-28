@@ -1,0 +1,17 @@
+name: 'Load environment variables'
+description: 'Load file into the environment variables'
+
+inputs:
+  path:
+    description: 'Path to the env file'
+    required: false
+    default: '.github/env'
+
+runs:
+  using: 'composite'
+
+  steps:
+    - name: ⚙️ Load file
+      shell: bash
+      run: cat ${{ inputs.path }} >> $GITHUB_ENV
+
