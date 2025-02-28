@@ -4,9 +4,7 @@ import { RequestContextService } from '../../../context/app-request-context';
 
 describe('DomainEvent', () => {
   beforeEach(() => {
-    jest
-      .spyOn(RequestContextService, 'getRequestId')
-      .mockReturnValue('mock-request-id');
+    jest.spyOn(RequestContextService, 'getRequestId').mockReturnValue('mock-request-id');
   });
 
   afterEach(() => {
