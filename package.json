@@ -171,9 +171,9 @@
   "nx": {
     "includedScripts": []
   },
+  "packageManager": "yarn@4.6.0",
   "workspaces": [
     "packages/common/config/tsconfig",
     "packages/common/config/eslint-config-custom"
-  ],
-  "packageManager": "yarn@4.6.0"
+  ]
 }
