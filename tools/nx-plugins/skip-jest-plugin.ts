@@ -1,36 +1,65 @@
-import {
-  CreateNodes,
-  joinPathFragments,
-  ProjectConfiguration,
-  readJsonFile,
-} from '@nx/devkit';
-import { dirname, join } from 'node:path';
-import {
-  JestPluginOptions,
-  createNodes as createJestNodes,
-} from '@nx/jest/plugin';
 import { readdirSync } from 'fs';
+import { dirname, join } from 'path';
 
-export const createNodes: CreateNodes<
-  JestPluginOptions & { skipProjects: string[] }
-> = [
-  createJestNodes[0],
-  async (configFilePath, options, context) => {
-    const projectRoot = dirname(configFilePath);
+import { CreateNodesV2, joinPathFragments, ProjectConfiguration, readJsonFile } from '@nx/devkit';
+import { JestPluginOptions, createNodesV2 as createJestNodesV2 } from '@nx/jest/plugin';
 
-    const siblingFiles = readdirSync(join(context.workspaceRoot, projectRoot));
-    if (!siblingFiles.includes('project.json')) {
-      return {};
+export const createNodesV2: CreateNodesV2<JestPluginOptions & { skipProjects: string[] }> = [
+  createJestNodesV2[0],
+  async (allConfigFiles, options, context) => {
+    const configFiles: string[] = [];
+    const errors: Array<[file: string, error: Error]> = [];
+
+    await Promise.all(
+      allConfigFiles.map(async (file) => {
+        try {
+          const projectRoot = dirname(file);
+          const siblingFiles = readdirSync(join(context.workspaceRoot, projectRoot));
+
+          if (siblingFiles.includes('project.json')) {
+            const path = joinPathFragments(projectRoot, 'project.json');
+            const projectJson = readJsonFile<ProjectConfiguration>(path);
+            const projectName = projectJson.name ?? '';
+
+            if (!options?.skipProjects.includes(projectName)) {
+              configFiles.push(file);
+            }
+          }
+        } catch (e) {
+          errors.push([file, e] as const);
+        }
+      })
+    );
+
+    if (errors.length > 0) {
+      throw new Error(
+        `Failed to read the following configuration files:\n
+        ${errors.map(([file, error]) => `${file}: ${error.message}`).join('\n')}`
+      );
     }
 
-    const path = joinPathFragments(projectRoot, 'project.json');
-    const projectJson = readJsonFile<ProjectConfiguration>(path);
-    const projectName = projectJson.name;
+    // Exclude by projectRoot
+    //
+    // const nodesResult = await createNodesFromFiles(createJestNodesV2[1], files, options, context);
 
-    if (projectName && options?.skipProjects.includes(projectName)) {
-      return {};
-    }
+    // nodesResult.map((nodeResult, index) => {
+    //   if (nodeResult[1]?.projects !== undefined) {
+    //     const projects: Record<string, Optional<ProjectConfiguration, 'root'>> = {};
 
-    return createJestNodes[1](configFilePath, options, context);
+    //     Object.keys(nodeResult[1].projects).forEach(function (key) {
+    //       const project = nodeResult[1].projects ? nodeResult[1].projects[key] : undefined;
+
+    //       if (project !== undefined && !options?.skipProjects.includes(project.name ?? '')) {
+    //         projects[key] = project;
+    //       }
+    //     });
+
+    //     nodesResult[index][1].projects = projects;
+    //   }
+    // });
+
+    // return nodesResult;
+
+    return await createJestNodesV2[1](configFiles, options, context);
   },
 ];
