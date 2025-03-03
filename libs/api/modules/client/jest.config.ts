@@ -1,5 +1,5 @@
 export default {
-  displayName: 'client',
+  displayName: '@owl-app/lib-api-module-client',
   preset: '../../../../jest.preset.js',
   testEnvironment: 'node',
   transform: {
