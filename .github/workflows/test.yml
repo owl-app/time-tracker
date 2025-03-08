@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: build
+    name: Build Api & App
     runs-on: ubuntu-latest
     strategy:
       matrix:
