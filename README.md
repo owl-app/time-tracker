@@ -38,45 +38,6 @@ Timetracker allows for efficient time management and task tracking within a team
    yarn start
    ```
 
-## Usage
-
-### Commands
-
-- **Publish package**:
-
-  ```bash
-  npx nx run @owl-app/registry-nestjs:publish --version=0.0.1 --tag=0.0.1
-  ```
-
-- **Generate package**:
-
-  ```bash
-  npx nx generate @nx/js:library @owl-app/nestjs-query-core --directory=packages/query/core --publishable --importPath=@owl-app/nestjs-query-core
-  ```
-
-- **Generate library**:
-
-  ```bash
-  npx nx g @nx/nest:library --directory=libs/api/building-blocks --buildable=true
-  ```
-
-- **Build**:
-
-  ```bash
-  npx nx build @owl-app/nestjs-query-core --skip-nx-cache
-  ```
-
-- **APP**:
-
-  ```bash
-  yarn nx g @nx/vue:lib @owl-app/lib-app-module-rbac --directory=libs/app/modules/rbac
-  ```
-
-- **PM2**:
-  ```bash
-  pm2 start npm --name "timetracker" -- run start:build
-  ```
-
 ## Contributing
 
 If you wish to contribute to the project, please report issues and propose enhancements through [Issues](https://github.com/owl-app/timetracker/issues).
