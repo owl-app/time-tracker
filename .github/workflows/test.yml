@@ -27,24 +27,23 @@ jobs:
         run: |
           yarn nx build api
           yarn nx build app
-  # unit-tests:
-  #   name: unit tests
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       node: [ 22.x ]
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Use Node.js ${{ matrix.node }}
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: ${{ matrix.node }}
-  #     - name: Install Yarn
-  #       run: npm install -g yarn
-  #     - name: Install dependencies
-  #       run: yarn install -W
-  #     - name: Unit tests
-  #       run: npm run test
+  tests:
+    name: '[Tests] Unit, functional, integration'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22.x]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install yarn
+        uses: ./.github/actions/yarn-nm-install
+      - name: Run all tests
+        run: yarn nx run-many --target=test --all
   e2e-tests:
     name: '[E2e][Api] Tests'
     runs-on: ubuntu-latest
@@ -58,6 +57,8 @@ jobs:
           - 3307:3306
         options: >-
           --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+
     strategy:
       fail-fast: false
       matrix:
@@ -82,4 +83,4 @@ jobs:
           DB_PASS: password
           DB_TIMEZONE: Z
           DB_SYNCHRONIZE: true
-        run: yarn nx run api-e2e:e2e --verbose
+        run: yarn nx run api-e2e:e2e

@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "test": "nx test",
     "workspace:compile-executors": "rm -rf ./tools/executors/**/*.js ./tools/executors/**/*.js.map && npx tsc -p ./tools/executors/tsconfig.executors.json",
     "start": "concurrently --raw --kill-others \"yarn start:api\" \"yarn start:app\"",
     "build": "concurrently \"yarn build:api\" \"yarn build:app\"",
@@ -17,6 +16,7 @@
     "format:check": "npx prettier . --check",
     "format:write": "npx prettier . --write",
     "data:sync": "npx nx build:sync api && npx nx data:sync api",
+    "test": "npx nx run-many --target=test --all",
     "test:api": "cross-env NODE_ENV=development env-cmd -f .env.development npx nx run api-e2e:e2e"
   },
   "engines": {

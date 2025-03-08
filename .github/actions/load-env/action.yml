@@ -14,4 +14,3 @@ runs:
     - name: ⚙️ Load file
       shell: bash
       run: cat ${{ inputs.path }} >> $GITHUB_ENV
-

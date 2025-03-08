@@ -32,6 +32,11 @@
         "{projectRoot}/tsconfig.eslint.json"
       ]
     },
+    "test": {
+      "options": {
+        "args": ["--passWithNoTests=true"]
+      }
+    },
     "@nx/js:tsc": {
       "cache": true,
       "dependsOn": ["^build"],
@@ -49,9 +54,7 @@
       "plugin": "./tools/nx-plugins/skip-jest-plugin.ts",
       "options": {
         "targetName": "test",
-        "skipProjects": [
-          "api-e2e"
-        ]
+        "skipProjects": ["api-e2e"]
       }
     },
     {
