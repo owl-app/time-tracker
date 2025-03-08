@@ -28,7 +28,7 @@ jobs:
           yarn nx build api
           yarn nx build app
   tests:
-    name: '[Tests] Unit, functional, integration'
+    name: '[Tests] Run unit, functional, integration tests'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -45,7 +45,7 @@ jobs:
       - name: Run all tests
         run: yarn nx run-many --target=test --all
   e2e-tests:
-    name: '[E2e][Api] Tests'
+    name: '[E2e] Run e2e tests'
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -83,4 +83,4 @@ jobs:
           DB_PASS: password
           DB_TIMEZONE: Z
           DB_SYNCHRONIZE: true
-        run: yarn nx run api-e2e:e2e
+        run: yarn nx run-many --target=e2e --all
