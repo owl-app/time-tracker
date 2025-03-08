@@ -10,8 +10,12 @@
       "options": {
         "jestConfig": "{projectRoot}/jest.config.ts",
         "passWithNoTests": true,
-        "testTimeout": 20000,
-        "verbose": true
+        "testTimeout": 20000
+      },
+      "configurations": {
+        "ci": {
+          "verbose": true
+        }
       }
     }
   }
