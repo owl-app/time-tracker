@@ -1,4 +1,4 @@
-<p align="center">
+<p style="text-align: center;">
     <img src="https://raw.githubusercontent.com/owl-app/time-tracker/refs/heads/main/libs/app/core/src/assets/logo.webp" width="150px" alt="Owl logo" />
 </p>
 
@@ -33,10 +33,42 @@ Timetracker allows for efficient time management and task tracking within a team
    yarn install
    ```
 
-3. Start the application:
+3. Copy .env file for your development environment and set variables:
+
+   ```bash
+   cp .env .env.development
+   ```
+
+4. Run seeder to create default users:
+
+   ```bash
+   yarn data:sync --envFile .env.development
+   ```
+
+5. Start the application:
    ```bash
    yarn start
    ```
+
+6. Login:
+
+      Admin system:
+      ```bash
+      l: admin_system_1@example.com
+      p: test
+      ```
+
+      Admin company:
+      ```bash
+      l: admin_company_1@example.com
+      p: test
+      ```
+
+      User:
+      ```bash
+      l: user_1@example.com
+      p: test
+      ```
 
 ## Contributing
 
