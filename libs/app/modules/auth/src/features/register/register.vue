@@ -53,7 +53,7 @@
               :loading="userStore.loading"
               @click="
                 validate(true) &&
-                  register(data.value.email, data.value.passwordNew, data.value.passwordNewRepeat)
+                  register(data.ref.email, data.ref.passwordNew, data.ref.passwordNewRepeat)
               "
             >
               Start
