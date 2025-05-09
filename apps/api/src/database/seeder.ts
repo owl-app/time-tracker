@@ -1,6 +1,6 @@
 import chalk from 'chalk';
-import { DataSource } from 'typeorm';
-import { runSeeders } from 'typeorm-extension';
+import { DatabaseType, DataSource, DataSourceOptions } from 'typeorm';
+import { createDatabase, runSeeders } from 'typeorm-extension';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 
@@ -16,6 +16,8 @@ console.log(chalk.green('Running seeders...'));
 console.log(chalk.green(`Environment: ${process.env.APP_ENV} \n`));
 
 async function runSeeder() {
+  await createDatabaseIfNotExist();
+
   const app = await NestFactory.create(BootstrapModule);
   const dataSource = app.get(DataSource);
   const configService = app.get(ConfigService);
@@ -28,4 +30,20 @@ async function runSeeder() {
 
   await app.close();
 }
+
+async function createDatabaseIfNotExist() {
+  await createDatabase({
+    ifNotExist: true,
+    synchronize: true,
+    options: {
+      type: (process.env.DB_TYPE as DatabaseType) || 'mysql',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT, 10) || 3306,
+      database: process.env.DB_NAME,
+      username: process.env.DB_USER,
+      password: process.env.DB_PASS,
+    } as DataSourceOptions,
+  });
+}
+
 runSeeder();
