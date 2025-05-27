@@ -337,13 +337,15 @@ async function exportCsv(filters: Record<string, string | string[]>) {
                 >
                   <template #actions>
                     <va-divider vertical />
-                    <va-icon
-                      name="play_arrow"
-                      :size="44"
-                      class="material-symbols-outlined"
-                      aria-label="Update time"
-                      @click="() => timerCreateInline?.startTimer(time)"
-                    />
+                    <div @click="() => timerCreateInline?.startTimer(time)" style="cursor: pointer">
+                      <va-icon
+                        name="play_arrow"
+                        :size="44"
+                        class="material-symbols-outlined"
+                        aria-label="Update time"
+
+                      />
+                    </div>
                     <va-divider vertical />
                     <div class="flex items-center w-24">
                       <va-button
