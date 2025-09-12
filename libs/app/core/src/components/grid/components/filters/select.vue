@@ -177,13 +177,13 @@ function getOption(item: any) {
         v-for="v in valueArray"
         :class="`mr-0.5 mt-0.5 ${v?.archived ? 'line-through' : ''}`"
         :color="v.color ?? 'primary'"
-        :text="v.name"
+        :text="v[props.textBy]"
         :key="v"
       />
     </template>
     <template #option-content="{ option }">
       <div :class="(option as Archivable)?.archived ? 'line-through' : ''">
-        {{ option[props.textBy] }}
+        {{ option && typeof option === 'object' ? option[props.textBy] : '' }}
       </div>
     </template>
   </va-select>

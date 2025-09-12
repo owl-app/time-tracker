@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Transform, TransformFnParams } from 'class-transformer';
 
-import type { Tenant, Tag, User, Project } from '@owl-app/lib-contracts';
+import type { Tenant, Tag, Project, IUserResponse } from '@owl-app/lib-contracts';
 
 export class TimeResponse {
   @ApiProperty({ type: () => String })
@@ -23,9 +23,9 @@ export class TimeResponse {
   @ApiProperty({ type: () => [Object] })
   tags?: Tag[];
 
-  @Exclude()
-  tenant?: Tenant;
+  @ApiProperty({ type: () => [Object] })
+  user?: IUserResponse;
 
   @Exclude()
-  user?: User;
+  tenant?: Tenant;
 }

@@ -28,7 +28,8 @@ export const usePermissionsStore = defineStore({
       action: string,
       referType: PermissionReferType
     ) {
-      const permission = this.permissions.routes.find(
+      const mergedPermissions = [...this.permissions.routes, ...this.permissions.fields];
+      const permission = mergedPermissions.find(
         (permissionName) =>
           permissionName ===
           `${referType.toUpperCase()}_${collection.toUpperCase()}_${action.toUpperCase()}`

@@ -11,5 +11,7 @@ export class FilterTimeRequest {
 
   readonly tags?: string;
 
+  readonly users?: string;
+
   readonly date?: { start: string; end: string };
 }

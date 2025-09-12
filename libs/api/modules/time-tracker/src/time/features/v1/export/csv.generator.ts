@@ -14,6 +14,7 @@ export type TimeCsvRow = {
   date: string;
   duration: string;
   deurationDecimal: string;
+  user: string;
 };
 
 @Injectable()
@@ -29,16 +30,17 @@ export class CsvGenerator {
 
       return {
         description: item.description,
-        project: item.project.name,
-        tags: item.tags.map((tag) => tag.name).join(', '),
+        project: item?.project?.name,
+        tags: item.tags.map((tag) => tag?.name).join(', '),
         date: endDate.toFormat('dd-MM-yyyy'),
         duration: duration.toFormat('hh:mm:ss'),
         deurationDecimal: this.durationToDecimal(duration),
+        user: `${item?.user?.firstName} ${item?.user?.lastName}`
       };
     });
 
     const csvStream = format<TimeCsvRow, TimeCsvRow>({
-      headers: ['Opis', 'Projekt', 'Tagi', 'Data', 'Czas w godzinach (hh:mm:ss)', 'Czas w liczbie'],
+      headers: ['Opis', 'Projekt', 'Tagi', 'Data', 'Czas w godzinach (hh:mm:ss)', 'Czas w liczbie', 'Użytkownik'],
     }).transform((row: TimeCsvRow) => ({
       'Opis': row.description,
       'Projekt': row.project,
@@ -46,6 +48,7 @@ export class CsvGenerator {
       'Data': row.date,
       'Czas w godzinach (hh:mm:ss)': row.duration,
       'Czas w liczbie': row.deurationDecimal,
+      'Użytkownik': row.user
     }));
 
     csvStream.pipe(response);

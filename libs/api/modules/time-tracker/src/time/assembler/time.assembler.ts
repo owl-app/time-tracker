@@ -36,6 +36,15 @@ export class TimeAssembler extends ClassTransformerAssembler<TimeResponse, TimeE
       };
     }
 
+    if (entity.user) {
+      dto.user = {
+        id: entity.user.id,
+        email: entity.user.email,
+        firstName: entity.user.firstName,
+        lastName: entity.user.lastName
+      };
+    }
+
     return dto;
   }
 

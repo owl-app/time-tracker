@@ -159,6 +159,12 @@
           placeholder="00:00:00"
           v-if="!isManual"
         />
+        <template v-if="data.ref.user && hasFiledPermission(TimeFields.LIST_COLUMN_USER, AvalilableCollections.TIME)">
+          <va-divider vertical class="self-stretch" />
+          <div class="flex w-48">
+            {{  data.ref.user?.firstName }}<br />{{  data.ref.user?.lastName }}
+          </div>
+        </template>
       </template>
 
       <template #actions="{ save }">
@@ -193,11 +199,13 @@ import { useInputMask, createRegexMask } from 'vuestic-ui';
 import { useToast } from 'vuestic-ui/web-components';
 import { useLocalStorage } from '@vueuse/core';
 
-import type { Tag, Time, Project } from '@owl-app/lib-contracts';
+import type { Tag, Time, Project, IUserResponse } from '@owl-app/lib-contracts';
+import { AvalilableCollections, TimeFields } from '@owl-app/lib-contracts';
 
 import OwlForm from '@owl-app/lib-app-core/components/form/form.vue';
 import { useApi, useStores } from '@owl-app/lib-app-core/composables/use-system';
 import { DateInputModelValue } from 'vuestic-ui/dist/types/components/va-date-input/types';
+import { usePermissions } from '@owl-app/lib-app-core/composables/use-permissions';
 
 interface Props {
   url: string;
@@ -222,6 +230,7 @@ export type TimeFormData = {
     text?: string;
     color?: string;
   }[];
+  user?: IUserResponse | null
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -243,6 +252,7 @@ const { t } = useI18n();
 const { init: notify } = useToast();
 const { useTimeStore } = useStores();
 const timeStore = useTimeStore();
+const { hasFiledPermission } = usePermissions();
 
 let hasChangedScope = false;
 const now = DateTime.now().set({ second: 0, millisecond: 0.0 });
@@ -303,6 +313,7 @@ function parseDefaultValue(value?: Time): TimeFormData {
       timeSum: '00:00:00',
       project: null,
       tags: [],
+      user: null
     };
   }
 
@@ -325,6 +336,7 @@ function parseDefaultValue(value?: Time): TimeFormData {
     timeSum,
     project: value?.project || null,
     tags: value?.tags || [],
+    user: value?.user
   };
 }
 

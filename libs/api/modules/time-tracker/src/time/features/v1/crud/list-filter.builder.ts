@@ -1,8 +1,9 @@
 import { SelectQueryBuilder } from 'typeorm';
 
-import { Time } from '@owl-app/lib-contracts';
+import { AvalilableCollections, PermissionReferType, Time, TimeFields } from '@owl-app/lib-contracts';
 import { QueryFilterBuilder } from '@owl-app/lib-api-core/data-provider/query/query-filter.builder';
 import { Filter, SelectRelation } from '@owl-app/nestjs-query-core';
+import { RequestContextService } from '@owl-app/lib-api-core/context/app-request-context';
 
 import { FilterTimeRequest } from '../../../dto';
 
@@ -22,6 +23,10 @@ export class ListFilterBuilder extends QueryFilterBuilder<Time, FilterTimeReques
 
     if (data?.tags) {
       filters.push({ tags: { id: { in: data?.tags?.split(',') } } });
+    }
+
+    if (this.hasPermissionColumnUser() && data?.users) {
+      filters.push({ user: { id: { in: data?.users?.split(',') } } });
     }
 
     filters.push({ timeIntervalEnd: { isNot: null } });
@@ -48,9 +53,23 @@ export class ListFilterBuilder extends QueryFilterBuilder<Time, FilterTimeReques
       {
         name: 'project',
         query: {},
-      },
+      }
     ];
 
+    if (this.hasPermissionColumnUser()) {
+      relations.push({
+        name: 'user',
+        query: {},
+      })
+    }
+
     return relations;
+  }
+
+  private hasPermissionColumnUser(): boolean
+  {
+    const columnUserPsermission = `${PermissionReferType.FIELD}_${AvalilableCollections.TIME}_${TimeFields.LIST_COLUMN_USER}`;
+
+    return RequestContextService.getCurrentUser().permissions.fields.includes(columnUserPsermission.toLocaleUpperCase());
   }
 }

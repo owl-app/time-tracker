@@ -22,7 +22,14 @@ export class OwnerRelationFilter<Entity extends UserAware> implements FilterQuer
   }
 
   execute(qb: SelectQueryBuilder<Entity>): void {
-    qb.leftJoin(`${qb.alias}.user`, 'user');
+    if (!this.hasJoinedRelation(qb, 'user')) {
+      qb.leftJoin(`${qb.alias}.user`, 'user');
+    }
+
     qb.andWhere('user.id = :userId', { userId: RequestContextService.getCurrentUser().id });
+  }
+
+  private hasJoinedRelation(qb: SelectQueryBuilder<Entity>, relation: string) {
+    return qb.expressionMap.joinAttributes.some((join) => join.alias.name === relation);
   }
 }

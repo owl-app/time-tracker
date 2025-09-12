@@ -56,6 +56,10 @@ export enum TimeActions {
   EXPORT_CSV = 'EXPORT_CSV',
 }
 
+export enum TimeFields {
+  LIST_COLUMN_USER = 'LIST_COLUMN_USER'
+}
+
 export enum AvalilableRouteCollections {
   USER = 'User',
   CLIENT = 'Client',

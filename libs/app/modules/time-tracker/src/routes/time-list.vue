@@ -9,6 +9,8 @@ import {
   type Project,
   AvalilableCollections,
   TimeActions,
+  TimeFields,
+  User
 } from '@owl-app/lib-contracts';
 
 import { usePermissions } from '@owl-app/lib-app-core/composables/use-permissions';
@@ -29,7 +31,7 @@ type GroupedWeeksAndDaysItem = {
 type GroupedWeeksAndDays = Record<string, Record<string, GroupedWeeksAndDaysItem>>;
 
 const api = useApi();
-const { hasRoutePermission } = usePermissions(AvalilableCollections.TIME);
+const { hasRoutePermission, hasFiledPermission } = usePermissions(AvalilableCollections.TIME);
 
 const gridRef = ref<InstanceType<typeof Grid>>();
 const showDeleteModal = ref(false);
@@ -37,6 +39,7 @@ const deleteTime = ref<Time>();
 const deleteModal = ref<InstanceType<typeof DeleteModal>>();
 const timerCreateInline = ref<InstanceType<typeof CreateInline>>();
 const tags = ref<Tag[]>([]);
+const users = ref<{id:string, displayName:string}[]>([]);
 const projects = ref<Project[]>([]);
 const loadingData = ref(false);
 
@@ -59,10 +62,27 @@ async function loadProjects(): Promise<void> {
   projects.value = result?.data?.items;
 }
 
+async function loadUsers(): Promise<void> {
+  const result = await api.get('users?pageable=0');
+
+  users.value = result?.data?.items.map((user:User) => {
+    return {
+      id: user.id,
+      displayName: `${user.firstName} ${user.lastName}`
+    }
+  });
+}
+
 async function loadData(): Promise<void> {
   loadingData.value = true;
 
-  await Promise.all([loadTags(), loadProjects()]);
+  const pomises = [loadTags(), loadProjects()]
+
+  if (hasFiledPermission(TimeFields.LIST_COLUMN_USER, AvalilableCollections.TIME)) {
+    pomises.push(loadUsers());
+  }
+
+  await Promise.all(pomises);
 
   loadingData.value = false;
 }
@@ -166,7 +186,9 @@ function getProjectUrlFilter(clientFitler: string | undefined): string {
 
 async function exportCsv(filters: Record<string, string | string[]>) {
   const response = await api.get('times/export-csv', {
-    params: filters,
+    params: {
+      filters
+    },
     responseType: 'blob',
   });
 
@@ -203,10 +225,21 @@ async function exportCsv(filters: Record<string, string | string[]>) {
       </template>
     </create-inline>
 
-    <div class="mb-10" />
+    <div class="mb-5" />
 
     <grid ref="gridRef" :columns="columns" defaultSort="id" url="times" layout="custom">
       <template #content-filter="{ filters, changeFilter, removeFilter }">
+        <div
+          class="grid grid-cols-3 gap-2 grid-flow-col mb-5"
+        >
+          <div class="col-start-1 col-end-2">
+            <string-filter
+              :data="filters?.search"
+              :change-filter="changeFilter"
+              :remove-filter="removeFilter"
+            />
+          </div>
+        </div>
         <div
           class="grid grid-cols-16 gap-2 grid-flow-col"
           style="margin-left: auto; grid-auto-flow: column"
@@ -265,9 +298,18 @@ async function exportCsv(filters: Record<string, string | string[]>) {
               :remove-filter="removeFilter"
             />
           </div>
-          <div class="col-start-10 col-end-13">
-            <string-filter
-              :data="filters?.search"
+          <div class="col-start-10 col-end-13" v-if="hasFiledPermission(TimeFields.LIST_COLUMN_USER, AvalilableCollections.TIME)">
+            <select-filter
+              url="users?pageable=0"
+              label="Users"
+              name="users"
+              textBy="displayName"
+              trackBy="id"
+              :eagerLoading="true"
+              :loading="loadingData"
+              :options="users"
+              :data="filters?.users"
+              :clearable="true"
               :change-filter="changeFilter"
               :remove-filter="removeFilter"
             />
