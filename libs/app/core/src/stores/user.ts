@@ -24,6 +24,10 @@ export const useUserStore = defineStore({
       if (this.currentUser === null || 'share' in this.currentUser) return null;
       return userName(this.currentUser);
     },
+    email(): string | null {
+      if (this.currentUser === null || 'share' in this.currentUser) return null;
+      return this.currentUser.email;
+    },
     isAdmin(): boolean {
       return true;
       // return this.currentUser?.role?.admin_access === true || false;

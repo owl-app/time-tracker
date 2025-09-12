@@ -161,8 +161,10 @@
         />
         <template v-if="data.ref.user && hasFiledPermission(TimeFields.LIST_COLUMN_USER, AvalilableCollections.TIME)">
           <va-divider vertical class="self-stretch" />
-          <div class="flex w-48">
-            {{  data.ref.user?.firstName }}<br />{{  data.ref.user?.lastName }}
+          <div>
+            <va-button class="w-28 text-left justify-start rounded" size="small" :color="userStore.email === data.ref.user?.email ? 'info' : 'secondary'">
+              {{  data.ref.user?.firstName }} {{  data.ref.user?.lastName }}
+            </va-button>
           </div>
         </template>
       </template>
@@ -250,8 +252,9 @@ defineExpose({
 const api = useApi();
 const { t } = useI18n();
 const { init: notify } = useToast();
-const { useTimeStore } = useStores();
+const { useTimeStore, useUserStore } = useStores();
 const timeStore = useTimeStore();
+const userStore = useUserStore();
 const { hasFiledPermission } = usePermissions();
 
 let hasChangedScope = false;
