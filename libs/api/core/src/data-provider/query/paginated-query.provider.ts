@@ -44,7 +44,7 @@ export class PaginatedDataProvider<Entity, FiltersData>
 
       if (
         paginationQuery.limit &&
-        this.paginationConfig.availablePerPage.indexOf(paginationQuery.limit) !== -1
+        this.paginationConfig.availablePerPage.indexOf(Number(paginationQuery.limit)) !== -1
       ) {
         query.paging.limit = paginationQuery.limit;
       }
