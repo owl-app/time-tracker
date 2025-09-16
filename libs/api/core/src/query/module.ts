@@ -6,6 +6,7 @@ import { NestjsQueryCoreModule } from '@owl-app/nestjs-query-core';
 import { NestjsQueryTypeOrmModule } from '@owl-app/nestjs-query-typeorm';
 import { RegistryServiceModule } from '@owl-app/registry-nestjs';
 
+import BaseEntity from '../database/entity/base.entity';
 import { createPaginatedQueryServiceProvider } from '../data-provider/query/providers';
 import { PaginationConfigProvider } from '../config/pagination';
 import { TypeOrmModule } from '../typeorm/typeorm.module';
@@ -99,7 +100,7 @@ export class AppNestjsQueryTypeOrmModule {
                     name: SETTER_REGISTRY_TENANT,
                     services: {
                       tenant: TenantRelationSetter<TenantAware>,
-                      user: OwnerRelationSetter<UserAware>,
+                      user: OwnerRelationSetter<UserAware & BaseEntity>,
                     },
                   }),
                 ],

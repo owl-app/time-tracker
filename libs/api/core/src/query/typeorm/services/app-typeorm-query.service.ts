@@ -190,8 +190,6 @@ export class AppTypeOrmQueryService<Entity>
   ): Promise<Entity> {
     this.ensureIdIsNotPresent(update);
 
-    this.injectSetters(update);
-
     let entity: Entity = null;
 
     if (typeof id === 'object') {
@@ -199,6 +197,8 @@ export class AppTypeOrmQueryService<Entity>
     } else {
       entity = await this.getById(id, opts);
     }
+
+    this.injectSetters(entity as DeepPartial<Entity>);
 
     this.copyRegularColumn(entity, update);
 

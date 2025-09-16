@@ -8,9 +8,10 @@ import { RequestContextService } from '../../context/app-request-context';
 
 import { USER_ENTITY } from '../../entity-tokens';
 import { EntitySetter } from '../../registry/interfaces/entity-setter';
+import BaseEntity from '../../database/entity/base.entity';
 
 @Injectable()
-export class OwnerRelationSetter<Entity extends UserAware> implements EntitySetter<Entity> {
+export class OwnerRelationSetter<Entity extends UserAware & BaseEntity> implements EntitySetter<Entity> {
   constructor(readonly configService: ConfigService) {}
 
   supports(metadata: EntityMetadata): boolean {
@@ -20,9 +21,11 @@ export class OwnerRelationSetter<Entity extends UserAware> implements EntitySett
   execute<T extends DeepPartial<Entity>>(entityOrEntities: T | T[]): void {
     if (Array.isArray(entityOrEntities)) {
       entityOrEntities.forEach((entity) => {
-        entity.user = { id: RequestContextService.getCurrentUserId() };
+        if (entity.id === null) {
+          entity.user = { id: RequestContextService.getCurrentUserId() };
+        }
       });
-    } else {
+    } else if (entityOrEntities.id === null || entityOrEntities.id === undefined) {
       entityOrEntities.user = { id: RequestContextService.getCurrentUserId() };
     }
   }

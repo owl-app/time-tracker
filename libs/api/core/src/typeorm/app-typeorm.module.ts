@@ -9,6 +9,7 @@ import { AppTypeOrmOpts } from './types';
 import { DEFAULT_DATA_SOURCE_NAME } from '../contants';
 import { TypeOrmModule } from './typeorm.module';
 
+import BaseEntity from '../database/entity/base.entity';
 import { FILTER_REGISTRY_TENANT, SETTER_REGISTRY_TENANT } from '../registry/constants';
 import { TenantRelationFilter } from './filters/tenant-relation.filter';
 import { FilterQuery } from '../registry/interfaces/filter-query';
@@ -49,7 +50,7 @@ export class AppTypeOrmModule {
           name: SETTER_REGISTRY_TENANT,
           services: {
             tenant: TenantRelationSetter<TenantAware>,
-            user: OwnerRelationSetter<UserAware>,
+            user: OwnerRelationSetter<UserAware & BaseEntity>,
           },
         }),
         EventEmitter2,
